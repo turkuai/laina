@@ -19,7 +19,3 @@ Ohjelmassa on seuraavat toiminnallisuudet
 # Pohdittavaa
 - Mitä laitetyyppejä on? Toki saadaan lisättyä myöhemmin, mutta jonkinlainen lista. 
 - Halutaanko että laitteen sijainti on vapaa tekstikenttä vai tehdäänkö lista mahdollisista sijainneista? 
-
-
-
-
