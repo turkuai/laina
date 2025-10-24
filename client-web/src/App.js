@@ -1,5 +1,4 @@
 import logo from './logo.svg';
-import { Grid } from './components/grid';
 import './App.css';
 
 function App() {
