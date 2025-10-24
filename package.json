@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@yudiel/react-qr-scanner": "^2.4.1",
     "react-router-dom": "^7.9.4"
   }
 }
