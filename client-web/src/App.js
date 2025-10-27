@@ -14,6 +14,7 @@ const initialData = [
 ];
 
 export default function App() {
+  const { isAuthenticated } = useAuth();
   const [data, setData] = useState(initialData);
 
   const handleDataChange = (updatedData) => {
