@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import Grid from './components/Grid';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./components/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./components/Login";
+import Admin from "./components/Admin";
 
 const initialData = [
   { id: 1, name: 'Mikko', email: 'mikko@tai.fi', role: 'admin' },
@@ -10,6 +15,7 @@ const initialData = [
 
 export default function App() {
   const [data, setData] = useState(initialData);
+  const { isAuthenticated } = useAuth();
 
   const handleDataChange = (updatedData) => {
     console.log('Data updated:', updatedData);
@@ -28,6 +34,7 @@ export default function App() {
   };
 
   return (
+    <>
     <div style={{ padding: 24 }}>
       <Grid
         columns={['name', 'email', 'role']}
@@ -38,34 +45,24 @@ export default function App() {
         onDataChange={handleDataChange}
         onEditRow={handleEditRow}
         onDeleteRow={handleDeleteRow}
+        
       />
     </div>
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./components/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./components/Login";
-import Admin from "./components/Admin";
-// import NavBar from "./components/NavBar"; // optional
-
-export default function App() {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <>
-      {/* <NavBar />  // keep if you want a global nav */}
       <Routes>
-        <Route
-          path="/"
-          element={isAuthenticated ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />}
-        />
-        <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={isAuthenticated ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />}
+      />
+      <Route path="/login" element={<Login />} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="/admin" element={<Admin />} />
-        </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/admin" element={<Admin />} />
+      </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
-  );
-}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+    
+</>
+
+// import NavBar from "./components/NavBar"; // optional
+  ); };
