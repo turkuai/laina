@@ -5,7 +5,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // restore from storage
     return localStorage.getItem("isLoggedIn") === "true";
   });
 
@@ -16,8 +15,7 @@ export function AuthProvider({ children }) {
   const login = () => setIsAuthenticated(true);
   const logout = () => {
     setIsAuthenticated(false);
-    // optional: clear more keys if you store tokens
-    localStorage.removeItem("token");
+    localStorage.removeItem("token"); // if you ever store one
   };
 
   const value = useMemo(() => ({ isAuthenticated, login, logout }), [isAuthenticated]);
