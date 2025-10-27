@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import Grid from './components/Grid';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./components/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./components/Login";
+import Admin from "./components/Admin";
 
 const initialData = [
   { id: 1, name: 'Mikko', email: 'mikko@tai.fi', role: 'admin' },
@@ -9,6 +14,7 @@ const initialData = [
 ];
 
 export default function App() {
+  const { isAuthenticated } = useAuth();
   const [data, setData] = useState(initialData);
 
   const handleDataChange = (updatedData) => {
@@ -28,6 +34,7 @@ export default function App() {
   };
 
   return (
+    <>
     <div style={{ padding: 24 }}>
       <Grid
         columns={['name', 'email', 'role']}
@@ -40,19 +47,6 @@ export default function App() {
         onDeleteRow={handleDeleteRow}
       />
     </div>
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./components/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./components/Login";
-import Admin from "./components/Admin";
-// import NavBar from "./components/NavBar"; // optional
-
-export default function App() {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <>
-      {/* <NavBar />  // keep if you want a global nav */}
       <Routes>
         <Route
           path="/"
@@ -67,5 +61,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
+// import NavBar from "./components/NavBar"; // optional
+
   );
 }
