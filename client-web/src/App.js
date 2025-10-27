@@ -1,25 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import Grid from './components/Grid';
 
-function App() {
+const initialData = [
+  { id: 1, name: 'Mikko', email: 'mikko@tai.fi', role: 'admin' },
+  { id: 2, name: 'Ville', email: 'ville@tai.fi', role: 'student' },
+  { id: 3, name: 'Sanna', email: 'sanna@tai.fi', role: 'teacher' },
+  { id: 4, name: 'Aino', email: 'aino@tai.fi', role: 'viewer' },
+];
+
+export default function App() {
+  const [data, setData] = useState(initialData);
+
+  const handleDataChange = (updatedData) => {
+    console.log('Data updated:', updatedData);
+    setData(updatedData);
+  };
+
+  const handleEditRow = (row) => {
+    console.log('Edited row:', row);
+  };
+
+  const handleDeleteRow = (row) => {
+    if (window.confirm(`Are you sure you want to delete ${row.name}?`)) {
+      const updated = data.filter((r) => r.id !== row.id);
+      setData(updated);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ padding: 24 }}>
+      <Grid
+        columns={['name', 'email', 'role']}
+        data={data}
+        allowEditing={true}
+        pageSize={10}
+        height="450px"
+        onDataChange={handleDataChange}
+        onEditRow={handleEditRow}
+        onDeleteRow={handleDeleteRow}
+      />
     </div>
   );
 }
-
-export default App;
