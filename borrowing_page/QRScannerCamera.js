@@ -19,7 +19,7 @@ const QRScannerCamera = ({ onScan, onClose }) => {
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2"
+        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors"
       >
         <X className="w-6 h-6" />
       </button>
@@ -33,7 +33,7 @@ const QRScannerCamera = ({ onScan, onClose }) => {
             facingMode: 'environment' // Käytä takakameraa
           }}
         />
-        <p className="text-white text-center mt-4">
+        <p className="text-white text-center mt-4 text-lg">
           Point camera at QR code
         </p>
       </div>
