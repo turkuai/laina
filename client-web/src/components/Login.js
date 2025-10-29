@@ -31,7 +31,7 @@ export default function Login() {
 
     return (
         <div className="page-container" style={{
-            minHeight: '100vh',
+            minHeight: '12vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
