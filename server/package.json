@@ -2,10 +2,11 @@
   "name": "template-express-live-reload",
   "version": "0.0.0",
   "private": true,
- "scripts": {
-  "start": "node ./bin/www",
-  "dev": "nodemon ./bin/www"
-},
+  "type": "module",
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www"
+  },
   "dependencies": {
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
