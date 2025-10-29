@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Borrow Page</title>
+        <link rel="stylesheet" href="test.css">
+        <style>
+            #my-qr-reader {
+                width: 100%;
+                max-width: 500px;
+                margin: 20px auto;
+                display: none;
+            }
+            .QRscan-button {
+                text-align: center;
+                margin: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>P&T</h1>
+        </header>
+        
+        <div class="QRscan-button">
+            <button id="scanButton">QR Scan</button>
+        </div>
+        
+        <div id="my-qr-reader"></div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+        
+        <script src="test.js"></script>
+        
+    </body>
+</html>
