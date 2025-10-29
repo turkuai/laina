@@ -1,45 +1,22 @@
 import QRScannerCamera from './QRScannerCamera';
-
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Menu } from 'lucide-react';
 
-// Your QR Scanner Component (unchanged)
-const QRScannerCamera = ({ onScan, onClose }) => {
-  const handleScanSuccess = (result) => {
-    if (result && result[0]) {
-      onScan(result[0].rawValue);
-    }
-  };
-
-  const handleError = (error) => {
-    console.error('Scanner error:', error);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors"
-      >
-        <X className="w-6 h-6" />
-      </button>
-
-      <div className="w-full max-w-md p-4">
-        <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
-          <div className="aspect-square bg-gray-900 flex items-center justify-center">
-            <p className="text-white text-center">Camera view would appear here</p>
-          </div>
-        </div>
-        <p className="text-white text-center mt-4 text-lg italic">
-          Point camera at QR code
-        </p>
-      </div>
-    </div>
-  );
+// Helper function to format date as DD.MM.YYYY
+const formatDate = (date) => {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
 };
 
-// Product Modal Component
-const ProductModal = ({ product, onClose, onBorrow }) => {
+// Helper function to get current date formatted
+const getCurrentDate = () => {
+  return formatDate(new Date());
+};
+
+// Product Modal - BORROWED (Lainassa)
+const ProductModalBorrowed = ({ product, onClose, onReturn }) => {
   if (!product) return null;
 
   return (
@@ -52,25 +29,131 @@ const ProductModal = ({ product, onClose, onBorrow }) => {
           ×
         </button>
 
-        <h2 className="text-2xl italic text-gray-800 border-b-2 border-gray-800 pb-2 mb-5">
+        <h2 className="text-2xl font-normal text-gray-800 border-b-2 border-gray-800 pb-2 mb-5">
           {product.name}
         </h2>
 
-        <ul className="mb-8">
-          <li className="text-lg italic text-gray-600 mb-2">
-            Category: {product.category}
-          </li>
-          <li className="text-lg italic text-gray-600 mb-2">
-            Condition: {product.condition}
-          </li>
-          <li className="text-lg italic text-gray-600 mb-2">
-            Available: {product.available ? 'Yes' : 'No'}
-          </li>
-        </ul>
+        <div className="border-b-2 border-gray-800 pb-2 mb-4">
+          <h3 className="text-xl font-normal">Borrowed</h3>
+        </div>
+
+        <div className="mb-6 space-y-2">
+          <p className="text-lg text-gray-700">
+            <span className="font-medium">Borrowed:</span>
+          </p>
+          <p className="text-base text-gray-600 pl-4">
+            {product.borrower}
+          </p>
+          <p className="text-base text-gray-600 pl-4">
+            {product.borrowDate}
+          </p>
+          
+          <p className="text-lg text-gray-700 mt-4">
+            <span className="font-medium">Return deadline:</span>
+          </p>
+          <p className="text-base text-gray-600 pl-4">
+            {product.returnDate}
+          </p>
+          
+          <p className="text-lg text-gray-700 mt-4">
+            <span className="font-medium">Return date:</span>
+          </p>
+          <div className="pl-4 border-b border-gray-300 pb-1 w-3/4">
+            <span className="text-gray-600">{getCurrentDate()}</span>
+          </div>
+        </div>
 
         <button
-          onClick={onBorrow}
-          className="bg-[#c4a894] text-white border-none py-4 px-12 rounded-xl text-lg italic cursor-pointer block mx-auto transition-all hover:bg-[#b39682] hover:-translate-y-0.5 active:translate-y-0"
+          onClick={onReturn}
+          className="bg-[#8b7355] text-black border-2 border-gray-800 py-4 px-12 rounded-xl text-lg font-medium cursor-pointer block mx-auto transition-all hover:bg-[#755f46] hover:shadow-lg active:translate-y-0.5"
+        >
+          Return
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Product Modal - AVAILABLE (Vapaa)
+const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
+  const [borrowerName, setBorrowerName] = useState('');
+  const [borrowerPhone, setBorrowerPhone] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+
+  if (!product) return null;
+
+  const handleBorrow = () => {
+    if (!borrowerName || !borrowerPhone || !returnDate) {
+      alert('Fill in all fields!');
+      return;
+    }
+    onBorrow({ 
+      borrowerName, 
+      borrowerPhone, 
+      returnDate,
+      borrowDate: getCurrentDate()
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-5">
+      <div className="bg-white rounded-3xl p-8 w-full max-w-md relative shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-5 text-3xl leading-none text-gray-800 hover:text-gray-600 transition-colors"
+        >
+          ×
+        </button>
+
+        <h2 className="text-2xl font-normal text-gray-800 border-b-2 border-gray-800 pb-2 mb-5">
+          {product.name}
+        </h2>
+
+        <div className="border-b-2 border-gray-800 pb-2 mb-4">
+          <h3 className="text-xl font-normal">Available</h3>
+        </div>
+
+        <div className="mb-6 space-y-4">
+          <div>
+            <label className="block text-lg text-gray-700 mb-2">
+              Borrowing to:
+            </label>
+            <input
+              type="text"
+              placeholder="Name:"
+              value={borrowerName}
+              onChange={(e) => setBorrowerName(e.target.value)}
+              className="w-full border-b-2 border-gray-300 pb-1 focus:border-gray-800 outline-none text-base"
+            />
+          </div>
+          
+          <div>
+            <input
+              type="tel"
+              placeholder="Date:"
+              value={borrowerPhone}
+              onChange={(e) => setBorrowerPhone(e.target.value)}
+              className="w-full border-b-2 border-gray-300 pb-1 focus:border-gray-800 outline-none text-base"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-lg text-gray-700 mb-2">
+              Return deadline:
+            </label>
+            <input
+              type="text"
+              placeholder="dd.mm.yyyy"
+              value={returnDate}
+              onChange={(e) => setReturnDate(e.target.value)}
+              className="w-full border-b-2 border-gray-300 pb-1 focus:border-gray-800 outline-none text-base"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handleBorrow}
+          className="bg-[#8b7355] text-black border-2 border-gray-800 py-4 px-12 rounded-xl text-lg font-medium cursor-pointer block mx-auto transition-all hover:bg-[#755f46] hover:shadow-lg active:translate-y-0.5"
         >
           Borrow
         </button>
@@ -83,45 +166,71 @@ const ProductModal = ({ product, onClose, onBorrow }) => {
 function BorrowPage() {
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
+  const [productStatus, setProductStatus] = useState(null);
 
   const handleQRCodeScanned = (qrData) => {
     console.log('Scanned QR code:', qrData);
     setShowCamera(false);
     
-    // Mock product data - replace with actual data fetch
-    const mockProduct = {
-      name: 'Product Name',
-      category: 'Tools',
-      condition: 'Good',
-      available: true,
-      qrCode: qrData
-    };
+    // Check if borrowed or available
+    const isBorrowed = qrData.includes('BORROWED') || Math.random() > 0.5;
     
-    setScannedProduct(mockProduct);
+    if (isBorrowed) {
+      const mockProductBorrowed = {
+        name: 'Camera Sony 03',
+        borrower: 'Paavo',
+        borrowDate: '10.10.2025',
+        returnDate: '20.11.2025',
+        qrCode: qrData
+      };
+      setProductStatus('borrowed');
+      setScannedProduct(mockProductBorrowed);
+    } else {
+      const mockProductAvailable = {
+        name: 'Camera Sony 03',
+        qrCode: qrData
+      };
+      setProductStatus('available');
+      setScannedProduct(mockProductAvailable);
+    }
   };
 
-  const handleBorrow = () => {
-    console.log('Borrowing product:', scannedProduct);
-    alert('Product borrowed successfully!');
+  const handleReturn = () => {
+    const currentDate = getCurrentDate();
+    console.log('Returning product:', scannedProduct, 'on', currentDate);
+    alert(`Product returned successfully!\nReturn date: ${currentDate}`);
     setScannedProduct(null);
+    setProductStatus(null);
+  };
+
+  const handleBorrow = (borrowData) => {
+    console.log('Borrowing product:', scannedProduct);
+    console.log('Borrow data:', borrowData);
+    alert(`Product borrowed successfully!\nBorrower: ${borrowData.borrowerName}\nBorrow date: ${borrowData.borrowDate}\nReturn by: ${borrowData.returnDate}`);
+    setScannedProduct(null);
+    setProductStatus(null);
   };
 
   return (
-    <div className="min-h-screen bg-[#d4b5a8] flex flex-col items-center p-5">
+    <div className="min-h-screen bg-[#d4b5a8] flex flex-col">
       {/* Header */}
-      <header className="w-full bg-white py-4 px-5 rounded-t-3xl mb-10">
-        <h1 className="text-[#8b7355] text-4xl font-light italic tracking-wider">
+      <header className="w-full bg-white py-4 px-5 flex items-center justify-between border-b-2 border-gray-800">
+        <h1 className="text-gray-800 text-3xl font-normal tracking-wide">
           P&T
         </h1>
+        <button className="p-2">
+          <Menu className="w-8 h-8 text-gray-800" />
+        </button>
       </header>
 
-      {/* QR Scan Button */}
-      <div className="mb-8">
+      {/* Content Area */}
+      <div className="flex-1 flex flex-col items-center justify-center p-5">
+        {/* Scan Button */}
         <button
           onClick={() => setShowCamera(true)}
-          className="bg-white text-gray-600 border-none py-5 px-20 rounded-2xl text-xl italic cursor-pointer shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+          className="bg-white text-gray-800 border-2 border-gray-800 py-6 px-24 rounded-2xl text-2xl cursor-pointer shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
         >
-          QR Scan
+          Scan
         </button>
       </div>
 
@@ -133,11 +242,25 @@ function BorrowPage() {
         />
       )}
 
-      {/* Product Modal */}
-      {scannedProduct && (
-        <ProductModal
+      {/* Product Modals */}
+      {scannedProduct && productStatus === 'borrowed' && (
+        <ProductModalBorrowed
           product={scannedProduct}
-          onClose={() => setScannedProduct(null)}
+          onClose={() => {
+            setScannedProduct(null);
+            setProductStatus(null);
+          }}
+          onReturn={handleReturn}
+        />
+      )}
+
+      {scannedProduct && productStatus === 'available' && (
+        <ProductModalAvailable
+          product={scannedProduct}
+          onClose={() => {
+            setScannedProduct(null);
+            setProductStatus(null);
+          }}
           onBorrow={handleBorrow}
         />
       )}
@@ -146,4 +269,3 @@ function BorrowPage() {
 }
 
 export default BorrowPage;
-// muokattavissa
