@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Grid from './Grid';
+import Products from './Products';
 
 const initialData = [
   { id: 1, name: 'Mikko', email: 'mikko@tai.fi', role: 'admin' },
@@ -118,6 +119,7 @@ export default function Admin() {
             onDeleteRow={handleDeleteRow}
             allowSelection={true}
           />
+          <Products/>
         </div>
       </div>
     </div>

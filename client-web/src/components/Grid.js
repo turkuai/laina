@@ -53,18 +53,18 @@ export default function Grid({
         return (
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             {allowEditing && (
-              <button
-                onClick={() => openEditModal(row)}
-                className="btn-edit"
-              >
-                Edit
+              <button onClick={() => openEditModal(row)} className="icon-btn" aria-label="Edit">
+                {/* pencil icon */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 21l3.75-1 11.1-11.1a1.5 1.5 0 000-2.12L14.23 2.16a1.5 1.5 0 00-2.12 0L1 13.27V17h3.73L3 21z" fill="#111827"/>
+                </svg>
               </button>
             )}
-            <button
-              onClick={() => onDeleteRow?.(row)}
-              className="btn-delete"
-            >
-              Delete
+            <button onClick={() => onDeleteRow?.(row)} className="icon-btn danger" aria-label="Delete">
+              {/* trash icon */}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+              </svg>
             </button>
           </div>
         );

@@ -1,4 +1,43 @@
-/* Modal Overlay */
+/* Buttons */
+.icon-btn {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.icon-btn:hover { background: #f3f4f6; }
+.icon-btn.danger { border-color: #fecaca; background: #fff; }
+.icon-btn.danger:hover { background: #fee2e2; }
+
+.btn-edit {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.btn-edit:hover {
+  background-color: #0069d9;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
