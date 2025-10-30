@@ -31,7 +31,7 @@ export default function Login() {
 
     return (
         <div className="page-container" style={{
-            minHeight: '12vh',
+            minHeight: '5vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -152,10 +152,16 @@ export default function Login() {
                         Demo Credentials:
                     </p>
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0' }}>
-                        Admin: admin / admin123
+                        <strong>Admin:</strong> admin / admin123
                     </p>
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0' }}>
-                        User: user1 / pass123
+                        <strong>Student:</strong> mikko / pass123
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0' }}>
+                        <strong>Student:</strong> ville / pass123
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0' }}>
+                        <strong>Student:</strong> aino / pass123
                     </p>
                 </div>
             </div>
