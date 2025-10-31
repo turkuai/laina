@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useEffect, useState } from "react";
 import '../App.css';
+import BorrowPage from "./BorrowPage";
 
 export default function Login() {
     const { login, isAuthenticated } = useAuth();
@@ -157,6 +158,8 @@ export default function Login() {
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0' }}>
                         User: user1 / pass123
                     </p>
+
+                    <BorrowPage></BorrowPage>
                 </div>
             </div>
         </div>
