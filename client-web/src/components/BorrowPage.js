@@ -39,7 +39,7 @@ const ProductModalBorrowed = ({ product, onClose, onReturn }) => {
 
         <div className="mb-6 space-y-2">
           <p className="text-lg text-gray-700">
-            <span className="font-medium">Borrowed:</span>
+            <span className="font-medium">Borrowed by:</span>
           </p>
           <p className="text-base text-gray-600 pl-4">
             {product.borrower}
@@ -130,7 +130,7 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
           <div>
             <input
               type="tel"
-              placeholder="Date:"
+              placeholder="Phone:"
               value={borrowerPhone}
               onChange={(e) => setBorrowerPhone(e.target.value)}
               className="w-full border-b-2 border-gray-300 pb-1 focus:border-gray-800 outline-none text-base"
@@ -168,30 +168,42 @@ function BorrowPage() {
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
 
+  // ✅ Updated to use real QR sticker data
   const handleQRCodeScanned = (qrData) => {
     console.log('Scanned QR code:', qrData);
     setShowCamera(false);
-    
-    // Check if borrowed or available
-    const isBorrowed = qrData.includes('BORROWED') || Math.random() > 0.5;
-    
-    if (isBorrowed) {
-      const mockProductBorrowed = {
-        name: 'Camera Sony 03',
-        borrower: 'Paavo',
-        borrowDate: '10.10.2025',
-        returnDate: '20.11.2025',
-        qrCode: qrData
-      };
+
+    let parsed;
+    try {
+      parsed = JSON.parse(qrData);
+    } catch (e) {
+      alert('Invalid QR code format. Please use a JSON-based QR sticker.');
+      console.error('QR parse error:', e);
+      return;
+    }
+
+    if (!parsed.name || !parsed.status) {
+      alert('QR code missing required fields (name/status).');
+      return;
+    }
+
+    if (parsed.status.toLowerCase() === 'borrowed') {
       setProductStatus('borrowed');
-      setScannedProduct(mockProductBorrowed);
-    } else {
-      const mockProductAvailable = {
-        name: 'Camera Sony 03',
+      setScannedProduct({
+        name: parsed.name,
+        borrower: parsed.borrower || 'Unknown',
+        borrowDate: parsed.borrowDate || 'Unknown',
+        returnDate: parsed.returnDate || 'Unknown',
         qrCode: qrData
-      };
+      });
+    } else if (parsed.status.toLowerCase() === 'available') {
       setProductStatus('available');
-      setScannedProduct(mockProductAvailable);
+      setScannedProduct({
+        name: parsed.name,
+        qrCode: qrData
+      });
+    } else {
+      alert(`Unknown product status: ${parsed.status}`);
     }
   };
 
@@ -225,7 +237,6 @@ function BorrowPage() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center p-5">
-        {/* Scan Button */}
         <button
           onClick={() => setShowCamera(true)}
           className="bg-white text-gray-800 border-2 border-gray-800 py-6 px-24 rounded-2xl text-2xl cursor-pointer shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"

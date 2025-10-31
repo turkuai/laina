@@ -5,8 +5,7 @@ import { X } from 'lucide-react';
 const QRScannerCamera = ({ onScan, onClose }) => {
   const handleScanSuccess = (result) => {
     if (result && result[0]) {
-      // Kutsu callback-funktiota QR-koodin datalla
-      onScan(result[0].rawValue);
+      onScan(result[0].rawValue); // Send raw QR code data back to parent
     }
   };
 
@@ -29,9 +28,7 @@ const QRScannerCamera = ({ onScan, onClose }) => {
         <Scanner
           onScan={handleScanSuccess}
           onError={handleError}
-          constraints={{
-            facingMode: 'environment' // Käytä takakameraa
-          }}
+          constraints={{ facingMode: 'environment' }} // use back camera
         />
         <p className="text-white text-center mt-4 text-lg">
           Point camera at QR code
