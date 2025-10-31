@@ -7,17 +7,15 @@ import Products from './Products';
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  
+
   const [activeTab, setActiveTab] = useState(
     currentUser?.role === 'admin' ? 'users' : 'history'
   );
 
-  // ✅ IDs now match those in AuthContext
   const [users, setUsers] = useState([
     { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
     { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
     { id: 5, name: 'Aino', email: 'aino@example.com', role: 'student' },
-    { id: 4, name: 'Sanna', email: 'sanna@example.com', role: 'teacher' },
     { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'admin' },
   ]);
 
@@ -26,8 +24,6 @@ export default function Admin({ productsData }) {
     { id: 2, userName: 'Ville', productName: 'Monitor Samsung', borrowedAt: '2024-01-18', returnedAt: null, status: 'On Loan', userId: 3 },
     { id: 3, userName: 'Aino', productName: 'Keyboard Mechanical', borrowedAt: '2024-01-10', returnedAt: '2024-01-17', status: 'Returned', userId: 5 },
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
-    { id: 5, userName: 'Ville', productName: 'Mouse Logitech', borrowedAt: '2024-01-25', returnedAt: null, status: 'On Loan', userId: 3 },
-    { id: 6, userName: 'Aino', productName: 'Tablet iPad', borrowedAt: '2024-01-28', returnedAt: null, status: 'On Loan', userId: 5 },
   ]);
 
   const getUserData = () => {
@@ -55,8 +51,7 @@ export default function Admin({ productsData }) {
   };
 
   const handleDeleteUser = (row) => {
-    // ✅ Works correctly since IDs now align
-    if (row.id === currentUser?.id) {
+    if (row.name === currentUser?.name) {
       alert("You cannot delete your own account!");
       return;
     }
@@ -93,8 +88,8 @@ export default function Admin({ productsData }) {
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span>Welcome, <strong>{currentUser?.name}</strong> ({currentUser?.role})</span>
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             style={{ padding: '0.5rem 1rem', backgroundColor: '#4b5563', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
           >
             Logout
@@ -128,13 +123,11 @@ export default function Admin({ productsData }) {
       {/* Content */}
       <div style={{ padding: '24px' }}>
         <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          
-          {/* Users tab */}
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
               <h2>Users Management</h2>
               <Grid
-                columns={['name','email','role']}
+                columns={['name', 'email', 'role']}
                 data={getUserData()}
                 allowEditing={true}
                 allowDelete={true}
@@ -146,21 +139,21 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {/* Products tab */}
           {activeTab === 'products' && (
-            <Products 
-              currentUser={currentUser} 
-              borrowingHistory={borrowingHistory} 
+            <Products
+              currentUser={currentUser}
+              borrowingHistory={borrowingHistory}
               productsData={productsData}
             />
           )}
 
-          {/* Borrowing History tab */}
           {activeTab === 'history' && (
             <div>
               <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
               <Grid
-                columns={currentUser?.role === 'admin' ? ['userName','productName','borrowedAt','returnedAt','status'] : ['productName','borrowedAt','returnedAt','status']}
+                columns={currentUser?.role === 'admin'
+                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
+                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
                 data={getBorrowingHistory()}
                 allowEditing={false}
                 allowDelete={false}
