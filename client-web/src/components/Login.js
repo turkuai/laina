@@ -32,23 +32,23 @@ export default function Login() {
 
     return (
         <div className="page-container" style={{
-                minHeight: '12vh',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
+            minHeight: '12vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             justifyContent: 'center',
-                backgroundColor: '#f3f4f6',
-                padding: '1rem',
-                gap: '5rem' // väli laatikoiden väliin (voi poistaa kun borrowing page poistetaan)
-            }}>
+            backgroundColor: '#f3f4f6',
+            padding: '1rem',
+            gap: '5rem' // väli laatikoiden väliin (voi poistaa kun borrowing page poistetaan)
+        }}>
             <div style={{
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    padding: '2rem',
-                    width: '100%',
-                    maxWidth: '400px'
-                }}>
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                padding: '2rem',
+                width: '100%',
+                maxWidth: '400px'
+            }}>
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1f2937' }}>
                         Borrowing System
@@ -59,12 +59,12 @@ export default function Login() {
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '1rem' }}>
                         <label style={{
-                                display: 'block',
-                                fontSize: '0.875rem',
-                                fontWeight: '500',
-                                marginBottom: '0.25rem',
-                                color: '#374151'
-                            }}>
+                            display: 'block',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            marginBottom: '0.25rem',
+                            color: '#374151'
+                        }}>
                             Username
                         </label>
                         <input
@@ -86,12 +86,12 @@ export default function Login() {
 
                     <div style={{ marginBottom: '1rem' }}>
                         <label style={{
-                                display: 'block',
-                                fontSize: '0.875rem',
-                                fontWeight: '500',
-                                marginBottom: '0.25rem',
-                                color: '#374151'
-                            }}>
+                            display: 'block',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            marginBottom: '0.25rem',
+                            color: '#374151'
+                        }}>
                             Password
                         </label>
                         <input
@@ -113,18 +113,18 @@ export default function Login() {
 
                     {error && (
                         <div style={{
-                                backgroundColor: '#fef2f2',
-                                color: '#dc2626',
-                                padding: '0.75rem 1rem',
-                                borderRadius: '6px',
-                                fontSize: '0.875rem',
-                                marginBottom: '1rem'
-                            }}>
+                            backgroundColor: '#fef2f2',
+                            color: '#dc2626',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                            marginBottom: '1rem'
+                        }}>
                             {error}
                         </div>
                     )}
 
-                    <button
+                    <button 
                         type="submit"
                         style={{
                             width: '100%',
@@ -146,11 +146,11 @@ export default function Login() {
                 </form>
 
                 <div style={{
-                        marginTop: '1.5rem',
-                        padding: '1rem',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '6px'
-                    }}>
+                    marginTop: '1.5rem',
+                    padding: '1rem',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px'
+                }}>
                     <p style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', color: '#374151' }}>
                         Demo Credentials:
                     </p>
@@ -166,7 +166,7 @@ export default function Login() {
 
 
             {/* 🔹 BorrowPage in a separate box under the login temporarily */}
-            <div
+            <divs
                 style={{
                     padding: '2rem',
                     backgroundColor: 'white',
