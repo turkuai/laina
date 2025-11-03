@@ -228,7 +228,7 @@ function BorrowPage() {
       {/* Header */}
       <header className="w-full bg-white py-4 px-5 flex items-center justify-between border-b-2 border-gray-800">
         <h1 className="text-gray-800 text-3xl font-normal tracking-wide">
-          P&T
+          Scanner App
         </h1>
         <button className="p-2">
           <Menu className="w-8 h-8 text-gray-800" />
