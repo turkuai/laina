@@ -166,7 +166,7 @@ export default function Login() {
 
 
             {/* 🔹 BorrowPage in a separate box under the login temporarily */}
-            <divs
+            <div
                 style={{
                     padding: '2rem',
                     backgroundColor: 'white',
