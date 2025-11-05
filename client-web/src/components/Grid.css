@@ -143,9 +143,7 @@
   cursor: not-allowed;
 }
 
-/* ================================
-   MODAL STYLES
-================================ */
+
 .modal-overlay {
   position: fixed;
   top: 0;
