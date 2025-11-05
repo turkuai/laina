@@ -1,0 +1,105 @@
+/* Admin Page Wrapper */
+.admin-page {
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+/* Header */
+.admin-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  color: #1f2937;
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Borrow Button */
+.borrow-button {
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.borrow-button:hover {
+  background-color: #b91c1c;
+}
+
+/* User Info */
+.user-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.user-info strong {
+  color: #1f2937;
+}
+
+.admin-badge {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+/* Logout Button */
+.logout-button {
+  padding: 0.5rem 1rem;
+  background-color: #4b5563;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #374151;
+}
+
+/* Content Area */
+.admin-content {
+  padding: 24px;
+}
+
+.admin-content-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-content-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}

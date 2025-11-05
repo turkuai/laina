@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useEffect, useState } from "react";
 import '../App.css';
-import BorrowPage from "./BorrowPage";
 
 export default function Login() {
     const { login, isAuthenticated } = useAuth();
@@ -34,12 +33,10 @@ export default function Login() {
         <div className="page-container" style={{
             minHeight: '12vh',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#f3f4f6',
-            padding: '1rem',
-            gap: '5rem' // väli laatikoiden väliin (voi poistaa kun borrowing page poistetaan)
+            padding: '1rem'
         }}>
             <div style={{
                 backgroundColor: 'white',
@@ -160,42 +157,6 @@ export default function Login() {
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0' }}>
                         User: user1 / pass123
                     </p>
-                </div>
-            </div>
-
-
-
-            {/* 🔹 BorrowPage in a separate box under the login temporarily */}
-            <div
-                style={{
-                    padding: '2rem',
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    width: '100%',
-                    maxWidth: '400px'
-                }}
-            >
-                <h2
-                    style={{
-                        fontSize: '1.25rem',
-                        fontWeight: 'bold',
-                        marginBottom: '1rem',
-                        color: '#1f2937',
-                        textAlign: 'center'
-                    }}
-                >
-                    Mobiilisovelluksen esikatselu
-                </h2>
-                <div
-                    style={{
-                        border: '2px solid #d1d5db',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        backgroundColor: '#f9fafb'
-                    }}
-                >
-                    <BorrowPage />
                 </div>
             </div>
         </div>
