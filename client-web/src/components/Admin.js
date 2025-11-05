@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { QrCode } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 
@@ -38,6 +39,9 @@ export default function Admin() {
     }
   };
 
+  // Check if user is admin or teacher
+  const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
       {/* Header */}
@@ -54,6 +58,30 @@ export default function Admin() {
           Borrowing System - Admin Panel
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {canAccessBorrow && (
+            <button
+              onClick={() => navigate('/borrow')}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                fontWeight: '500',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#b91c1c'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc2626'}
+            >
+              <QrCode size={18} />
+              Borrow/Return
+            </button>
+          )}
           <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
             Welcome, <strong style={{ color: '#1f2937' }}>{currentUser?.username}</strong>
             {currentUser?.role === 'admin' && (
@@ -67,6 +95,19 @@ export default function Admin() {
                 fontWeight: '500'
               }}>
                 Admin
+              </span>
+            )}
+            {currentUser?.role === 'teacher' && (
+              <span style={{
+                marginLeft: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                backgroundColor: '#dcfce7',
+                color: '#166534',
+                fontSize: '0.75rem',
+                borderRadius: '9999px',
+                fontWeight: '500'
+              }}>
+                Teacher
               </span>
             )}
           </span>
