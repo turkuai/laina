@@ -29,6 +29,7 @@ const QRScannerCamera = ({ onScan, onClose }) => {
           onScan={handleScanSuccess}
           onError={handleError}
           constraints={{ facingMode: 'environment' }} // use back camera
+          torch={false}
         />
         <p className="text-white text-center mt-4 text-lg">
           Point camera at QR code
