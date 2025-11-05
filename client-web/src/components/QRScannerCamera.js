@@ -1,40 +1,90 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { X } from 'lucide-react';
+import './QRScannerCamera.css';
 
 const QRScannerCamera = ({ onScan, onClose }) => {
+  const [cameraError, setCameraError] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+
   const handleScanSuccess = (result) => {
     if (result && result[0]) {
-      onScan(result[0].rawValue); // Send raw QR code data back to parent
+      onScan(result[0].rawValue);
     }
   };
 
   const handleError = (error) => {
     console.error('Scanner error:', error);
+    setCameraError(true);
+  };
+
+  const handleCloseAttempt = () => {
+    // If camera had error, show warning popup
+    if (cameraError) {
+      setShowErrorPopup(true);
+    } else {
+      // Camera worked fine, close normally
+      onClose();
+    }
+  };
+
+  const handleForceClose = () => {
+    setShowErrorPopup(false);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+    <div className="camera-overlay">
       {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 hover:bg-gray-100 transition-colors"
-      >
-        <X className="w-6 h-6" />
+      <button onClick={handleCloseAttempt} className="camera-close-btn">
+        <X className="w-8 h-8" />
       </button>
 
-      {/* Scanner */}
-      <div className="w-full max-w-md p-4">
-        <Scanner
-          onScan={handleScanSuccess}
-          onError={handleError}
-          constraints={{ facingMode: 'environment' }} // use back camera
-          torch={false}
-        />
-        <p className="text-white text-center mt-4 text-lg">
-          Point camera at QR code
-        </p>
+      {/* Scanner - Always show */}
+      <div className="scanner-container">
+        <div className="scanner-frame">
+          {/* Corner decorations */}
+          <div className="scanner-corner corner-tl"></div>
+          <div className="scanner-corner corner-tr"></div>
+          <div className="scanner-corner corner-bl"></div>
+          <div className="scanner-corner corner-br"></div>
+          
+          {/* Scanning line animation */}
+          <div className="scanning-line"></div>
+          
+          <Scanner
+            onScan={handleScanSuccess}
+            onError={handleError}
+            constraints={{ facingMode: 'environment' }}
+            torch={false}
+          />
+        </div>
+        
+        <div className="scanner-instructions">
+          <p className="instruction-title">
+            📷 Point camera at QR code
+          </p>
+          <p className="instruction-text">
+            Align the QR code within the frame for automatic scanning
+          </p>
+        </div>
       </div>
+
+      {/* Error Popup - Only shows when X is pressed and camera failed */}
+      {showErrorPopup && (
+        <div className="error-popup-overlay">
+          <div className="error-popup">
+            <div className="error-icon">⚠️</div>
+            <h3 className="error-title">Camera Not Available</h3>
+            <p className="error-message">
+              Unable to access camera. Please check your camera permissions or try using a different device.
+            </p>
+            <button onClick={handleForceClose} className="error-close-btn">
+              Close Scanner
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
