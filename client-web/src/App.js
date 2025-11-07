@@ -4,6 +4,7 @@ import { useAuth } from "./components/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
 import Admin from "./components/Admin";
+import BorrowPage from "./components/BorrowPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -18,6 +19,7 @@ export default function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<Admin />} />
+        <Route path="/borrow" element={<BorrowPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
