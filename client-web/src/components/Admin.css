@@ -8,24 +8,31 @@
 .admin-header {
   background-color: white;
   border-bottom: 1px solid #e5e7eb;
-  padding: 1rem 2rem;
+  padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .admin-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
   margin: 0;
   color: #1f2937;
+  flex: 1 1 100%;
+  min-width: 200px;
 }
 
 .admin-header-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  justify-content: flex-end;
 }
 
 /* Borrow Button */
@@ -42,6 +49,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .borrow-button:hover {
@@ -52,6 +60,10 @@
 .user-info {
   font-size: 0.875rem;
   color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .user-info strong {
@@ -59,13 +71,13 @@
 }
 
 .admin-badge {
-  margin-left: 0.5rem;
   padding: 0.25rem 0.5rem;
   background-color: #dbeafe;
   color: #1e40af;
   font-size: 0.75rem;
   border-radius: 9999px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Logout Button */
@@ -79,6 +91,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .logout-button:hover {
@@ -87,19 +100,140 @@
 
 /* Content Area */
 .admin-content {
-  padding: 24px;
+  padding: 1rem;
 }
 
 .admin-content-card {
   background-color: white;
   border-radius: 8px;
-  padding: 20px;
+  padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .admin-content-card h2 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
   color: #1f2937;
+}
+
+/* User Search Box */
+.user-search {
+  background: #f7f8fb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.user-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+}
+
+.user-search input::placeholder {
+  color: #9ca3af;
+}
+
+/* Tablet styles (min-width: 640px) */
+@media (min-width: 640px) {
+  .admin-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+    flex: 0 1 auto;
+  }
+
+  .admin-content {
+    padding: 1.5rem;
+  }
+
+  .admin-content-card {
+    padding: 1.5rem;
+  }
+
+  .admin-content-card h2 {
+    font-size: 1.25rem;
+  }
+  
+  .user-search {
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .user-search input {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Desktop styles (min-width: 1024px) */
+@media (min-width: 1024px) {
+  .admin-header {
+    padding: 1rem 2rem;
+    flex-wrap: nowrap;
+  }
+
+  .admin-header h1 {
+    flex: 0 1 auto;
+  }
+
+  .admin-header-actions {
+    gap: 1rem;
+  }
+
+  .admin-content {
+    padding: 1.5rem 2rem;
+  }
+
+  .admin-content-card {
+    padding: 1.5rem 2rem;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 639px) {
+  /* Stack header elements vertically on very small screens */
+  .admin-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Make user info take full width on mobile */
+  .user-info {
+    flex: 1 1 100%;
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Adjust button sizes for touch targets */
+  .borrow-button,
+  .logout-button {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .user-search {
+    margin: 0.5rem 0 0.875rem 0;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 374px) {
+  .admin-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .borrow-button span:last-child {
+    display: none;
+  }
+
+  .borrow-button {
+    padding: 0.625rem;
+  }
 }

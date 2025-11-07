@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { QrCode } from 'lucide-react';
@@ -17,6 +17,18 @@ export default function Admin() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState(initialData);
+  const [userQuery, setUserQuery] = useState('');
+
+  // Filter users based on search query
+  const filteredUsers = useMemo(() => {
+    const q = userQuery.trim().toLowerCase();
+    if (!q) return data;
+    return data.filter((user) =>
+      [user.name, user.email, user.role].some((v) => 
+        String(v).toLowerCase().includes(q)
+      )
+    );
+  }, [data, userQuery]);
 
   const handleLogout = () => {
     logout();
@@ -78,9 +90,18 @@ export default function Admin() {
         <div className="admin-content-card">
           <h2>Users Management</h2>
           
+          {/* Search Box for Users */}
+          <div className="user-search">
+            <input
+              placeholder="Search users..."
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
+          </div>
+          
           <Grid
             columns={['name', 'email', 'role']}
-            data={data}
+            data={filteredUsers}
             allowEditing={true}
             pageSize={10}
             height="500px"
