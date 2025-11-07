@@ -139,7 +139,7 @@ function BorrowPage() {
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
 
-  // ✅ Updated to use real QR sticker data
+  // Updated to use real QR sticker data
   const handleQRCodeScanned = (qrData) => {
     console.log('Scanned QR code:', qrData);
     setShowCamera(false);

@@ -56,6 +56,7 @@ const QRScannerCamera = ({ onScan, onClose }) => {
             onScan={handleScanSuccess}
             onError={handleError}
             constraints={{ facingMode: 'environment' }}
+            components={{ torch: false }}
           />
         </div>
         
