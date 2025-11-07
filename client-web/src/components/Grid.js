@@ -22,6 +22,19 @@ export default function Grid({
   const [rowData, setRowData] = useState(Array.isArray(data) ? data : []);
   const [editingRow, setEditingRow] = useState(null);
   const [editValues, setEditValues] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     setRowData(Array.isArray(data) ? data : []);
@@ -34,16 +47,46 @@ export default function Grid({
   }, [columns, data]);
 
   const columnDefs = useMemo(() => {
-    const baseCols = effectiveColumns.map((fieldName) => ({
-      headerName: fieldName.charAt(0).toUpperCase() + fieldName.slice(1),
-      field: fieldName,
-      editable: allowEditing,
-      sortable: true,
-      filter: 'agTextColumnFilter',
-      floatingFilter: true,
-      resizable: true,
-      flex: 1,
-    }));
+    const baseCols = effectiveColumns.map((fieldName) => {
+      // Adjust column widths for mobile
+      let width = undefined;
+      let minWidth = 100;
+      
+      if (isMobile) {
+        // Set specific widths for mobile
+        if (fieldName === 'name') {
+          minWidth = 120;
+          width = 140;
+        } else if (fieldName === 'email') {
+          minWidth = 150;
+          width = 180;
+        } else if (fieldName === 'role') {
+          minWidth = 100;
+          width = 110;
+        } else if (fieldName === 'description') {
+          minWidth = 150;
+          width = 180;
+        } else if (fieldName.toLowerCase().includes('qty') || fieldName === 'available' || fieldName === 'onLoan') {
+          minWidth = 80;
+          width = 90;
+        }
+      }
+
+      return {
+        headerName: fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1'),
+        field: fieldName,
+        editable: allowEditing,
+        sortable: true,
+        filter: 'agTextColumnFilter',
+        floatingFilter: !isMobile,
+        resizable: true,
+        flex: isMobile ? undefined : 1,
+        width: width,
+        minWidth: minWidth,
+        wrapText: isMobile,
+        autoHeight: isMobile,
+      };
+    });
 
     const actionCol = {
       headerName: 'Actions',
@@ -51,18 +94,24 @@ export default function Grid({
       cellRenderer: (params) => {
         const row = params.data;
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <div className={`grid-actions ${isMobile ? 'mobile' : ''}`}>
             {allowEditing && (
-              <button onClick={() => openEditModal(row)} className="icon-btn" aria-label="Edit">
-                {/* pencil icon */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <button 
+                onClick={() => openEditModal(row)} 
+                className={`icon-btn ${isMobile ? 'mobile' : ''}`}
+                aria-label="Edit"
+              >
+                <svg width={isMobile ? "14" : "16"} height={isMobile ? "14" : "16"} viewBox="0 0 24 24" fill="none">
                   <path d="M3 21l3.75-1 11.1-11.1a1.5 1.5 0 000-2.12L14.23 2.16a1.5 1.5 0 00-2.12 0L1 13.27V17h3.73L3 21z" fill="#111827"/>
                 </svg>
               </button>
             )}
-            <button onClick={() => onDeleteRow?.(row)} className="icon-btn danger" aria-label="Delete">
-              {/* trash icon */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button 
+              onClick={() => onDeleteRow?.(row)} 
+              className={`icon-btn danger ${isMobile ? 'mobile' : ''}`}
+              aria-label="Delete"
+            >
+              <svg width={isMobile ? "14" : "16"} height={isMobile ? "14" : "16"} viewBox="0 0 24 24" fill="none">
                 <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
               </svg>
             </button>
@@ -71,11 +120,16 @@ export default function Grid({
       },
       sortable: false,
       filter: false,
-      width: 150,
+      width: isMobile ? 90 : 120,
+      minWidth: isMobile ? 90 : 120,
+      maxWidth: isMobile ? 90 : 150,
+      pinned: isMobile ? 'right' : undefined,
+      lockPosition: true,
+      suppressMovable: true,
     };
 
     return [...baseCols, actionCol];
-  }, [effectiveColumns, allowEditing, onDeleteRow]);
+  }, [effectiveColumns, allowEditing, onDeleteRow, isMobile]);
 
   const defaultColDef = useMemo(() => ({
     sortable: true,
@@ -126,25 +180,29 @@ export default function Grid({
   };
 
   return (
-    <div className="ag-theme-alpine" style={{ width: '100%', height }}>
-      <AgGridReact
-        theme="legacy"
-        rowData={rowData}
-        columnDefs={columnDefs}
-        defaultColDef={defaultColDef}
-        getRowId={getRowId}
-        animateRows={true}
-        pagination={true}
-        paginationPageSize={pageSize}
-        rowSelection={allowSelection ? 'multiple' : 'none'}
-        suppressClickEdit={!allowEditing}
-        onCellValueChanged={allowEditing ? handleCellValueChanged : undefined}
-        noRowsOverlayComponent={() => <div>No data available</div>}
-      />
+    <>
+      <div className="ag-theme-alpine" style={{ width: '100%', height, overflowX: 'auto' }}>
+        <AgGridReact
+          theme="legacy"
+          rowData={rowData}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          getRowId={getRowId}
+          animateRows={true}
+          pagination={true}
+          paginationPageSize={pageSize}
+          rowSelection={allowSelection ? 'multiple' : 'none'}
+          suppressClickEdit={!allowEditing}
+          onCellValueChanged={allowEditing ? handleCellValueChanged : undefined}
+          suppressHorizontalScroll={false}
+          enableCellTextSelection={true}
+          ensureDomOrder={true}
+        />
+      </div>
 
       {editingRow && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-overlay" onClick={closeEditModal}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Edit Record</h3>
             {Object.keys(editValues).map((key) => (
               <div key={key} className="form-row">
@@ -163,6 +221,6 @@ export default function Grid({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
