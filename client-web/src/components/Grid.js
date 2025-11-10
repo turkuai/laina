@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import './Grid.css'; // optional styling
@@ -12,6 +13,7 @@ export default function Grid({
   columns,
   data,
   allowEditing = false,
+  allowDelete = false,
   pageSize = 20,
   height = '500px',
   onDataChange,
@@ -171,7 +173,7 @@ export default function Grid({
 
   const saveEdit = () => {
     const updated = rowData.map((r) =>
-      r.id === editingRow.id ? { ...r, ...editValues } : r
+      r.id === editingRow.id || r.email === editingRow.email ? { ...r, ...editValues } : r
     );
     setRowData(updated);
     if (typeof onDataChange === 'function') onDataChange(updated);
@@ -199,28 +201,6 @@ export default function Grid({
           ensureDomOrder={true}
         />
       </div>
-
-      {editingRow && (
-        <div className="modal-overlay" onClick={closeEditModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Edit Record</h3>
-            {Object.keys(editValues).map((key) => (
-              <div key={key} className="form-row">
-                <label>{key}</label>
-                <input
-                  type="text"
-                  value={editValues[key]}
-                  onChange={(e) => handleEditChange(key, e.target.value)}
-                />
-              </div>
-            ))}
-            <div className="modal-actions">
-              <button className="btn-save" onClick={saveEdit}>Save</button>
-              <button className="btn-cancel" onClick={closeEditModal}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

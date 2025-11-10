@@ -7,17 +7,27 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
 
   const login = (username, password) => {
-    // Mock user database - replace with your actual API call
     const users = [
-      { id: 1, username: 'admin', password: 'admin123', role: 'admin' },
-      { id: 2, username: 'user1', password: 'pass123', role: 'user' }
+      { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User' },
+      { id: 2, username: 'mikko', password: 'pass123', role: 'student', name: 'Mikko' },
+      { id: 3, username: 'ville', password: 'pass123', role: 'student', name: 'Ville' },
+      { id: 4, username: 'sanna', password: 'pass123', role: 'teacher', name: 'Sanna' },
+      { id: 5, username: 'aino', password: 'pass123', role: 'student', name: 'Aino' }
     ];
 
-    const user = users.find(u => u.username === username && u.password === password);
+    const user = users.find(u => 
+      u.username.toLowerCase().trim() === username.toLowerCase().trim() && 
+      u.password === password.trim()
+    );
     
     if (user) {
       setIsAuthenticated(true);
-      setCurrentUser({ id: user.id, username: user.username, role: user.role });
+      setCurrentUser({ 
+        id: user.id, 
+        username: user.username, 
+        name: user.name,
+        role: user.role 
+      });
       return { success: true };
     }
     return { success: false, error: 'Invalid username or password' };

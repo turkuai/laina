@@ -88,10 +88,16 @@ export default function Login() {
                         Demo Credentials:
                     </p>
                     <p className="login-demo-text">
-                        Admin: admin / admin123
+                        <strong>Admin:</strong> admin / admin123
                     </p>
                     <p className="login-demo-text">
-                        User: user1 / pass123
+                        <strong>Student:</strong> mikko / pass123
+                    </p>
+                    <p className="login-demo-text">
+                        <strong>Student:</strong> ville / pass123
+                    </p>
+                    <p className="login-demo-text">
+                        <strong>Student:</strong> aino / pass123
                     </p>
                 </div>
             </div>
