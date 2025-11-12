@@ -100,13 +100,14 @@
 
 /* Content Area */
 .admin-content {
-  padding: 1rem;
+  /* padding: 1rem; */
 }
 
 .admin-content-card {
   background-color: white;
   border-radius: 8px;
   padding: 1rem;
+  margin: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -140,8 +141,19 @@
   color: #9ca3af;
 }
 
+.borrow-content-button {
+  display: flex;
+  justify-content: center;
+  /* padding: 1rem; */
+}
+
 /* Tablet styles (min-width: 640px) */
 @media (min-width: 640px) {
+
+  .hide-on-desktop {
+    display: none;
+  }
+
   .admin-header {
     padding: 1rem 1.5rem;
   }
@@ -152,11 +164,12 @@
   }
 
   .admin-content {
-    padding: 1.5rem;
+    /* padding: 1.5rem; */
   }
 
   .admin-content-card {
     padding: 1.5rem;
+    margin: 1.5rem;
   }
 
   .admin-content-card h2 {
@@ -188,16 +201,22 @@
   }
 
   .admin-content {
-    padding: 1.5rem 2rem;
+    /* padding: 1.5rem 2rem; */
   }
 
   .admin-content-card {
     padding: 1.5rem 2rem;
+    margin: 1.5rem 2rem;
   }
 }
 
 /* Mobile-specific adjustments */
 @media (max-width: 639px) {
+
+  .hide-on-mobile {
+    display: none;
+  }
+
   /* Stack header elements vertically on very small screens */
   .admin-header-actions {
     width: 100%;

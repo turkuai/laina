@@ -5,6 +5,7 @@ import { QrCode } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
+import BorrowPage from './BorrowPage';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -80,17 +81,17 @@ export default function Admin({ productsData }) {
 
   return (
     <div className="admin-page">
+
       {/* Header */}
       <div className="admin-header">
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
-          Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : '- Admin Panel'}
+          Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : <span className="hide-on-mobile"> - Admin Panel</span>}
         </h1>
-        <h1>Borrowing System - Admin Panel</h1>
         <div className="admin-header-actions">
           {canAccessBorrow && (
             <button
               onClick={() => navigate('/borrow')}
-              className="borrow-button"
+              className="borrow-button hide-on-mobile"
             >
               <QrCode size={18} />
               Borrow/Return
@@ -108,31 +109,37 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb', padding: '0 2rem' }}>
-        <div style={{ display: 'flex', gap: '2rem' }}>
-          {tabs.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '1rem 0',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
-                color: activeTab === tab ? '#2563eb' : '#6b7280',
-                fontWeight: activeTab === tab ? '600' : '400',
-                cursor: 'pointer'
-              }}
-            >
-              {getTabLabel(tab)}
-            </button>
-          ))}
-        </div>
+      {/* Borrow button on mobile */}
+      <div className="borrow-content-button hide-on-desktop">
+        <BorrowPage />
       </div>
 
-      {/* Content */}
-      <div className="admin-content">
+      <div className="admin-content hide-on-mobile">
+
+        {/* Tabs */}
+        <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb', padding: '0 2rem' }}>
+          <div style={{ display: 'flex', gap: '2rem' }}>
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '1rem 0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
+                  color: activeTab === tab ? '#2563eb' : '#6b7280',
+                  fontWeight: activeTab === tab ? '600' : '400',
+                  cursor: 'pointer'
+                }}
+              >
+                {getTabLabel(tab)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
         <div className="admin-content-card">
 
           {/* Search Box for Users */}
