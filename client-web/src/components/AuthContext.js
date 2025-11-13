@@ -1,12 +1,30 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
+
+// NEW: key for localStorage
+const STORAGE_KEY = 'borrowing_system_current_user';
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  const login = (username, password) => {
+  // NEW: on first load, try to restore user from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        setIsAuthenticated(true);
+        setCurrentUser(user);
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  // SMALL CHANGE: added optional "remember" param
+  const login = (username, password, remember = false) => {
     const users = [
       { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User' },
       { id: 2, username: 'mikko', password: 'pass123', role: 'student', name: 'Mikko' },
@@ -21,13 +39,23 @@ export const AuthProvider = ({ children }) => {
     );
     
     if (user) {
-      setIsAuthenticated(true);
-      setCurrentUser({ 
+      const safeUser = { 
         id: user.id, 
         username: user.username, 
         name: user.name,
         role: user.role 
-      });
+      };
+
+      setIsAuthenticated(true);
+      setCurrentUser(safeUser);
+
+      // NEW: if remember is checked, persist user; otherwise clear
+      if (remember) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+
       return { success: true };
     }
     return { success: false, error: 'Invalid username or password' };
@@ -36,6 +64,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
+    // NEW: also clear persisted user
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
