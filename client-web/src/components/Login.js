@@ -11,6 +11,24 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
+    // Remember me state
+    const [rememberMe, setRememberMe] = useState(false);
+
+    // ⬇️ NEW: on first render, load remembered credentials (if any)
+    useEffect(() => {
+        const saved = localStorage.getItem("remembered_credentials");
+        if (saved) {
+            try {
+                const { username, password } = JSON.parse(saved);
+                setUsername(username || "");
+                setPassword(password || "");
+                setRememberMe(true);
+            } catch {
+                localStorage.removeItem("remembered_credentials");
+            }
+        }
+    }, []);
+
     useEffect(() => {
         if (isAuthenticated) {
             navigate("/admin", { replace: true });
@@ -20,10 +38,22 @@ export default function Login() {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        const result = login(username, password);
+        // pass rememberMe flag to AuthContext (as we did before)
+        const result = login(username, password, rememberMe);
         
         if (result.success) {
             setError("");
+
+            // ⬇️ NEW: store or clear credentials based on checkbox
+            if (rememberMe) {
+                localStorage.setItem(
+                    "remembered_credentials",
+                    JSON.stringify({ username, password })
+                );
+            } else {
+                localStorage.removeItem("remembered_credentials");
+            }
+
             navigate("/admin", { replace: true });
         } else {
             setError(result.error);
@@ -52,6 +82,8 @@ export default function Login() {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Enter your username"
                             className="login-input"
+                            name="username"
+                            autoComplete="username"
                         />
                     </div>
 
@@ -66,7 +98,24 @@ export default function Login() {
                             placeholder="Password"
                             required
                             className="login-input"
+                            name="password"
+                            autoComplete="current-password"
                         />
+                    </div>
+
+                    {/* Remember me checkbox */}
+                    <div className="login-form-group">
+                        <label
+                            className="login-label"
+                            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            Remember me
+                        </label>
                     </div>
 
                     {error && (
