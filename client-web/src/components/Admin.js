@@ -6,6 +6,7 @@ import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
 import BorrowPage from './BorrowPage';
+import QRScannerCamera from './QRScannerCamera';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -111,7 +112,7 @@ export default function Admin({ productsData }) {
 
       {/* Borrow button on mobile */}
       <div className="borrow-content-button hide-on-desktop">
-        <BorrowPage />
+        <QRScannerCamera />
       </div>
 
       <div className="admin-content hide-on-mobile">
