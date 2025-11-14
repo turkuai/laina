@@ -13,6 +13,7 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
 
   const [activeTab, setActiveTab] = useState(
     currentUser?.role === 'admin' ? 'users' : 'history'
@@ -67,6 +68,11 @@ export default function Admin({ productsData }) {
     }
   };
 
+  const handleQRScan = (data) => {
+    console.log('QR Code scanned:', data);
+    setShowCamera(false);
+};
+
   const tabs = currentUser?.role === 'admin' ? ['users', 'products', 'history'] : ['history', 'products'];
   const getTabLabel = (tab) => {
     switch (tab) {
@@ -91,7 +97,7 @@ export default function Admin({ productsData }) {
         <div className="admin-header-actions">
           {canAccessBorrow && (
             <button
-              onClick={() => navigate('/borrow')}
+              onClick={() => setShowCamera(true)}
               className="borrow-button hide-on-mobile"
             >
               <QrCode size={18} />
@@ -112,8 +118,22 @@ export default function Admin({ productsData }) {
 
       {/* Borrow button on mobile */}
       <div className="borrow-content-button hide-on-desktop">
-        <QRScannerCamera />
+        <button
+          onClick={() => setShowCamera(true)}
+          className="borrow-button"
+          style={{ width: '100%' }}
+          >
+          <QrCode size={18} />
+          Scan QR Code
+        </button>
       </div>
+
+      {showCamera && (
+      <QRScannerCamera
+        onScan={handleQRScan}
+        onClose={() => setShowCamera(false)}
+      />
+      )}
 
       <div className="admin-content hide-on-mobile">
 
