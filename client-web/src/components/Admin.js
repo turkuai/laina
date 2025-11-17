@@ -8,12 +8,142 @@ import './Admin.css';
 import BorrowPage from './BorrowPage';
 import QRScannerCamera from './QRScannerCamera';
 
+// Helper function to format date as DD.MM.YYYY
+const formatDate = (date) => {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+};
+
+// Helper function to get current date formatted
+const getCurrentDate = () => {
+  return formatDate(new Date());
+};
+
+// Product Modal - BORROWED (Lainassa)
+const ProductModalBorrowed = ({ product, onClose, onReturn }) => {
+  if (!product) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <button onClick={onClose} className="modal-close">
+          ×
+        </button>
+
+        <h2 className="modal-title">{product.name}</h2>
+
+        <div className="modal-status">
+          <h3 className="status-borrowed">Borrowed</h3>
+        </div>
+
+        <div className="modal-content">
+          <p className="info-label">Borrowed by:</p>
+          <p className="info-value">{product.borrower}</p>
+          <p className="info-value">{product.borrowDate}</p>
+          
+          <p className="info-label">Return deadline:</p>
+          <p className="info-value">{product.returnDate}</p>
+          
+          <p className="info-label">Return date:</p>
+          <div className="return-date-display">
+            {getCurrentDate()}
+          </div>
+        </div>
+
+        <button onClick={onReturn} className="modal-action-btn">
+          Return
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Product Modal - AVAILABLE (Vapaa)
+const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
+  const [borrowerName, setBorrowerName] = useState('');
+  const [borrowerPhone, setBorrowerPhone] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+
+  if (!product) return null;
+
+  const handleBorrow = () => {
+    if (!borrowerName || !borrowerPhone || !returnDate) {
+      alert('Fill in all fields!');
+      return;
+    }
+    onBorrow({ 
+      borrowerName, 
+      borrowerPhone, 
+      returnDate,
+      borrowDate: getCurrentDate()
+    });
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <button onClick={onClose} className="modal-close">
+          ×
+        </button>
+
+        <h2 className="modal-title">{product.name}</h2>
+
+        <div className="modal-status">
+          <h3 className="status-available">Available</h3>
+        </div>
+
+        <div className="modal-content">
+          <div className="info-input-wrapper">
+            <label className="info-label">Borrowing to:</label>
+            <input
+              type="text"
+              placeholder="Name:"
+              value={borrowerName}
+              onChange={(e) => setBorrowerName(e.target.value)}
+              className="info-input"
+            />
+          </div>
+          
+          <div className="info-input-wrapper">
+            <input
+              type="tel"
+              placeholder="Phone:"
+              value={borrowerPhone}
+              onChange={(e) => setBorrowerPhone(e.target.value)}
+              className="info-input"
+            />
+          </div>
+          
+          <div className="info-input-wrapper">
+            <label className="info-label">Return deadline:</label>
+            <input
+              type="text"
+              placeholder="dd.mm.yyyy"
+              value={returnDate}
+              onChange={(e) => setReturnDate(e.target.value)}
+              className="info-input"
+            />
+          </div>
+        </div>
+
+        <button onClick={handleBorrow} className="modal-action-btn">
+          Borrow
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
   const [showCamera, setShowCamera] = useState(false);
+  const [scannedProduct, setScannedProduct] = useState(null);
+  const [productStatus, setProductStatus] = useState(null);
 
   const [activeTab, setActiveTab] = useState(
     currentUser?.role === 'admin' ? 'users' : 'history'
@@ -68,10 +198,59 @@ export default function Admin({ productsData }) {
     }
   };
 
-  const handleQRScan = (data) => {
-    console.log('QR Code scanned:', data);
+  const handleQRScan = (qrData) => {
+    console.log('QR Code scanned:', qrData);
     setShowCamera(false);
-};
+
+    let parsed;
+    try {
+      parsed = JSON.parse(qrData);
+    } catch (e) {
+      alert('Invalid QR code format. Please use a JSON-based QR sticker.');
+      console.error('QR parse error:', e);
+      return;
+    }
+
+    if (!parsed.name || !parsed.status) {
+      alert('QR code missing required fields (name/status).');
+      return;
+    }
+
+    if (parsed.status.toLowerCase() === 'borrowed') {
+      setProductStatus('borrowed');
+      setScannedProduct({
+        name: parsed.name,
+        borrower: parsed.borrower || 'Unknown',
+        borrowDate: parsed.borrowDate || 'Unknown',
+        returnDate: parsed.returnDate || 'Unknown',
+        qrCode: qrData
+      });
+    } else if (parsed.status.toLowerCase() === 'available') {
+      setProductStatus('available');
+      setScannedProduct({
+        name: parsed.name,
+        qrCode: qrData
+      });
+    } else {
+      alert(`Unknown product status: ${parsed.status}`);
+    }
+  };
+
+  const handleReturn = () => {
+    const currentDate = getCurrentDate();
+    console.log('Returning product:', scannedProduct, 'on', currentDate);
+    alert(`Product returned successfully!\nReturn date: ${currentDate}`);
+    setScannedProduct(null);
+    setProductStatus(null);
+  };
+
+  const handleBorrow = (borrowData) => {
+    console.log('Borrowing product:', scannedProduct);
+    console.log('Borrow data:', borrowData);
+    alert(`Product borrowed successfully!\nBorrower: ${borrowData.borrowerName}\nBorrow date: ${borrowData.borrowDate}\nReturn by: ${borrowData.returnDate}`);
+    setScannedProduct(null);
+    setProductStatus(null);
+  };
 
   const tabs = currentUser?.role === 'admin' ? ['users', 'products', 'history'] : ['history', 'products'];
   const getTabLabel = (tab) => {
@@ -116,24 +295,124 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Borrow button on mobile */}
-      <div className="borrow-content-button hide-on-desktop">
-        <button
-          onClick={() => setShowCamera(true)}
-          className="borrow-button"
-          style={{ width: '100%' }}
+      {/* Mobile Borrow Section */}
+      <div className="hide-on-desktop">
+        {/* Scan Button */}
+        <div className="borrow-content-button">
+          <button
+            onClick={() => setShowCamera(true)}
+            className="borrow-button"
+            style={{ width: '100%' }}
           >
-          <QrCode size={18} />
-          Scan QR Code
-        </button>
+            <QrCode size={18} />
+            Scan QR Code
+          </button>
+        </div>
+
+        {/* Mobile Product Info Box */}
+        {scannedProduct && (
+          <div className="mobile-product-box">
+            <h3 className="mobile-product-title">{scannedProduct.name}</h3>
+            <div className="mobile-product-status">
+              {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
+            </div>
+
+            {productStatus === 'borrowed' ? (
+              <>
+                <div className="mobile-info-section">
+                  <p className="mobile-label">Lainaataan:</p>
+                  <p className="mobile-value">Nimi: {scannedProduct.borrower}</p>
+                  <p className="mobile-value">Pvm: {scannedProduct.borrowDate}</p>
+                </div>
+                <div className="mobile-info-section">
+                  <p className="mobile-label">Viimeinen palautuspäivä:</p>
+                  <p className="mobile-value">{scannedProduct.returnDate}</p>
+                </div>
+              </>
+            ) : (
+              <div className="mobile-info-section">
+                <p className="mobile-label">Lainaataan:</p>
+                <input
+                  type="text"
+                  placeholder="Nimi:"
+                  className="mobile-input"
+                  id="mobile-borrower-name"
+                />
+                <input
+                  type="tel"
+                  placeholder="Pvm:"
+                  className="mobile-input"
+                  id="mobile-borrower-phone"
+                />
+                <p className="mobile-label">Viimeinen palautuspäivä:</p>
+                <input
+                  type="text"
+                  placeholder="dd.mm.yyyy"
+                  className="mobile-input"
+                  id="mobile-return-date"
+                />
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                if (productStatus === 'borrowed') {
+                  handleReturn();
+                } else {
+                  const name = document.getElementById('mobile-borrower-name').value;
+                  const phone = document.getElementById('mobile-borrower-phone').value;
+                  const returnDate = document.getElementById('mobile-return-date').value;
+                  if (!name || !phone || !returnDate) {
+                    alert('Fill in all fields!');
+                    return;
+                  }
+                  handleBorrow({
+                    borrowerName: name,
+                    borrowerPhone: phone,
+                    returnDate: returnDate,
+                    borrowDate: getCurrentDate()
+                  });
+                }
+              }}
+              className="mobile-action-button"
+            >
+              {productStatus === 'borrowed' ? 'Palauta' : 'Lainaa'}
+            </button>
+          </div>
+        )}
       </div>
 
       {showCamera && (
-      <QRScannerCamera
-        onScan={handleQRScan}
-        onClose={() => setShowCamera(false)}
-      />
+        <QRScannerCamera
+          onScan={handleQRScan}
+          onClose={() => setShowCamera(false)}
+        />
       )}
+
+      {/* Product Modals - Desktop Only */}
+      <div className="hide-on-mobile">
+        {scannedProduct && productStatus === 'borrowed' && (
+          <ProductModalBorrowed
+            product={scannedProduct}
+            onClose={() => {
+              setScannedProduct(null);
+              setProductStatus(null);
+            }}
+            onReturn={handleReturn}
+          />
+        )}
+
+        {scannedProduct && productStatus === 'available' && (
+          <ProductModalAvailable
+            product={scannedProduct}
+            onClose={() => {
+              setScannedProduct(null);
+              setProductStatus(null);
+            }}
+            onBorrow={handleBorrow}
+          />
+        )}
+      </div>
 
       <div className="admin-content hide-on-mobile">
 
