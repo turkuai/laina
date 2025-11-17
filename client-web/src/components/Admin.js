@@ -298,16 +298,19 @@ export default function Admin({ productsData }) {
       {/* Mobile Borrow Section */}
       <div className="hide-on-desktop">
         {/* Scan Button */}
-        <div className="borrow-content-button">
-          <button
-            onClick={() => setShowCamera(true)}
-            className="borrow-button"
-            style={{ width: '100%' }}
-          >
-            <QrCode size={18} />
-            Scan QR Code
-          </button>
-        </div>
+
+              <div className="borrow-content">
+        <button
+          onClick={() => setShowCamera(true)}
+          className="scan-button"
+        >
+          Scan QR Code
+        </button>
+        
+        <p className="help-text">
+          Press the button to scan a product QR code
+        </p>
+      </div>
 
         {/* Mobile Product Info Box */}
         {scannedProduct && (
