@@ -270,10 +270,18 @@ export default function Admin({ productsData }) {
 
       {/* Header */}
       <div className="admin-header">
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
+        <h1 className="admin-logo-text">
           Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : <span className="hide-on-mobile"> - Admin Panel</span>}
         </h1>
+
         <div className="admin-header-actions">
+
+          {/* Welcome oikealle mobilella */}
+          <span className="user-info mobile-header-user">
+            Welcome, <strong>{currentUser?.username}</strong>
+            <span className="admin-badge">({currentUser?.role})</span>
+          </span>
+
           {canAccessBorrow && (
             <button
               onClick={() => setShowCamera(true)}
@@ -283,17 +291,17 @@ export default function Admin({ productsData }) {
               Borrow/Return
             </button>
           )}
-          <span className="user-info">
-            Welcome, <strong>{currentUser?.username}</strong><span className="admin-badge">({currentUser?.role})</span>
-          </span>
+
           <button
             onClick={handleLogout}
             className="logout-button"
           >
             Logout
           </button>
+
         </div>
       </div>
+
 
       {/* Mobile Borrow Section */}
       <div className="hide-on-desktop">
@@ -416,6 +424,29 @@ export default function Admin({ productsData }) {
           />
         )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+        <div className="mobile-bottom-nav hide-on-desktop">
+
+          <button className="mobile-nav-btn" onClick={() => navigate('/')}>
+            HOME
+          </button>
+
+          {currentUser?.role === 'admin' && (
+            <button className="mobile-nav-btn" onClick={() => navigate('/admin')}>
+              ADMIN
+            </button>
+          )}
+
+          <button className="mobile-nav-btn" onClick={handleLogout}>
+            LOG OUT
+          </button>
+
+          <button className="mobile-nav-btn" onClick={() => navigate('/settings')}>
+            SETTINGS
+          </button>
+
+        </div>
 
       <div className="admin-content hide-on-mobile">
 
