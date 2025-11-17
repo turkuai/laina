@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { QrCode } from 'lucide-react';
@@ -11,6 +11,16 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordStatus, setPasswordStatus] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  });
 
   const [activeTab, setActiveTab] = useState(
     currentUser?.role === 'admin' ? 'users' : 'history'
@@ -40,6 +50,26 @@ export default function Admin({ productsData }) {
     return borrowingHistory.filter(r => r.userId === currentUser?.id);
   };
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile && activeTab === 'settings') {
+      setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+    }
+  }, [isMobile, activeTab, currentUser]);
+
+  useEffect(() => {
+    if (activeTab !== 'settings' && passwordStatus) {
+      setPasswordStatus(null);
+    }
+  }, [activeTab, passwordStatus]);
+
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
@@ -65,14 +95,49 @@ export default function Admin({ productsData }) {
     }
   };
 
-  const tabs = currentUser?.role === 'admin' ? ['users', 'products', 'history'] : ['history', 'products'];
-  const getTabLabel = (tab) => {
+  const baseTabs = currentUser?.role === 'admin'
+    ? ['users', 'products', 'history']
+    : ['history', 'products'];
+  const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs;
+
+  const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
       case 'users': return 'Users';
       case 'products': return 'Products';
-      case 'history': return 'Borrowing History';
+      case 'history': return forMobile ? 'History' : 'Borrowing History';
+      case 'settings': return 'Settings';
       default: return tab;
     }
+  };
+
+  const handlePasswordInputChange = (field, value) => {
+    setPasswordForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePasswordSubmit = (event) => {
+    event.preventDefault();
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordStatus({ type: 'error', message: 'Please fill in all fields before submitting.' });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordStatus({ type: 'error', message: 'New password and confirmation do not match.' });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    setPasswordStatus({ type: 'success', message: 'Password change request submitted. (Demo only)' });
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
   };
 
   // Check if user is admin or teacher
@@ -109,40 +174,44 @@ export default function Admin({ productsData }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb', padding: '0 2rem' }}>
-        <div style={{ display: 'flex', gap: '2rem' }}>
-          {tabs.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '1rem 0',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
-                color: activeTab === tab ? '#2563eb' : '#6b7280',
-                fontWeight: activeTab === tab ? '600' : '400',
-                cursor: 'pointer'
-              }}
-            >
-              {getTabLabel(tab)}
-            </button>
-          ))}
+      {!isMobile && (
+        <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb', padding: '0 2rem' }}>
+          <div style={{ display: 'flex', gap: '2rem' }}>
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '1rem 0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
+                  color: activeTab === tab ? '#2563eb' : '#6b7280',
+                  fontWeight: activeTab === tab ? '600' : '400',
+                  cursor: 'pointer'
+                }}
+              >
+                {getTabLabel(tab)}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className="admin-content">
         <div className="admin-content-card">
 
           {/* Search Box for Users */}
-          <div className="user-search">
-            <input
-              placeholder="Search ..."
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-          </div>
+          {activeTab !== 'settings' && (
+            <div className="user-search">
+              <input
+                placeholder="Search ..."
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+              />
+            </div>
+          )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
@@ -182,8 +251,95 @@ export default function Admin({ productsData }) {
               />
             </div>
           )}
+
+          {activeTab === 'settings' && (
+            <div className="admin-settings">
+              <div className="admin-settings-section">
+                <h3>User Details</h3>
+                <div className="settings-field">
+                  <span className="settings-label">Name</span>
+                  <span className="settings-value">{currentUser?.name || '-'}</span>
+                </div>
+                <div className="settings-field">
+                  <span className="settings-label">Username</span>
+                  <span className="settings-value">{currentUser?.username || '-'}</span>
+                </div>
+                <div className="settings-field">
+                  <span className="settings-label">Role</span>
+                  <span className="settings-value">{currentUser?.role || '-'}</span>
+                </div>
+              </div>
+
+              <div className="admin-settings-section">
+                <h3>Change Password</h3>
+                <form className="password-form" onSubmit={handlePasswordSubmit}>
+                  <label className="password-form-field">
+                    <span>Current password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                      placeholder="Enter current password"
+                    />
+                  </label>
+                  <label className="password-form-field">
+                    <span>New password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                      placeholder="Enter new password"
+                    />
+                  </label>
+                  <label className="password-form-field">
+                    <span>Confirm new password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                      placeholder="Re-enter new password"
+                    />
+                  </label>
+
+                  {passwordStatus && (
+                    <div
+                      className={`password-status ${passwordStatus.type === 'error' ? 'error' : 'success'}`}
+                      role="alert"
+                    >
+                      {passwordStatus.message}
+                    </div>
+                  )}
+
+                  <button type="submit" className="password-submit-btn">
+                    Update Password
+                  </button>
+                </form>
+              </div>
+
+              <div className="admin-settings-section">
+                <h3>Account</h3>
+                <button type="button" className="settings-logout-btn" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      {isMobile && (
+        <nav className="bottom-tab-bar" aria-label="Bottom navigation">
+          {tabs.map(tab => (
+            <button
+              key={tab}
+              type="button"
+              className={`bottom-tab-button ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              <span>{getTabLabel(tab, true)}</span>
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }
