@@ -1,5 +1,5 @@
 // server/db/product-types.js
-const db = require('./connection'); // assumes you have a MySQL connection pool exported here
+import db from './db.js';
 
 // CREATE - insert a new product type
 async function insertProductType(name, description) {

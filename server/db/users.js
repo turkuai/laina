@@ -1,4 +1,4 @@
-const db = require('./db-connection');
+import db from './db.js';
 
 // INSERT
 async function insertUser(user) {
@@ -47,10 +47,14 @@ async function deleteUser(id) {
     return result.affectedRows;
 }
 
-module.exports = {
+
+
+const users = { 
     insertUser,
     selectUsers,
     selectUserById,
     updateUser,
     deleteUser
 };
+
+export default users;
