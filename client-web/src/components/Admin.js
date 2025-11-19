@@ -5,6 +5,7 @@ import { QrCode } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
+import ServerGrid from './ServerGrid';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -216,15 +217,12 @@ export default function Admin({ productsData }) {
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
               <h2>Users Management</h2>
-              <Grid
-                columns={['name', 'email', 'role']}
-                data={getUserData()}
+              <ServerGrid
+                columns={['first_name', 'email', 'role']}
+                path="/users"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
-                onDataChange={handleDataChange}
-                onEditRow={handleEditRow}
-                onDeleteRow={handleDeleteUser}
               />
             </div>
           )}
