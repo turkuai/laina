@@ -2,6 +2,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Grid from './Grid';
 
+// Helper function to convert column names to display names
+const formatColumnName = (columnName) => {
+  return columnName
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 export default function ServerGrid({
   columns,
   path,                 // API endpoint
@@ -13,7 +21,7 @@ export default function ServerGrid({
   onDeleteRow,
   ...rest               // anything else you want to pass to Grid
 }) {
-  const [data, setData] = useState([]);     // <-- data = useState
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -39,7 +47,6 @@ export default function ServerGrid({
 
       console.log("Server Response: ", json);
       
-
       const rows = Array.isArray(json) ? json : (json.data || json.users || []);
 
       setData(rows);
@@ -75,6 +82,12 @@ export default function ServerGrid({
     }
   };
 
+  // Create column configuration with display names
+  const columnConfig = columns.map(col => ({
+    field: col,
+    displayName: formatColumnName(col)
+  }));
+
   return (
     <div style={{ position: 'relative' }}>
       {loading && (
@@ -89,7 +102,7 @@ export default function ServerGrid({
       )}
 
       <Grid
-        columns={columns}
+        columns={columnConfig}
         data={data}
         allowEditing={allowEditing}
         allowDelete={allowDelete}
