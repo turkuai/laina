@@ -35,6 +35,59 @@
   justify-content: flex-end;
 }
 
+/* Tabs */
+.admin-tabs {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
+  margin: 0 1rem;
+  padding: 0 1.5rem;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.admin-tab-list {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.admin-tab-button {
+  padding: 0.85rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+.admin-tab-button:hover {
+  color: #2563eb;
+}
+
+.admin-tab-button.active {
+  color: #1f2937;
+  border-bottom-color: #2563eb;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), transparent);
+}
+
+.admin-tab-button.camera-tab {
+  padding: 1rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  border-bottom-color: #2563eb;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.12), transparent);
+  border-top-left-radius: 999px;
+  border-top-right-radius: 999px;
+  box-shadow: 0 -2px 10px rgba(37, 99, 235, 0.08);
+}
+
 /* Borrow Button */
 .borrow-button {
   padding: 0.5rem 1rem;
@@ -396,6 +449,12 @@
   font-weight: 600;
 }
 
+.bottom-tab-button.camera-tab {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #111827;
+}
+
 .bottom-tab-button:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
@@ -403,13 +462,20 @@
 
 /* Tablet styles (min-width: 640px) */
 @media (min-width: 640px) {
-
   .hide-on-desktop {
+    display: none;
+  }
+
+  .camera-tab {
     display: none;
   }
 
   .admin-header {
     padding: 1rem 1.5rem;
+  }
+
+  .admin-tabs {
+    margin: 0 1.5rem;
   }
 
   .admin-header h1 {
@@ -440,6 +506,15 @@
   .admin-header {
     padding: 1rem 2rem;
     flex-wrap: nowrap;
+  }
+
+  .admin-tabs {
+    margin: 0 2rem;
+    padding: 0 2rem;
+  }
+
+  .admin-header h1 {
+    flex: 0 1 auto;
   }
 
   .admin-header-actions {

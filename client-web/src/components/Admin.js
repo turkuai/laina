@@ -7,6 +7,7 @@ import Products from './Products';
 import './Admin.css';
 import BorrowPage from './BorrowPage';
 import QRScannerCamera from './QRScannerCamera';
+import ServerGrid from './ServerGrid';
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {
@@ -289,18 +290,28 @@ export default function Admin({ productsData }) {
 
   // Tab configuration (from main branch)
   const baseTabs = currentUser?.role === 'admin'
-    ? ['users', 'products', 'history']
+    ? ['camera', 'users', 'products', 'history']
     : ['history', 'products'];
   const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs;
 
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
+      case 'camera': return 'Camera';
       case 'users': return 'Users';
       case 'products': return 'Products';
       case 'history': return forMobile ? 'History' : 'Borrowing History';
       case 'settings': return 'Settings';
       default: return tab;
     }
+  };
+
+  // Tab click handler - merged from both branches
+  const handleTabClick = (tab) => {
+    if (tab === 'camera') {
+      navigate('/borrow');
+      return;
+    }
+    setActiveTab(tab);
   };
 
   // Password handlers (from main branch)
@@ -497,25 +508,29 @@ export default function Admin({ productsData }) {
 
       {/* Tabs - Desktop */}
       {!isMobile && (
-        <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb', padding: '0 2rem' }}>
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            {tabs.map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  padding: '1rem 0',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
-                  color: activeTab === tab ? '#2563eb' : '#6b7280',
-                  fontWeight: activeTab === tab ? '600' : '400',
-                  cursor: 'pointer'
-                }}
-              >
-                {getTabLabel(tab)}
-              </button>
-            ))}
+        <div className="admin-tabs" role="tablist">
+          <div className="admin-tab-list">
+            {tabs.map(tab => {
+              const isCameraTab = tab === 'camera';
+              const isActive = !isCameraTab && activeTab === tab;
+
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => handleTabClick(tab)}
+                  className={[
+                    'admin-tab-button',
+                    isCameraTab ? 'camera-tab' : '',
+                    isActive ? 'active' : ''
+                  ].join(' ').trim()}
+                  role="tab"
+                  aria-selected={isActive}
+                >
+                  {getTabLabel(tab)}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -538,15 +553,12 @@ export default function Admin({ productsData }) {
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
               <h2>Users Management</h2>
-              <Grid
-                columns={['name', 'email', 'role']}
-                data={getUserData()}
+              <ServerGrid
+                columns={['first_name', 'email', 'role']}
+                path="/users"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
-                onDataChange={handleDataChange}
-                onEditRow={handleEditRow}
-                onDeleteRow={handleDeleteUser}
               />
             </div>
           )}
@@ -656,8 +668,12 @@ export default function Admin({ productsData }) {
             <button
               key={tab}
               type="button"
-              className={`bottom-tab-button ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
+              className={[
+                'bottom-tab-button',
+                tab === 'camera' ? 'camera-tab' : '',
+                tab !== 'camera' && activeTab === tab ? 'active' : ''
+              ].join(' ').trim()}
+              onClick={() => handleTabClick(tab)}
             >
               <span>{getTabLabel(tab, true)}</span>
             </button>

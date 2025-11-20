@@ -1,5 +1,5 @@
 // Import the MySQL connection
-const db = require('./db')
+import db from './db.js';
 
 // Get all locations with pagination
 function getLocations(page, callback) {
