@@ -356,6 +356,9 @@
 
 /* Tablet styles (min-width: 640px) */
 @media (min-width: 640px) {
+  .camera-tab {
+    display: none;
+  }
   .admin-header {
     padding: 1rem 1.5rem;
   }
