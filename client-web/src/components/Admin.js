@@ -218,7 +218,7 @@ export default function Admin({ productsData }) {
             <div>
               <h2>Users Management</h2>
               <ServerGrid
-                columns={['first_name', 'email', 'role']}
+                columns={['first name', 'email', 'role']}
                 path="/users"
                 allowEditing={true}
                 allowDelete={true}
