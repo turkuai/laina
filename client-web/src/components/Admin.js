@@ -160,9 +160,13 @@ export default function Admin({ productsData }) {
     return window.innerWidth < 768;
   });
 
-  const [activeTab, setActiveTab] = useState(
-    currentUser?.role === 'admin' ? 'users' : 'history'
-  );
+  // Set default tab to 'camera' on mobile, otherwise based on role
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'camera';
+    }
+    return currentUser?.role === 'admin' ? 'users' : 'history';
+  });
 
   const [users, setUsers] = useState([
     { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
@@ -190,11 +194,23 @@ export default function Admin({ productsData }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // When switching to mobile, set active tab to camera
+      if (mobile && activeTab !== 'camera' && activeTab !== 'settings') {
+        setActiveTab('camera');
+      }
+      // When switching to desktop from camera tab, switch to appropriate tab
+      else if (!mobile && activeTab === 'camera') {
+        setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+      }
+    };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [activeTab, currentUser]);
 
   useEffect(() => {
     if (!isMobile && activeTab === 'settings') {
@@ -233,7 +249,7 @@ export default function Admin({ productsData }) {
     }
   };
 
-  // QR Scanner handlers (from feature branch)
+  // QR Scanner handlers
   const handleQRScan = (qrData) => {
     console.log('QR Code scanned:', qrData);
     setShowCamera(false);
@@ -288,11 +304,11 @@ export default function Admin({ productsData }) {
     setProductStatus(null);
   };
 
-  // Tab configuration (from main branch)
+  // Tab configuration
   const baseTabs = currentUser?.role === 'admin'
     ? ['camera', 'users', 'products', 'history']
-    : ['history', 'products'];
-  const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs;
+    : ['camera', 'history', 'products'];
+  const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs.filter(t => t !== 'camera');
 
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
@@ -305,16 +321,12 @@ export default function Admin({ productsData }) {
     }
   };
 
-  // Tab click handler - merged from both branches
+  // Tab click handler
   const handleTabClick = (tab) => {
-    if (tab === 'camera') {
-      navigate('/borrow');
-      return;
-    }
     setActiveTab(tab);
   };
 
-  // Password handlers (from main branch)
+  // Password handlers
   const handlePasswordInputChange = (field, value) => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
   };
@@ -347,6 +359,94 @@ export default function Admin({ productsData }) {
 
   // Check if user is admin or teacher
   const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
+
+  // Render camera view content
+  const renderCameraView = () => (
+    <div className="borrow-content">
+      <button
+        onClick={() => setShowCamera(true)}
+        className="scan-button"
+      >
+        SCAN QR CODE
+      </button>
+      
+      <p className="help-text">
+        Press the button to scan a product QR code
+      </p>
+
+      {/* Mobile Product Info Box */}
+      {scannedProduct && (
+        <div className="mobile-product-box">
+          <h3 className="mobile-product-title">{scannedProduct.name}</h3>
+          <div className="mobile-product-status">
+            {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
+          </div>
+
+          {productStatus === 'borrowed' ? (
+            <>
+              <div className="mobile-info-section">
+                <p className="mobile-label">Lainaataan:</p>
+                <p className="mobile-value">Nimi: {scannedProduct.borrower}</p>
+                <p className="mobile-value">Pvm: {scannedProduct.borrowDate}</p>
+              </div>
+              <div className="mobile-info-section">
+                <p className="mobile-label">Viimeinen palautuspäivä:</p>
+                <p className="mobile-value">{scannedProduct.returnDate}</p>
+              </div>
+            </>
+          ) : (
+            <div className="mobile-info-section">
+              <p className="mobile-label">Lainaataan:</p>
+              <input
+                type="text"
+                placeholder="Nimi:"
+                className="mobile-input"
+                id="mobile-borrower-name"
+              />
+              <input
+                type="tel"
+                placeholder="Pvm:"
+                className="mobile-input"
+                id="mobile-borrower-phone"
+              />
+              <p className="mobile-label">Viimeinen palautuspäivä:</p>
+              <input
+                type="text"
+                placeholder="dd.mm.yyyy"
+                className="mobile-input"
+                id="mobile-return-date"
+              />
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              if (productStatus === 'borrowed') {
+                handleReturn();
+              } else {
+                const name = document.getElementById('mobile-borrower-name').value;
+                const phone = document.getElementById('mobile-borrower-phone').value;
+                const returnDate = document.getElementById('mobile-return-date').value;
+                if (!name || !phone || !returnDate) {
+                  alert('Fill in all fields!');
+                  return;
+                }
+                handleBorrow({
+                  borrowerName: name,
+                  borrowerPhone: phone,
+                  returnDate: returnDate,
+                  borrowDate: getCurrentDate()
+                });
+              }
+            }}
+            className="mobile-action-button"
+          >
+            {productStatus === 'borrowed' ? 'Palauta' : 'Lainaa'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="admin-page">
@@ -385,94 +485,8 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Mobile Borrow Section */}
-      <div className="hide-on-desktop">
-        {/* Scan Button */}
-        <div className="borrow-content">
-          <button
-            onClick={() => setShowCamera(true)}
-            className="scan-button"
-          >
-            Scan QR Code
-          </button>
-          
-          <p className="help-text">
-            Press the button to scan a product QR code
-          </p>
-        </div>
-
-        {/* Mobile Product Info Box */}
-        {scannedProduct && (
-          <div className="mobile-product-box">
-            <h3 className="mobile-product-title">{scannedProduct.name}</h3>
-            <div className="mobile-product-status">
-              {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
-            </div>
-
-            {productStatus === 'borrowed' ? (
-              <>
-                <div className="mobile-info-section">
-                  <p className="mobile-label">Lainaataan:</p>
-                  <p className="mobile-value">Nimi: {scannedProduct.borrower}</p>
-                  <p className="mobile-value">Pvm: {scannedProduct.borrowDate}</p>
-                </div>
-                <div className="mobile-info-section">
-                  <p className="mobile-label">Viimeinen palautuspäivä:</p>
-                  <p className="mobile-value">{scannedProduct.returnDate}</p>
-                </div>
-              </>
-            ) : (
-              <div className="mobile-info-section">
-                <p className="mobile-label">Lainaataan:</p>
-                <input
-                  type="text"
-                  placeholder="Nimi:"
-                  className="mobile-input"
-                  id="mobile-borrower-name"
-                />
-                <input
-                  type="tel"
-                  placeholder="Pvm:"
-                  className="mobile-input"
-                  id="mobile-borrower-phone"
-                />
-                <p className="mobile-label">Viimeinen palautuspäivä:</p>
-                <input
-                  type="text"
-                  placeholder="dd.mm.yyyy"
-                  className="mobile-input"
-                  id="mobile-return-date"
-                />
-              </div>
-            )}
-
-            <button
-              onClick={() => {
-                if (productStatus === 'borrowed') {
-                  handleReturn();
-                } else {
-                  const name = document.getElementById('mobile-borrower-name').value;
-                  const phone = document.getElementById('mobile-borrower-phone').value;
-                  const returnDate = document.getElementById('mobile-return-date').value;
-                  if (!name || !phone || !returnDate) {
-                    alert('Fill in all fields!');
-                    return;
-                  }
-                  handleBorrow({
-                    borrowerName: name,
-                    borrowerPhone: phone,
-                    returnDate: returnDate,
-                    borrowDate: getCurrentDate()
-                  });
-                }
-              }}
-              className="mobile-action-button"
-            >
-              {productStatus === 'borrowed' ? 'Palauta' : 'Lainaa'}
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Mobile Content - Show based on active tab */}
+      {isMobile && activeTab === 'camera' && renderCameraView()}
 
       {showCamera && (
         <QRScannerCamera
@@ -511,8 +525,7 @@ export default function Admin({ productsData }) {
         <div className="admin-tabs" role="tablist">
           <div className="admin-tab-list">
             {tabs.map(tab => {
-              const isCameraTab = tab === 'camera';
-              const isActive = !isCameraTab && activeTab === tab;
+              const isActive = activeTab === tab;
 
               return (
                 <button
@@ -521,7 +534,6 @@ export default function Admin({ productsData }) {
                   onClick={() => handleTabClick(tab)}
                   className={[
                     'admin-tab-button',
-                    isCameraTab ? 'camera-tab' : '',
                     isActive ? 'active' : ''
                   ].join(' ').trim()}
                   role="tab"
@@ -671,7 +683,7 @@ export default function Admin({ productsData }) {
               className={[
                 'bottom-tab-button',
                 tab === 'camera' ? 'camera-tab' : '',
-                tab !== 'camera' && activeTab === tab ? 'active' : ''
+                activeTab === tab ? 'active' : ''
               ].join(' ').trim()}
               onClick={() => handleTabClick(tab)}
             >

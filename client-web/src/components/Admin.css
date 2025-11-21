@@ -88,6 +88,53 @@
   box-shadow: 0 -2px 10px rgba(37, 99, 235, 0.08);
 }
 
+/* Borrow Content Area */
+.borrow-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  min-height: 50vh;
+}
+
+/* Scan Button */
+.scan-button {
+  padding: 1.25rem 3rem;
+  background-color: #dc2626;
+  color: white;
+  border: 3px solid #dc2626;
+  border-radius: 50px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scan-button:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+}
+
+.scan-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* Help Text */
+.help-text {
+  margin-top: 1.5rem;
+  color: #dc2626;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
 /* Borrow Button */
 .borrow-button {
   padding: 0.5rem 1rem;
@@ -151,11 +198,6 @@
   background-color: #374151;
 }
 
-/* Content Area */
-.admin-content {
-  /* padding: 1rem; */
-}
-
 .admin-content-card {
   background-color: white;
   border-radius: 8px;
@@ -208,6 +250,8 @@
   margin: 1rem;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: calc(100% - 2rem);
+  max-width: 500px;
 }
 
 .mobile-product-title {
@@ -449,7 +493,7 @@
   font-weight: 600;
 }
 
-.bottom-tab-button.camera-tab {
+.bottom-tab-button.camera-tab.active {
   font-weight: 700;
   font-size: 0.85rem;
   color: #111827;
@@ -568,9 +612,6 @@
     margin: 0.5rem 0 0.875rem 0;
   }
 
-  .logout-button {
-    display: none;
-  }
 
   .bottom-tab-bar {
     display: flex;
