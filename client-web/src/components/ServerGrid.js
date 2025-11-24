@@ -32,18 +32,12 @@ export default function ServerGrid({
     setError(null);
 
     try {
-      // Construct URL with page parameter
-      const url = new URL(path, window.location.origin);
-      if (!path.includes('?')) {
-        url.searchParams.set('page', currentPage);
-      } else {
-        // If path already has query params, append page
-        const separator = path.includes('?') ? '&' : '?';
-        const fullPath = path + separator + `page=${currentPage}`;
-        return fetchData(); // Refetch with constructed URL
-      }
+      // Build the full URL with page parameter
+      let fullUrl = path;
+      const separator = path.includes('?') ? '&' : '?';
+      fullUrl = `${path}${separator}page=${currentPage}`;
 
-      const res = await fetch(url.toString(), {
+      const res = await fetch(fullUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -60,24 +54,27 @@ export default function ServerGrid({
       
       // Handle different response structures
       let rows = [];
+      let pages = 1;
+
       if (Array.isArray(json)) {
         rows = json;
-        setTotalPages(1);
+        pages = 1;
       } else if (json.data) {
         rows = json.data;
-        setTotalPages(json.totalPages || 1);
+        pages = json.totalPages || 1;
       } else if (json.users) {
         rows = json.users;
-        setTotalPages(json.totalPages || 1);
+        pages = json.totalPages || 1;
       } else if (json.products) {
         rows = json.products;
-        setTotalPages(json.totalPages || 1);
+        pages = json.totalPages || 1;
       } else if (json.history) {
         rows = json.history;
-        setTotalPages(json.totalPages || 1);
+        pages = json.totalPages || 1;
       }
 
       setData(rows);
+      setTotalPages(pages);
     } catch (err) {
       console.error('ServerGrid fetch error:', err);
       setError(err.message || 'Failed to load data from server.');
@@ -104,7 +101,7 @@ export default function ServerGrid({
     }
 
     try {
-      const res = await fetch(`${path}/${row.id}`, {
+      const res = await fetch(`${path.split('?')[0]}/${row.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
