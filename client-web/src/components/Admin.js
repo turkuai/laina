@@ -122,11 +122,16 @@ export default function Admin({ productsData }) {
   // Construct the API path with borrower filter for students
   const getHistoryPath = () => {
     if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
-      return '/borrow-history';
+      return '/api/borrowing-history';
     } else {
       // Filter by current user's ID for students
-      return `/borrow-history?borrower_id=${currentUser?.id}`;
+      return `/api/borrowing-history?borrower_id=${currentUser?.id}`;
     }
+  };
+
+  // Get products columns
+  const getProductsColumns = () => {
+    return ['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'details'];
   };
 
   return (
@@ -216,10 +221,16 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'products' && (
-            <Products
-              currentUser={currentUser}
-              productsData={productsData}
-            />
+            <div>
+              <h2>Products Management</h2>
+              <ServerGrid
+                columns={getProductsColumns()}
+                path="/api/products"
+                allowEditing={currentUser?.role === 'admin'}
+                allowDelete={currentUser?.role === 'admin'}
+                pageSize={10}
+              />
+            </div>
           )}
 
           {activeTab === 'history' && (
