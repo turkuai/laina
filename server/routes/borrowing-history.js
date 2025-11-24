@@ -1,5 +1,5 @@
 import express from "express";
-import db from '../db/borrow_history.js';
+import db from '../db/borrowing-history.js';
 
 const router = express.Router();
 
