@@ -143,12 +143,12 @@ export default function Admin({ productsData }) {
 
   const [userQuery, setUserQuery] = useState('');
   
-  // QR Scanner states (from feature branch)
+  // QR Scanner states
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
   
-  // Password form states (from main branch)
+  // Password form states
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -157,12 +157,12 @@ export default function Admin({ productsData }) {
   const [passwordStatus, setPasswordStatus] = useState(null);
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.innerWidth < 768;
+    return window.innerWidth < 640;
   });
 
   // Set default tab to 'camera' on mobile, otherwise based on role
   const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
       return 'camera';
     }
     return currentUser?.role === 'admin' ? 'users' : 'history';
@@ -195,7 +195,7 @@ export default function Admin({ productsData }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 640;
       setIsMobile(mobile);
       
       // When switching to mobile, set active tab to camera
@@ -487,6 +487,15 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Content - Show based on active tab */}
       {isMobile && activeTab === 'camera' && renderCameraView()}
+
+      {/* Mobile Content Area - Other Tabs */}
+      {isMobile && activeTab !== 'camera' && (
+        <div className="admin-content">
+          <div className="admin-content-card">
+            {/* Empty view for mobile - content coming soon */}
+          </div>
+        </div>
+      )}
 
       {showCamera && (
         <QRScannerCamera

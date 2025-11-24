@@ -67,13 +67,13 @@
 }
 
 .admin-tab-button:hover {
-  color: #2563eb;
+  color: #dc2626;
 }
 
 .admin-tab-button.active {
   color: #1f2937;
-  border-bottom-color: #2563eb;
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), transparent);
+  border-bottom-color: #dc2626;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent);
 }
 
 .admin-tab-button.camera-tab {
@@ -81,11 +81,11 @@
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
-  border-bottom-color: #2563eb;
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.12), transparent);
+  border-bottom-color: #dc2626;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.12), transparent);
   border-top-left-radius: 999px;
   border-top-right-radius: 999px;
-  box-shadow: 0 -2px 10px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 -2px 10px rgba(220, 38, 38, 0.08);
 }
 
 /* Borrow Content Area */
@@ -172,8 +172,8 @@
 
 .admin-badge {
   padding: 0.25rem 0.5rem;
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #fee2e2;
+  color: #991b1b;
   font-size: 0.75rem;
   border-radius: 9999px;
   font-weight: 500;
@@ -411,9 +411,9 @@
 }
 
 .password-form-field input:focus {
-  border-color: #2563eb;
+  border-color: #dc2626;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
 }
 
 .password-status {
@@ -434,7 +434,7 @@
 
 .password-submit-btn {
   padding: 0.75rem;
-  background-color: #2563eb;
+  background-color: #dc2626;
   color: white;
   font-weight: 600;
   border: none;
@@ -444,7 +444,7 @@
 }
 
 .password-submit-btn:hover {
-  background-color: #1d4ed8;
+  background-color: #b91c1c;
 }
 
 .settings-logout-btn {
@@ -469,9 +469,9 @@
 }
 
 .bottom-tab-button {
-  background: transparent;
+  background: transparent !important;
   border: none;
-  color: #6b7280;
+  color: #6b7280 !important;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -489,19 +489,26 @@
 }
 
 .bottom-tab-button.active {
-  color: #2563eb;
+  color: #dc2626 !important;
   font-weight: 600;
+  background: transparent !important;
 }
 
 .bottom-tab-button.camera-tab.active {
   font-weight: 700;
   font-size: 0.85rem;
-  color: #111827;
+  color: #dc2626 !important;
+  background: transparent !important;
 }
 
 .bottom-tab-button:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #dc2626;
   outline-offset: 2px;
+}
+
+.bottom-tab-button:hover {
+  color: #b91c1c !important;
+  background: transparent !important;
 }
 
 /* Tablet styles (min-width: 640px) */
@@ -542,6 +549,16 @@
   
   .user-search input {
     font-size: 0.9375rem;
+  }
+
+  /* Show logout button on desktop */
+  .logout-button {
+    display: flex !important;
+  }
+
+  /* Hide bottom tab bar on desktop */
+  .bottom-tab-bar {
+    display: none !important;
   }
 }
 
@@ -602,8 +619,7 @@
     margin-bottom: 0.5rem;
   }
 
-  .borrow-button,
-  .logout-button {
+  .borrow-button {
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
   }
@@ -612,9 +628,16 @@
     margin: 0.5rem 0 0.875rem 0;
   }
 
+  /* Show logout button on mobile too */
+  .logout-button {
+    display: flex !important;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
 
+  /* Show bottom tab bar on mobile */
   .bottom-tab-bar {
-    display: flex;
+    display: flex !important;
     position: fixed;
     left: 0;
     right: 0;
@@ -627,6 +650,28 @@
 
   .bottom-tab-button {
     flex: 1;
+  }
+
+  /* Mobile header layout */
+  .admin-logo-text {
+    flex: 1;
+    text-align: left;
+    font-size: 1.5rem;
+  }
+
+  .mobile-header-user {
+    flex: 0 1 auto;
+    text-align: right;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+
+  .admin-header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap; 
+    justify-content: space-between;
+    align-items: center;
   }
 }
 
@@ -675,33 +720,12 @@
   font-size: 1.75rem;
   font-weight: 900;
   margin: 0;
-  color: #1f2937; /* desktop default */
+  color: #1f2937;
 }
 
-/* Mobile layout */
-@media (max-width: 639px) {
-
-  /* Logo punaiseksi & vasempaan */
+/* Desktop default - will be overridden on mobile */
+@media (min-width: 640px) {
   .admin-logo-text {
-    flex: 1;
-    text-align: left;
     font-size: 1.5rem;
-  }
-
-  /* Welcome oikeaan reunaan */
-  .mobile-header-user {
-    flex: 1;
-    text-align: right;
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-  }
-
-  /* Siirrä header flexiksi 2 riviä */
-  .admin-header {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap; 
-    justify-content: space-between;
-    align-items: center;
   }
 }
