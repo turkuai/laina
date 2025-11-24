@@ -47,7 +47,10 @@ export default function ServerGrid({
 
       console.log("Server Response: ", json);
       
-      const rows = Array.isArray(json) ? json : (json.data || json.users || []);
+      // Handle different response structures
+      const rows = Array.isArray(json) 
+        ? json 
+        : (json.data || json.users || json.history || []);
 
       setData(rows);
     } catch (err) {
