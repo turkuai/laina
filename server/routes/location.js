@@ -1,9 +1,10 @@
 // Create express router
-const express = require('express')
+import express from 'express';
+import db from '../db/location.js';
+
+
 const router = express.Router()
 
-// Import database functions
-const db = require('../db/locations')
 
 // GET /locations?page=1 - list locations with pagination
 router.get('/', (req, res) => {
@@ -59,4 +60,5 @@ router.delete('/:id', (req, res) => {
 })
 
 // Export the router so server can use it
-module.exports = router
+export default router;
+

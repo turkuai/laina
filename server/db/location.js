@@ -1,5 +1,5 @@
 // Import the MySQL connection
-const db = require('./db')
+import db from './db.js';
 
 // Get all locations with pagination
 function getLocations(page, callback) {
@@ -56,4 +56,9 @@ function deleteLocation(id, callback) {
 }
 
 // Export functions so routes can use them
-module.exports = { getLocations, addLocation, updateLocation, deleteLocation }
+export default {
+  getLocations,
+  addLocation,
+  updateLocation,
+  deleteLocation
+};
