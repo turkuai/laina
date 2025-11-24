@@ -27,30 +27,6 @@ export default function Admin({ productsData }) {
     currentUser?.role === 'admin' ? 'users' : 'history'
   );
 
-  const [users, setUsers] = useState([
-    { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
-    { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
-    { id: 5, name: 'Aino', email: 'aino@example.com', role: 'student' },
-    { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-  ]);
-
-  const [borrowingHistory, setBorrowingHistory] = useState([
-    { id: 1, userName: 'Mikko', productName: 'Laptop Dell XPS', borrowedAt: '2024-01-15', returnedAt: '2024-01-20', status: 'Returned', userId: 2 },
-    { id: 2, userName: 'Ville', productName: 'Monitor Samsung', borrowedAt: '2024-01-18', returnedAt: null, status: 'On Loan', userId: 3 },
-    { id: 3, userName: 'Aino', productName: 'Keyboard Mechanical', borrowedAt: '2024-01-10', returnedAt: '2024-01-17', status: 'Returned', userId: 5 },
-    { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
-  ]);
-
-  const getUserData = () => {
-    if (currentUser?.role === 'admin') return users;
-    return users.filter(u => u.id === currentUser?.id);
-  };
-
-  const getBorrowingHistory = () => {
-    if (currentUser?.role === 'admin') return borrowingHistory;
-    return borrowingHistory.filter(r => r.userId === currentUser?.id);
-  };
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -74,26 +50,6 @@ export default function Admin({ productsData }) {
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
-  };
-
-  const handleDataChange = (updatedData) => {
-    if (activeTab === 'users') setUsers(updatedData);
-    else if (activeTab === 'history') setBorrowingHistory(updatedData);
-  };
-
-  const handleEditRow = (row) => {
-    console.log('Edited row:', row);
-  };
-
-  const handleDeleteUser = (row) => {
-    if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
-      return;
-    }
-    if (window.confirm(`Are you sure you want to delete user "${row.name}"?`)) {
-      setUsers(users.filter(u => u.id !== row.id));
-      alert(`User "${row.name}" deleted.`);
-    }
   };
 
   const baseTabs = currentUser?.role === 'admin'
@@ -153,6 +109,26 @@ export default function Admin({ productsData }) {
   // Check if user is admin or teacher
   const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
 
+  // Determine the columns to show based on user role
+  const getHistoryColumns = () => {
+    if (currentUser?.role === 'admin') {
+      return ['product_name', 'borrower_name', 'lender_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
+    } else {
+      // For students, don't show borrower_name since they only see their own records
+      return ['product_name', 'lender_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
+    }
+  };
+
+  // Construct the API path with borrower filter for students
+  const getHistoryPath = () => {
+    if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
+      return '/borrow-history';
+    } else {
+      // Filter by current user's ID for students
+      return `/borrow-history?borrower_id=${currentUser?.id}`;
+    }
+  };
+
   return (
     <div className="admin-page">
       {/* Header */}
@@ -160,7 +136,6 @@ export default function Admin({ productsData }) {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
           Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : '- Admin Panel'}
         </h1>
-        <h1>Borrowing System - Admin Panel</h1>
         <div className="admin-header-actions">
           {canAccessBorrow && (
             <button
@@ -216,7 +191,7 @@ export default function Admin({ productsData }) {
       <div className="admin-content">
         <div className="admin-content-card">
 
-          {/* Search Box for Users */}
+          {/* Search Box */}
           {activeTab !== 'settings' && (
             <div className="user-search">
               <input
@@ -231,7 +206,7 @@ export default function Admin({ productsData }) {
             <div>
               <h2>Users Management</h2>
               <ServerGrid
-                columns={['first_name', 'email', 'role']}
+                columns={['first_name', 'last_name', 'email', 'role']}
                 path="/users"
                 allowEditing={true}
                 allowDelete={true}
@@ -243,7 +218,6 @@ export default function Admin({ productsData }) {
           {activeTab === 'products' && (
             <Products
               currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
               productsData={productsData}
             />
           )}
@@ -251,13 +225,11 @@ export default function Admin({ productsData }) {
           {activeTab === 'history' && (
             <div>
               <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getBorrowingHistory()}
+              <ServerGrid
+                columns={getHistoryColumns()}
+                path={getHistoryPath()}
                 allowEditing={false}
-                allowDelete={false}
+                allowDelete={currentUser?.role === 'admin'}
                 pageSize={10}
               />
             </div>

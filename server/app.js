@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
+import borrowHistoryRouter from "./routes/borrow_history.js";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/borrow-history', borrowHistoryRouter); // ADD THIS LINE
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
