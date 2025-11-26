@@ -20,7 +20,7 @@ export default function Admin({ productsData }) {
   const [passwordStatus, setPasswordStatus] = useState(null);
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.innerWidth < 768;
+    return window.innerWidth < 1024;
   });
 
   const [activeTab, setActiveTab] = useState(
@@ -53,7 +53,7 @@ export default function Admin({ productsData }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -204,35 +204,6 @@ export default function Admin({ productsData }) {
           </button>
         </div>
       </div>
-
-      {/* Tabs */}
-      {!isMobile && (
-        <div className="admin-tabs" role="tablist">
-          <div className="admin-tab-list">
-            {tabs.map(tab => {
-              const isCameraTab = tab === 'camera';
-              const isActive = !isCameraTab && activeTab === tab;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => handleTabClick(tab)}
-                  className={[
-                    'admin-tab-button',
-                    isCameraTab ? 'camera-tab' : '',
-                    isActive ? 'active' : ''
-                  ].join(' ').trim()}
-                  role="tab"
-                  aria-selected={isActive}
-                >
-                  {getTabLabel(tab)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Content */}
       <div className="admin-content">
