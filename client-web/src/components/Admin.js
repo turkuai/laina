@@ -40,6 +40,7 @@ export default function Admin() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
+
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -50,12 +51,30 @@ export default function Admin() {
         alignItems: 'center',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
       }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#1f2937' }}>
-          Borrowing System - Admin Panel
-        </h1>
+
+        {/* Left side: LOGO + Title */}
+        <div className="header-left">
+          <img
+            src="/tai_logo.png"
+            alt="TAI logo"
+            className="tai-logo"
+          />
+
+          <h1 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            margin: 0,
+            color: '#1f2937'
+          }}>
+            Borrowing System
+          </h1>
+        </div>
+
+        {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
             Welcome, <strong style={{ color: '#1f2937' }}>{currentUser?.username}</strong>
+
             {currentUser?.role === 'admin' && (
               <span style={{
                 marginLeft: '0.5rem',
@@ -70,6 +89,7 @@ export default function Admin() {
               </span>
             )}
           </span>
+
           <button
             onClick={handleLogout}
             style={{
@@ -99,15 +119,15 @@ export default function Admin() {
           padding: '20px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}>
-          <h2 style={{ 
-            fontSize: '1.25rem', 
-            fontWeight: '600', 
+          <h2 style={{
+            fontSize: '1.25rem',
+            fontWeight: '600',
             marginBottom: '1rem',
             color: '#1f2937'
           }}>
             Users Management
           </h2>
-          
+
           <Grid
             columns={['name', 'email', 'role']}
             data={data}
@@ -119,7 +139,8 @@ export default function Admin() {
             onDeleteRow={handleDeleteRow}
             allowSelection={true}
           />
-          <Products/>
+
+          <Products />
         </div>
       </div>
     </div>

@@ -79,3 +79,15 @@ button:hover {
 .admin-container p {
   margin: 16px 0;
 }
+
+/* TAI logo */
+.tai-logo {
+  height: 48px;
+  object-fit: contain;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
