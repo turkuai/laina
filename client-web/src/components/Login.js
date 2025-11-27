@@ -10,11 +10,10 @@ export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-
-    // Remember me state
     const [rememberMe, setRememberMe] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    // ⬇️ NEW: on first render, load remembered credentials (if any)
+    // Load remembered credentials on first render
     useEffect(() => {
         const saved = localStorage.getItem("remembered_credentials");
         if (saved) {
@@ -35,28 +34,34 @@ export default function Login() {
         }
     }, [isAuthenticated, navigate]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // pass rememberMe flag to AuthContext (as we did before)
-        const result = login(username, password, rememberMe);
-        
-        if (result.success) {
-            setError("");
+        setError("");
+        setLoading(true);
 
-            // ⬇️ NEW: store or clear credentials based on checkbox
-            if (rememberMe) {
-                localStorage.setItem(
-                    "remembered_credentials",
-                    JSON.stringify({ username, password })
-                );
+        try {
+            // login is now async, so we await it
+            const result = await login(username, password, rememberMe);
+
+            if (result.success) {
+                // Store or clear credentials based on checkbox
+                if (rememberMe) {
+                    localStorage.setItem(
+                        "remembered_credentials",
+                        JSON.stringify({ username, password })
+                    );
+                } else {
+                    localStorage.removeItem("remembered_credentials");
+                }
+                // Navigation happens automatically via useEffect above
             } else {
-                localStorage.removeItem("remembered_credentials");
+                setError(result.error);
             }
-
-            navigate("/admin", { replace: true });
-        } else {
-            setError(result.error);
+        } catch (err) {
+            console.error("Login error:", err);
+            setError("An unexpected error occurred");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -84,6 +89,7 @@ export default function Login() {
                             className="login-input"
                             name="username"
                             autoComplete="username"
+                            disabled={loading}
                         />
                     </div>
 
@@ -100,6 +106,7 @@ export default function Login() {
                             className="login-input"
                             name="password"
                             autoComplete="current-password"
+                            disabled={loading}
                         />
                     </div>
 
@@ -113,6 +120,7 @@ export default function Login() {
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
+                                disabled={loading}
                             />
                             Remember me
                         </label>
@@ -127,8 +135,9 @@ export default function Login() {
                     <button 
                         type="submit"
                         className="login-submit-btn"
+                        disabled={loading}
                     >
-                        Sign in
+                        {loading ? "Signing in..." : "Sign in"}
                     </button>
                 </form>
 
@@ -140,13 +149,13 @@ export default function Login() {
                         <strong>Admin:</strong> admin / admin123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> mikko / pass123
+                        <strong>Teacher:</strong> teacher1 / password123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> ville / pass123
+                        <strong>Student:</strong> aurora / password123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> aino / pass123
+                        <strong>Student:</strong> kevin / pass123
                     </p>
                 </div>
             </div>
