@@ -1,64 +1,55 @@
-// Create express router
 import express from 'express';
 import db from '../db/location.js';
 
-
-const router = express.Router()
-
+const router = express.Router();
 
 // GET /locations?page=1 - list locations with pagination
 router.get('/', (req, res) => {
-  const page = parseInt(req.query.page) || 1 // default to page 1
+  const page = parseInt(req.query.page) || 1;
   db.getLocations(page, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    } // if fail
-    res.json(result) // send data to frontend
-  })
-})
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(result);
+  });
+});
 
 // POST /locations - create new location
 router.post('/', (req, res) => {
-  const name = req.body.name
-  if (!name) { 
-    return res.status(400).json({ error: 'name is required' }) 
-  } // bad request
+  const { location_name, description } = req.body;
 
-  db.addLocation(name, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    }
-    res.status(201).json(result) // send back new row
-  })
-})
+  console.log("Received location_name:", location_name);
+  console.log("Received description:", description);
+
+  if (!location_name || !description) {
+    return res.status(400).json({ error: 'location_name and description are required' });
+  }
+
+  db.addLocation(location_name, description, (err, result) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.status(201).json(result);
+  });
+});
 
 // PATCH /locations/:id - update location name
 router.patch('/:id', (req, res) => {
-  const id = req.params.id
-  const name = req.body.name
-  if (!name) { 
-    return res.status(400).json({ error: 'name is required' }) 
+  const id = req.params.id;
+  const location_name = req.body.location_name;
+  if (!location_name) {
+    return res.status(400).json({ error: 'location_name is required' });
   }
 
-  db.updateLocation(id, name, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    }
-    res.json(result) // send updated info
-  })
-})
+  db.updateLocation(id, location_name, (err, result) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(result);
+  });
+});
 
 // DELETE /locations/:id - remove location
 router.delete('/:id', (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   db.deleteLocation(id, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: 'DB error' }) 
-    }
-    res.json(result) // confirm deletion
-  })
-})
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(result);
+  });
+});
 
-// Export the router so server can use it
 export default router;
-

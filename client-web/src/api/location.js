@@ -1,4 +1,6 @@
-const BASE_URL = "http://localhost:3000/location";
+const BASE_URL = "/locations";
+
+
 
 export async function getLocations(page = 1) {
     const res = await fetch(`${BASE_URL}?page=${page}`);
@@ -11,14 +13,15 @@ export async function getLocation(id) {
 }
 
 export async function createLocation(payload) {
-    const res = await fetch(BASE_URL, {
+    const res = await fetch("http://localhost:5000/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload), 
     });
     if (!res.ok) throw new Error(`Failed to create location: ${res.status}`);
     return res.json();
 }
+
 
 export async function updateLocation(id, payload) {
     const res = await fetch(`${BASE_URL}/${id}`, {
