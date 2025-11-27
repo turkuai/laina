@@ -10,11 +10,9 @@ export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-
-    // Remember me state
+    const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    // ⬇️ NEW: on first render, load remembered credentials (if any)
     useEffect(() => {
         const saved = localStorage.getItem("remembered_credentials");
         if (saved) {
@@ -35,16 +33,14 @@ export default function Login() {
         }
     }, [isAuthenticated, navigate]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // pass rememberMe flag to AuthContext (as we did before)
-        const result = login(username, password, rememberMe);
-        
-        if (result.success) {
-            setError("");
+        setError("");
+        setLoading(true);
 
-            // ⬇️ NEW: store or clear credentials based on checkbox
+        const result = await login(username, password, rememberMe);
+
+        if (result.success) {
             if (rememberMe) {
                 localStorage.setItem(
                     "remembered_credentials",
@@ -53,11 +49,11 @@ export default function Login() {
             } else {
                 localStorage.removeItem("remembered_credentials");
             }
-
             navigate("/admin", { replace: true });
         } else {
             setError(result.error);
         }
+        setLoading(false);
     };
 
     return (
@@ -84,6 +80,7 @@ export default function Login() {
                             className="login-input"
                             name="username"
                             autoComplete="username"
+                            disabled={loading}
                         />
                     </div>
 
@@ -100,10 +97,10 @@ export default function Login() {
                             className="login-input"
                             name="password"
                             autoComplete="current-password"
+                            disabled={loading}
                         />
                     </div>
 
-                    {/* Remember me checkbox */}
                     <div className="login-form-group">
                         <label
                             className="login-label"
@@ -113,6 +110,7 @@ export default function Login() {
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
+                                disabled={loading}
                             />
                             Remember me
                         </label>
@@ -127,8 +125,9 @@ export default function Login() {
                     <button 
                         type="submit"
                         className="login-submit-btn"
+                        disabled={loading}
                     >
-                        Sign in
+                        {loading ? 'Signing in...' : 'Sign in'}
                     </button>
                 </form>
 
@@ -137,16 +136,16 @@ export default function Login() {
                         Demo Credentials:
                     </p>
                     <p className="login-demo-text">
-                        <strong>Admin:</strong> admin / admin123
+                        <strong>Admin:</strong> admin / password123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> mikko / pass123
+                        <strong>Teacher:</strong> teacher1 / password123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> ville / pass123
+                        <strong>Student:</strong> aurora / password123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> aino / pass123
+                        <strong>Student:</strong> kevin / password123
                     </p>
                 </div>
             </div>
