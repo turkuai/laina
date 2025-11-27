@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useEffect, useState } from "react";
@@ -10,9 +11,10 @@ export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [loading, setLoading] = useState(false);
 
+    // Load remembered credentials on first render
     useEffect(() => {
         const saved = localStorage.getItem("remembered_credentials");
         if (saved) {
@@ -38,22 +40,30 @@ export default function Login() {
         setError("");
         setLoading(true);
 
-        const result = await login(username, password, rememberMe);
+        try {
+            // login is now async, so we await it
+            const result = await login(username, password, rememberMe);
 
-        if (result.success) {
-            if (rememberMe) {
-                localStorage.setItem(
-                    "remembered_credentials",
-                    JSON.stringify({ username, password })
-                );
+            if (result.success) {
+                // Store or clear credentials based on checkbox
+                if (rememberMe) {
+                    localStorage.setItem(
+                        "remembered_credentials",
+                        JSON.stringify({ username, password })
+                    );
+                } else {
+                    localStorage.removeItem("remembered_credentials");
+                }
+                // Navigation happens automatically via useEffect above
             } else {
-                localStorage.removeItem("remembered_credentials");
+                setError(result.error);
             }
-            navigate("/admin", { replace: true });
-        } else {
-            setError(result.error);
+        } catch (err) {
+            console.error("Login error:", err);
+            setError("An unexpected error occurred");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
@@ -101,6 +111,7 @@ export default function Login() {
                         />
                     </div>
 
+                    {/* Remember me checkbox */}
                     <div className="login-form-group">
                         <label
                             className="login-label"
@@ -127,7 +138,7 @@ export default function Login() {
                         className="login-submit-btn"
                         disabled={loading}
                     >
-                        {loading ? 'Signing in...' : 'Sign in'}
+                        {loading ? "Signing in..." : "Sign in"}
                     </button>
                 </form>
 
@@ -136,7 +147,7 @@ export default function Login() {
                         Demo Credentials:
                     </p>
                     <p className="login-demo-text">
-                        <strong>Admin:</strong> admin / password123
+                        <strong>Admin:</strong> admin / admin123
                     </p>
                     <p className="login-demo-text">
                         <strong>Teacher:</strong> teacher1 / password123
@@ -145,7 +156,7 @@ export default function Login() {
                         <strong>Student:</strong> aurora / password123
                     </p>
                     <p className="login-demo-text">
-                        <strong>Student:</strong> kevin / password123
+                        <strong>Student:</strong> kevin / pass123
                     </p>
                 </div>
             </div>
