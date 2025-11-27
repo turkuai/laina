@@ -2,10 +2,10 @@ import db from './db.js';
 
 // INSERT
 async function insertUser(user) {
-    const { username, displayName, password, role, disabled } = user;
+    const { username, first_name, last_name, email, password, role, phone_number } = user;
     const [result] = await db.execute(
-        'INSERT INTO users (username, displayName, password, role, disabled, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-        [username, displayName, password, role, disabled]
+        'INSERT INTO users (username, first_name, last_name, email, password, role, phone_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+        [username, first_name, last_name, email, password, role, phone_number]
     );
     return result.insertId;
 }
@@ -35,7 +35,7 @@ async function selectUserById(id) {
 async function verifyUser(username, password) {
     // First get the user with their hashed password
     const [rows] = await db.execute(
-        'SELECT id, username, password, displayName, role, disabled FROM users WHERE username = ? AND disabled = 0',
+        'SELECT id, username, password, first_name, last_name, role FROM users WHERE username = ?',
         [username]
     );
     
@@ -54,20 +54,21 @@ async function verifyUser(username, password) {
     }
     
     // Return user without password field
+    // Create displayName from first_name and last_name since displayName column doesn't exist
     return {
         id: user.id,
         username: user.username,
-        displayName: user.displayName,
+        displayName: `${user.first_name} ${user.last_name}`,
         role: user.role
     };
 }
 
 // UPDATE
 async function updateUser(user) {
-    const { username, displayName, password, role, disabled, id } = user;
+    const { username, first_name, last_name, email, password, role, phone_number, id } = user;
     const [result] = await db.execute(
-        'UPDATE users SET username = ?, displayName = ?, password = ?, role = ?, disabled = ? WHERE id = ?',
-        [username, displayName, password, role, disabled, id]
+        'UPDATE users SET username = ?, first_name = ?, last_name = ?, email = ?, password = ?, role = ?, phone_number = ? WHERE id = ?',
+        [username, first_name, last_name, email, password, role, phone_number, id]
     );
     return result.affectedRows;
 }
