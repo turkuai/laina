@@ -2,6 +2,33 @@ import express from "express";
 const router = express.Router();
 import db from '../db/users.js';
 
+// --- NEW LOGIN ROUTE ---
+router.post('/login', async (req, res) => {
+    // Expecting 'username' and 'password' from the frontend
+    const { username, password } = req.body; 
+
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Please provide both username and password' });
+    }
+
+    try {
+        const user = await db.verifyUserCredentials(username, password);
+
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+        
+        // Success! Return user data (without password)
+        res.status(200).json({ status: 'success', user: user });
+
+    } catch (err) {
+        console.error("Login error:", err.message);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// --- EXISTING CRUD ROUTES ---
+
 // CREATE
 router.post('/', async (req, res) => {
     try {

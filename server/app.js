@@ -27,19 +27,21 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// 🎯 FIX: Changed mount point from '/users' to '/api/users' 
+// to match the frontend request to /api/users/login
+app.use('/api/users', usersRouter); 
 app.use('/api/borrowing-history', borrowingHistoryRouter);
 app.use('/api/products', productsRouter);
 
 // 404 handler (must always be last before the error handler)
 app.use(function(req, res, next) {
-  next(createError(404));
+  next(createError(404));
 });
 
 // error handler
 app.use(function(err, req, res, next) {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-  res.status(err.status || 500);
-  res.render('error');
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.status(err.status || 500);
+  res.render('error');
 });
