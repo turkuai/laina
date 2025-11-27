@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useEffect, useState } from "react";
@@ -41,7 +40,6 @@ export default function Login() {
         setLoading(true);
 
         try {
-            // login is now async, so we await it
             const result = await login(username, password, rememberMe);
 
             if (result.success) {
@@ -144,19 +142,10 @@ export default function Login() {
 
                 <div className="login-demo-credentials">
                     <p className="login-demo-title">
-                        Demo Credentials:
+                        Use credentials from your database
                     </p>
                     <p className="login-demo-text">
-                        <strong>Admin:</strong> admin / admin123
-                    </p>
-                    <p className="login-demo-text">
-                        <strong>Teacher:</strong> teacher1 / password123
-                    </p>
-                    <p className="login-demo-text">
-                        <strong>Student:</strong> aurora / password123
-                    </p>
-                    <p className="login-demo-text">
-                        <strong>Student:</strong> kevin / pass123
+                        Login with any username/password from the users table
                     </p>
                 </div>
             </div>

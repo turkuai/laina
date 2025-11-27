@@ -31,6 +31,37 @@ async function selectUserById(id) {
     return rows[0];
 }
 
+// VERIFY USER for login
+async function verifyUser(username, password) {
+    // First get the user with their hashed password
+    const [rows] = await db.execute(
+        'SELECT id, username, password, displayName, role, disabled FROM users WHERE username = ? AND disabled = 0',
+        [username]
+    );
+    
+    if (rows.length === 0) {
+        return null;
+    }
+    
+    const user = rows[0];
+    
+    // Compare the provided password with the hashed password
+    const bcrypt = await import('bcrypt');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
+        return null;
+    }
+    
+    // Return user without password field
+    return {
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role
+    };
+}
+
 // UPDATE
 async function updateUser(user) {
     const { username, displayName, password, role, disabled, id } = user;
@@ -47,12 +78,11 @@ async function deleteUser(id) {
     return result.affectedRows;
 }
 
-
-
 const users = { 
     insertUser,
     selectUsers,
     selectUserById,
+    verifyUser,
     updateUser,
     deleteUser
 };
