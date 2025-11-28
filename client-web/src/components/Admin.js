@@ -39,6 +39,7 @@ export default function Admin({ productsData }) {
     return window.innerWidth < 768;
   });
 
+  // demo data – in real app you’ll fetch from API
   const [users] = useState([
     { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
     { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
@@ -105,7 +106,8 @@ export default function Admin({ productsData }) {
 
   // --------- derive active tab from URL ----------
   const activeTab = useMemo(() => {
-    const path = location.pathname;
+    const path = location.pathname; // e.g. "/", "/users", "/lend" ...
+
     if (path.startsWith('/lend')) return 'camera';
     if (path.startsWith('/users')) return 'users';
     if (path.startsWith('/products')) return 'products';
@@ -177,7 +179,7 @@ export default function Admin({ productsData }) {
   const canAccessBorrow =
     currentUser?.role === 'admin' || currentUser?.role === 'teacher';
 
-  // tabs per role – now **always** includes "settings" for both desktop & mobile
+  // tabs per role – ALWAYS includes "settings" (desktop + mobile)
   const baseTabs =
     currentUser?.role === 'admin' || currentUser?.role === 'teacher'
       ? ['camera', 'users', 'products', 'history', 'settings']
@@ -226,6 +228,7 @@ export default function Admin({ productsData }) {
     }
   };
 
+  // IMPORTANT: these are **absolute** paths because Admin is mounted at "/"
   const tabToPath = (tab) => {
     switch (tab) {
       case 'camera':
@@ -293,7 +296,7 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Tabs (desktop) – now includes Settings */}
+      {/* Tabs (desktop) – includes Settings */}
       {!isMobile && (
         <div className="admin-tabs" role="tablist">
           <div className="admin-tab-list">
@@ -342,7 +345,7 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Bottom tabs (mobile) – unchanged, also shows Settings */}
+      {/* Bottom tabs (mobile) */}
       {isMobile && (
         <nav className="bottom-tab-bar" aria-label="Bottom navigation">
           {tabs.map((tab) => (
@@ -544,7 +547,7 @@ export function SettingsTab() {
 
       <div className="admin-settings-section">
         <h3>Account</h3>
-        {/* Extra account actions if you want */}
+        {/* Extra account actions if you like */}
       </div>
     </div>
   );
