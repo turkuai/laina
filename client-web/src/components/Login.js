@@ -10,23 +10,7 @@ export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
-
-    // Load remembered credentials on first render
-    useEffect(() => {
-        const saved = localStorage.getItem("remembered_credentials");
-        if (saved) {
-            try {
-                const { username, password } = JSON.parse(saved);
-                setUsername(username || "");
-                setPassword(password || "");
-                setRememberMe(true);
-            } catch {
-                localStorage.removeItem("remembered_credentials");
-            }
-        }
-    }, []);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -40,22 +24,12 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const result = await login(username, password, rememberMe);
+            const result = await login(username, password);
 
-            if (result.success) {
-                // Store or clear credentials based on checkbox
-                if (rememberMe) {
-                    localStorage.setItem(
-                        "remembered_credentials",
-                        JSON.stringify({ username, password })
-                    );
-                } else {
-                    localStorage.removeItem("remembered_credentials");
-                }
-                // Navigation happens automatically via useEffect above
-            } else {
+            if (!result.success) {
                 setError(result.error);
             }
+            // Navigation happens automatically via useEffect above
         } catch (err) {
             console.error("Login error:", err);
             setError("An unexpected error occurred");
@@ -107,22 +81,6 @@ export default function Login() {
                             autoComplete="current-password"
                             disabled={loading}
                         />
-                    </div>
-
-                    {/* Remember me checkbox */}
-                    <div className="login-form-group">
-                        <label
-                            className="login-label"
-                            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                        >
-                            <input
-                                type="checkbox"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                                disabled={loading}
-                            />
-                            Remember me
-                        </label>
                     </div>
 
                     {error && (
