@@ -1,21 +1,37 @@
-import React, { useState, useEffect } from 'react';
+// src/components/Admin.js
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Camera, History, Package, QrCode, Settings, Users } from 'lucide-react';
+import {
+  useNavigate,
+  useLocation,
+  Outlet,
+  useOutletContext,
+  NavLink,
+} from 'react-router-dom';
+import {
+  Camera,
+  History as HistoryIcon,
+  Package,
+  QrCode,
+  Settings,
+  Users,
+} from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
 import ServerGrid from './ServerGrid';
 
+// ---------- LAYOUT COMPONENT (header, footer, tabs, context) ----------
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [userQuery, setUserQuery] = useState('');
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [passwordStatus, setPasswordStatus] = useState(null);
   const [isMobile, setIsMobile] = useState(() => {
@@ -23,11 +39,7 @@ export default function Admin({ productsData }) {
     return window.innerWidth < 768;
   });
 
-  const [activeTab, setActiveTab] = useState(
-    currentUser?.role === 'admin' ? 'users' : 'history'
-  );
-
-  const [users, setUsers] = useState([
+  const [users] = useState([
     { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
     { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
     { id: 5, name: 'Aino', email: 'aino@example.com', role: 'student' },
@@ -35,22 +47,54 @@ export default function Admin({ productsData }) {
   ]);
 
   const [borrowingHistory, setBorrowingHistory] = useState([
-    { id: 1, userName: 'Mikko', productName: 'Laptop Dell XPS', borrowedAt: '2024-01-15', returnedAt: '2024-01-20', status: 'Returned', userId: 2 },
-    { id: 2, userName: 'Ville', productName: 'Monitor Samsung', borrowedAt: '2024-01-18', returnedAt: null, status: 'On Loan', userId: 3 },
-    { id: 3, userName: 'Aino', productName: 'Keyboard Mechanical', borrowedAt: '2024-01-10', returnedAt: '2024-01-17', status: 'Returned', userId: 5 },
-    { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
+    {
+      id: 1,
+      userName: 'Mikko',
+      productName: 'Laptop Dell XPS',
+      borrowedAt: '2024-01-15',
+      returnedAt: '2024-01-20',
+      status: 'Returned',
+      userId: 2,
+    },
+    {
+      id: 2,
+      userName: 'Ville',
+      productName: 'Monitor Samsung',
+      borrowedAt: '2024-01-18',
+      returnedAt: null,
+      status: 'On Loan',
+      userId: 3,
+    },
+    {
+      id: 3,
+      userName: 'Aino',
+      productName: 'Keyboard Mechanical',
+      borrowedAt: '2024-01-10',
+      returnedAt: '2024-01-17',
+      status: 'Returned',
+      userId: 5,
+    },
+    {
+      id: 4,
+      userName: 'Mikko',
+      productName: 'Headphones Sony',
+      borrowedAt: '2024-01-22',
+      returnedAt: null,
+      status: 'On Loan',
+      userId: 2,
+    },
   ]);
 
-  const getUserData = () => {
-    if (currentUser?.role === 'admin') return users;
-    return users.filter(u => u.id === currentUser?.id);
-  };
-
-  const getBorrowingHistory = () => {
+  // --------- helpers for history ----------
+  const getBorrowingHistoryForCurrentUser = () => {
     if (currentUser?.role === 'admin') return borrowingHistory;
-    return borrowingHistory.filter(r => r.userId === currentUser?.id);
+    return borrowingHistory.filter((r) => r.userId === currentUser?.id);
   };
 
+  const getMyBorrowingHistory = () =>
+    borrowingHistory.filter((r) => r.userId === currentUser?.id);
+
+  // --------- screen size ----------
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -59,12 +103,27 @@ export default function Admin({ productsData }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // --------- derive active tab from URL ----------
+  const activeTab = useMemo(() => {
+    const path = location.pathname;
+    if (path.startsWith('/lend')) return 'camera';
+    if (path.startsWith('/users')) return 'users';
+    if (path.startsWith('/products')) return 'products';
+    if (path.startsWith('/my-history')) return 'my-history';
+    if (path.startsWith('/history') || path === '/') return 'history';
+    if (path.startsWith('/settings')) return 'settings';
+    return 'history';
+  }, [location.pathname]);
+
+  // if user goes to /settings on desktop, redirect back to default tab
   useEffect(() => {
     if (!isMobile && activeTab === 'settings') {
-      setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+      const defaultPath = currentUser?.role === 'admin' ? '/users' : '/history';
+      navigate(defaultPath, { replace: true });
     }
-  }, [isMobile, activeTab, currentUser]);
+  }, [isMobile, activeTab, currentUser, navigate]);
 
+  // clear password status when leaving settings
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
       setPasswordStatus(null);
@@ -76,37 +135,70 @@ export default function Admin({ productsData }) {
     navigate('/login', { replace: true });
   };
 
-  const handleDataChange = (updatedData) => {
-    if (activeTab === 'users') setUsers(updatedData);
-    else if (activeTab === 'history') setBorrowingHistory(updatedData);
+  const handlePasswordInputChange = (field, value) => {
+    setPasswordForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleEditRow = (row) => {
-    console.log('Edited row:', row);
-  };
+  const handlePasswordSubmit = (event) => {
+    event.preventDefault();
 
-  const handleDeleteUser = (row) => {
-    if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setPasswordStatus({
+        type: 'error',
+        message: 'Please fill in all fields before submitting.',
+      });
       return;
     }
-    if (window.confirm(`Are you sure you want to delete user "${row.name}"?`)) {
-      setUsers(users.filter(u => u.id !== row.id));
-      alert(`User "${row.name}" deleted.`);
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordStatus({
+        type: 'error',
+        message: 'New password and confirmation do not match.',
+      });
+      return;
     }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordStatus({
+        type: 'error',
+        message: 'New password must be at least 6 characters long.',
+      });
+      return;
+    }
+
+    setPasswordStatus({
+      type: 'success',
+      message: 'Password change request submitted. (Demo only)',
+    });
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
   };
 
-  const baseTabs = currentUser?.role === 'admin'
-    ? ['camera', 'users', 'products', 'history']
-    : ['history', 'products'];
+  // who can use the borrow scanner
+  const canAccessBorrow =
+    currentUser?.role === 'admin' || currentUser?.role === 'teacher';
+
+  // tabs per role (note: /my-history included for non-admin)
+  const baseTabs =
+    currentUser?.role === 'admin' || currentUser?.role === 'teacher'
+      ? ['camera', 'users', 'products', 'history']
+      : ['history', 'my-history', 'products'];
+
   const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs;
 
   const tabIconMap = {
     camera: Camera,
     users: Users,
     products: Package,
-    history: History,
-    settings: Settings
+    history: HistoryIcon,
+    settings: Settings,
   };
 
   const renderTabIcon = (tab) => {
@@ -125,68 +217,74 @@ export default function Admin({ productsData }) {
 
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
-      case 'camera': return 'Camera';
-      case 'users': return 'Users';
-      case 'products': return 'Products';
-      case 'history': return forMobile ? 'History' : 'Borrowing History';
-      case 'settings': return 'Settings';
-      default: return tab;
+      case 'camera':
+        return 'Camera';
+      case 'users':
+        return 'Users';
+      case 'products':
+        return 'Products';
+      case 'history':
+        return forMobile ? 'History' : 'Borrowing History';
+      case 'my-history':
+        return 'My History';
+      case 'settings':
+        return 'Settings';
+      default:
+        return tab;
     }
   };
 
-  const handleTabClick = (tab) => {
-    if (tab === 'camera') {
-      navigate('/borrow');
-      return;
+  const tabToPath = (tab) => {
+    switch (tab) {
+      case 'camera':
+        return '/lend';
+      case 'users':
+        return '/users';
+      case 'products':
+        return '/products';
+      case 'history':
+        return '/history';
+      case 'my-history':
+        return '/my-history';
+      case 'settings':
+        return '/settings';
+      default:
+        return '/history';
     }
-    setActiveTab(tab);
   };
 
-  const handlePasswordInputChange = (field, value) => {
-    setPasswordForm(prev => ({ ...prev, [field]: value }));
+  // Value we pass down to the tab components
+  const outletContextValue = {
+    currentUser,
+    users,
+    borrowingHistory,
+    setBorrowingHistory,
+    productsData,
+    userQuery,
+    setUserQuery,
+    passwordForm,
+    handlePasswordInputChange,
+    handlePasswordSubmit,
+    passwordStatus,
+    getBorrowingHistoryForCurrentUser,
+    getMyBorrowingHistory,
   };
-
-  const handlePasswordSubmit = (event) => {
-    event.preventDefault();
-
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'Please fill in all fields before submitting.' });
-      return;
-    }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'New password and confirmation do not match.' });
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters long.' });
-      return;
-    }
-
-    setPasswordStatus({ type: 'success', message: 'Password change request submitted. (Demo only)' });
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-  };
-
-  // Check if user is admin or teacher
-  const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
 
   return (
     <div className="admin-page">
       {/* Header */}
       <div className="admin-header">
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
-          Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : '- Admin Panel'}
+          Borrowing System{' '}
+          {currentUser?.role === 'student'
+            ? '- My Dashboard'
+            : '- Admin Panel'}
         </h1>
         <h1>Borrowing System - Admin Panel</h1>
         <div className="admin-header-actions">
           {canAccessBorrow && (
             <button
-              onClick={() => navigate('/borrow')}
+              onClick={() => navigate('/lend')}
               className="borrow-button"
             >
               <QrCode size={18} />
@@ -194,40 +292,39 @@ export default function Admin({ productsData }) {
             </button>
           )}
           <span className="user-info">
-            Welcome, <strong>{currentUser?.username}</strong><span className="admin-badge">({currentUser?.role})</span>
+            Welcome, <strong>{currentUser?.username}</strong>
+            <span className="admin-badge">({currentUser?.role})</span>
           </span>
-          <button
-            onClick={handleLogout}
-            className="logout-button"
-          >
+          <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs (desktop) */}
       {!isMobile && (
         <div className="admin-tabs" role="tablist">
           <div className="admin-tab-list">
-            {tabs.map(tab => {
+            {tabs.map((tab) => {
               const isCameraTab = tab === 'camera';
-              const isActive = !isCameraTab && activeTab === tab;
-
               return (
-                <button
+                <NavLink
                   key={tab}
-                  type="button"
-                  onClick={() => handleTabClick(tab)}
-                  className={[
-                    'admin-tab-button',
-                    isCameraTab ? 'camera-tab' : '',
-                    isActive ? 'active' : ''
-                  ].join(' ').trim()}
+                  to={tabToPath(tab)}
+                  className={({ isActive }) =>
+                    [
+                      'admin-tab-button',
+                      isCameraTab ? 'camera-tab' : '',
+                      !isCameraTab && isActive ? 'active' : '',
+                    ]
+                      .join(' ')
+                      .trim()
+                  }
                   role="tab"
-                  aria-selected={isActive}
+                  aria-selected={activeTab === tab}
                 >
                   {getTabLabel(tab)}
-                </button>
+                </NavLink>
               );
             })}
           </div>
@@ -237,8 +334,7 @@ export default function Admin({ productsData }) {
       {/* Content */}
       <div className="admin-content">
         <div className="admin-content-card">
-
-          {/* Search Box for Users */}
+          {/* Search Box (hidden on settings tab) */}
           {activeTab !== 'settings' && (
             <div className="user-search">
               <input
@@ -249,138 +345,215 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <div>
-              <h2>Users Management</h2>
-              <ServerGrid
-                columns={['first_name', 'email', 'role']}
-                path="/users"
-                allowEditing={true}
-                allowDelete={true}
-                pageSize={10}
-              />
-            </div>
-          )}
-
-          {activeTab === 'products' && (
-            <Products
-              currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
-              productsData={productsData}
-            />
-          )}
-
-          {activeTab === 'history' && (
-            <div>
-              <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getBorrowingHistory()}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-              />
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <div className="admin-settings">
-              <div className="admin-settings-section">
-                <h3>User Details</h3>
-                <div className="settings-field">
-                  <span className="settings-label">Name</span>
-                  <span className="settings-value">{currentUser?.name || '-'}</span>
-                </div>
-                <div className="settings-field">
-                  <span className="settings-label">Username</span>
-                  <span className="settings-value">{currentUser?.username || '-'}</span>
-                </div>
-                <div className="settings-field">
-                  <span className="settings-label">Role</span>
-                  <span className="settings-value">{currentUser?.role || '-'}</span>
-                </div>
-              </div>
-
-              <div className="admin-settings-section">
-                <h3>Change Password</h3>
-                <form className="password-form" onSubmit={handlePasswordSubmit}>
-                  <label className="password-form-field">
-                    <span>Current password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.currentPassword}
-                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                      placeholder="Enter current password"
-                    />
-                  </label>
-                  <label className="password-form-field">
-                    <span>New password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                      placeholder="Enter new password"
-                    />
-                  </label>
-                  <label className="password-form-field">
-                    <span>Confirm new password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                      placeholder="Re-enter new password"
-                    />
-                  </label>
-
-                  {passwordStatus && (
-                    <div
-                      className={`password-status ${passwordStatus.type === 'error' ? 'error' : 'success'}`}
-                      role="alert"
-                    >
-                      {passwordStatus.message}
-                    </div>
-                  )}
-
-                  <button type="submit" className="password-submit-btn">
-                    Update Password
-                  </button>
-                </form>
-              </div>
-
-              <div className="admin-settings-section">
-                <h3>Account</h3>
-                <button type="button" className="settings-logout-btn" onClick={handleLogout}>
-                  Logout
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Nested route content */}
+          <Outlet context={outletContextValue} />
         </div>
       </div>
+
+      {/* Bottom tabs (mobile) – also using <Link> (NavLink) */}
       {isMobile && (
         <nav className="bottom-tab-bar" aria-label="Bottom navigation">
-          {tabs.map(tab => (
-            <button
+          {tabs.map((tab) => (
+            <NavLink
               key={tab}
-              type="button"
-              className={[
-                'bottom-tab-button',
-                tab === 'camera' ? 'camera-tab' : '',
-                tab !== 'camera' && activeTab === tab ? 'active' : ''
-              ].join(' ').trim()}
+              to={tabToPath(tab)}
+              className={({ isActive }) =>
+                [
+                  'bottom-tab-button',
+                  tab === 'camera' ? 'camera-tab' : '',
+                  tab !== 'camera' && isActive ? 'active' : '',
+                ]
+                  .join(' ')
+                  .trim()
+              }
               aria-label={getTabLabel(tab, true)}
-              onClick={() => handleTabClick(tab)}
             >
               <span className="sr-only">{getTabLabel(tab, true)}</span>
-              <span className="bottom-tab-icon">
-                {renderTabIcon(tab)}
-              </span>
-            </button>
+              <span className="bottom-tab-icon">{renderTabIcon(tab)}</span>
+            </NavLink>
           ))}
         </nav>
       )}
+    </div>
+  );
+}
+
+// ---------- Hook for child tabs to read context ----------
+function useAdminContext() {
+  return useOutletContext();
+}
+
+// ---------- TAB COMPONENTS ----------
+
+// /users
+export function UsersTab() {
+  const { currentUser } = useAuth();
+
+  if (currentUser?.role !== 'admin') {
+    return <p>You do not have access to this page.</p>;
+  }
+
+  return (
+    <div>
+      <h2>Users Management</h2>
+      <ServerGrid
+        columns={['first_name', 'email', 'role']}
+        path="/users"
+        allowEditing={true}
+        allowDelete={true}
+        pageSize={10}
+      />
+    </div>
+  );
+}
+
+// /products
+export function ProductsTab() {
+  const { currentUser, borrowingHistory, productsData } = useAdminContext();
+
+  return (
+    <Products
+      currentUser={currentUser}
+      borrowingHistory={borrowingHistory}
+      productsData={productsData}
+    />
+  );
+}
+
+// /history – all or my history depending on role
+export function HistoryTab() {
+  const { currentUser, getBorrowingHistoryForCurrentUser } = useAdminContext();
+  const data = getBorrowingHistoryForCurrentUser();
+
+  return (
+    <div>
+      <h2>
+        {currentUser?.role === 'admin'
+          ? 'All Borrowing History'
+          : 'My Borrowing History'}
+      </h2>
+      <Grid
+        columns={
+          currentUser?.role === 'admin'
+            ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
+            : ['productName', 'borrowedAt', 'returnedAt', 'status']
+        }
+        data={data}
+        allowEditing={false}
+        allowDelete={false}
+        pageSize={10}
+      />
+    </div>
+  );
+}
+
+// /my-history – always only current user
+export function MyHistoryTab() {
+  const { getMyBorrowingHistory } = useAdminContext();
+  const data = getMyBorrowingHistory();
+
+  return (
+    <div>
+      <h2>My Borrowing History</h2>
+      <Grid
+        columns={['productName', 'borrowedAt', 'returnedAt', 'status']}
+        data={data}
+        allowEditing={false}
+        allowDelete={false}
+        pageSize={10}
+      />
+    </div>
+  );
+}
+
+// /settings
+export function SettingsTab() {
+  const {
+    currentUser,
+    passwordForm,
+    handlePasswordInputChange,
+    handlePasswordSubmit,
+    passwordStatus,
+  } = useAdminContext();
+
+  return (
+    <div className="admin-settings">
+      <div className="admin-settings-section">
+        <h3>User Details</h3>
+        <div className="settings-field">
+          <span className="settings-label">Name</span>
+          <span className="settings-value">{currentUser?.name || '-'}</span>
+        </div>
+        <div className="settings-field">
+          <span className="settings-label">Username</span>
+          <span className="settings-value">
+            {currentUser?.username || '-'}
+          </span>
+        </div>
+        <div className="settings-field">
+          <span className="settings-label">Role</span>
+          <span className="settings-value">{currentUser?.role || '-'}</span>
+        </div>
+      </div>
+
+      <div className="admin-settings-section">
+        <h3>Change Password</h3>
+        <form className="password-form" onSubmit={handlePasswordSubmit}>
+          <label className="password-form-field">
+            <span>Current password</span>
+            <input
+              type="password"
+              value={passwordForm.currentPassword}
+              onChange={(e) =>
+                handlePasswordInputChange('currentPassword', e.target.value)
+              }
+              placeholder="Enter current password"
+            />
+          </label>
+          <label className="password-form-field">
+            <span>New password</span>
+            <input
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(e) =>
+                handlePasswordInputChange('newPassword', e.target.value)
+              }
+              placeholder="Enter new password"
+            />
+          </label>
+          <label className="password-form-field">
+            <span>Confirm new password</span>
+            <input
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) =>
+                handlePasswordInputChange('confirmPassword', e.target.value)
+              }
+              placeholder="Re-enter new password"
+            />
+          </label>
+
+          {passwordStatus && (
+            <div
+              className={`password-status ${
+                passwordStatus.type === 'error' ? 'error' : 'success'
+              }`}
+              role="alert"
+            >
+              {passwordStatus.message}
+            </div>
+          )}
+
+          <button type="submit" className="password-submit-btn">
+            Update Password
+          </button>
+        </form>
+      </div>
+
+      <div className="admin-settings-section">
+        <h3>Account</h3>
+        {/* Extra account actions if you want */}
+      </div>
     </div>
   );
 }

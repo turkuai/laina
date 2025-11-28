@@ -1,28 +1,55 @@
+// src/App.js
 import React from 'react';
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./components/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./components/Login";
-import Admin from "./components/Admin";
-import BorrowPage from "./components/BorrowPage";
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './components/AuthContext';
+
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './components/Login';
+import BorrowPage from './components/BorrowPage';
+
+import Admin, {
+  UsersTab,
+  ProductsTab,
+  HistoryTab,
+  MyHistoryTab,
+  SettingsTab,
+} from './components/Admin';
 
 export default function App() {
   const { isAuthenticated } = useAuth();
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={isAuthenticated ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />}
-      />
+      {/* Public login route */}
       <Route path="/login" element={<Login />} />
 
+      {/* Everything else is protected */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/borrow" element={<BorrowPage />} />
+        {/* Root layout with header, tabs, and <Outlet /> */}
+        <Route path="/" element={<Admin />}>
+          {/* Default tab when visiting "/" */}
+          <Route index element={<HistoryTab />} />
+
+          {/* Nested routes (relative to "/") */}
+          <Route path="lend" element={<BorrowPage />} />
+          <Route path="users" element={<UsersTab />} />
+          <Route path="products" element={<ProductsTab />} />
+          <Route path="history" element={<HistoryTab />} />
+          <Route path="my-history" element={<MyHistoryTab />} />
+          <Route path="settings" element={<SettingsTab />} />
+        </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Fallback: if URL is unknown, go either to / or /login */}
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to={isAuthenticated ? '/' : '/login'}
+            replace
+          />
+        }
+      />
     </Routes>
   );
 }
