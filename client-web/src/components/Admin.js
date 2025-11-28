@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Camera, History, Package, QrCode, Settings, Users } from 'lucide-react';
+import { ScanQrCode, History, Package, QrCode, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -102,7 +102,7 @@ export default function Admin({ productsData }) {
   const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs;
 
   const tabIconMap = {
-    camera: Camera,
+    camera: ScanQrCode,
     users: Users,
     products: Package,
     history: History,
@@ -359,28 +359,67 @@ export default function Admin({ productsData }) {
           )}
         </div>
       </div>
-      {isMobile && (
-        <nav className="bottom-tab-bar" aria-label="Bottom navigation">
-          {tabs.map(tab => (
+
+      {isMobile && currentUser?.role === 'admin' && (
+        <nav className="admin-mobile-nav" aria-label="Admin quick actions">
+          <button
+            type="button"
+            className="admin-mobile-nav__camera"
+            onClick={() => navigate('/borrow')}
+            aria-label="Open camera scanner"
+          >
+            <ScanQrCode className="admin-mobile-nav__camera-icon" />
+          </button>
+
+          <div className="admin-mobile-nav__grid">
             <button
-              key={tab}
               type="button"
+              onClick={() => setActiveTab('users')}
               className={[
-                'bottom-tab-button',
-                tab === 'camera' ? 'camera-tab' : '',
-                tab !== 'camera' && activeTab === tab ? 'active' : ''
+                'admin-mobile-nav__cell',
+                activeTab === 'users' ? 'is-active' : ''
               ].join(' ').trim()}
-              aria-label={getTabLabel(tab, true)}
-              onClick={() => handleTabClick(tab)}
+              aria-label="Users"
             >
-              <span className="sr-only">{getTabLabel(tab, true)}</span>
-              <span className="bottom-tab-icon">
-                {renderTabIcon(tab)}
-              </span>
+              <Users />
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setActiveTab('products')}
+              className={[
+                'admin-mobile-nav__cell',
+                activeTab === 'products' ? 'is-active' : ''
+              ].join(' ').trim()}
+              aria-label="Products"
+            >
+              <Package />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('history')}
+              className={[
+                'admin-mobile-nav__cell',
+                activeTab === 'history' ? 'is-active' : ''
+              ].join(' ').trim()}
+              aria-label="Borrowing history"
+            >
+              <History />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('settings')}
+              className={[
+                'admin-mobile-nav__cell',
+                activeTab === 'settings' ? 'is-active' : ''
+              ].join(' ').trim()}
+              aria-label="Settings"
+            >
+              <Settings />
+            </button>
+          </div>
         </nav>
       )}
+
     </div>
   );
 }
