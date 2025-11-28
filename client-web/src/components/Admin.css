@@ -431,7 +431,6 @@
   }
 }
 
-/* Mobile-specific adjustments */
 @media (max-width: 767px) {
   .admin-page {
     padding-bottom: 5.75rem;
@@ -454,7 +453,8 @@
 
   .borrow-button,
   .logout-button {
-    display: none;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
   }
   
   .user-search {
