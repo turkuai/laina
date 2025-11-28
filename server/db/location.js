@@ -24,11 +24,18 @@ function addLocation(locationName, description, callback) {
     "INSERT INTO locations (location_name, description) VALUES (?, ?)",
     [locationName, description],
     (err, result) => {
-      if (err) return callback(err);
+      if (err) {
+        if (err.code === "ER_DUP_ENTRY") {
+          return callback({ error: "Location name already exists" });
+        }
+        return callback(err);
+      }
       callback(null, { id: result.insertId, location_name: locationName, description });
     }
   );
 }
+
+
 
 // Update location name only
 function updateLocation(id, locationName, callback) {

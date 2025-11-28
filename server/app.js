@@ -9,9 +9,10 @@ import cors from "cors";
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
 import locationRouter from "./routes/location.js"; 
+import borrowingHistoryRouter from "./routes/borrowing-history.js";
+import productsRouter from "./routes/products.js";
 
 const app = express();
-
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +33,10 @@ app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
 app.use('/locations', locationRouter); 
+app.use('/api/borrowing-history', borrowingHistoryRouter);
+app.use('/api/products', productsRouter);
 
 
 // catch 404 and forward to error handler
@@ -41,14 +45,15 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
+
+
+
+app.use(function(err, req, res, next) {
+
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
   res.status(err.status || 500);
   res.render('error');
-});
 
+});
 export default app;

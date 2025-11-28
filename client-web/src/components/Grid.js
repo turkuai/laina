@@ -9,6 +9,26 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+// Helper function to format column names
+const formatColumnName = (columnName) => {
+  return columnName
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+// Helper to get field name from column (handles both string and object format)
+const getColumnField = (col) => typeof col === 'object' ? col.field : col;
+
+// Helper to get display name from column
+const getColumnDisplay = (col) => {
+  if (typeof col === 'object' && col.displayName) {
+    return col.displayName;
+  }
+  const fieldName = getColumnField(col);
+  return formatColumnName(fieldName);
+};
+
 export default function Grid({
   columns,
   data,
@@ -49,14 +69,17 @@ export default function Grid({
   }, [columns, data]);
 
   const columnDefs = useMemo(() => {
-    const baseCols = effectiveColumns.map((fieldName) => {
+    const baseCols = effectiveColumns.map((col) => {
+      const fieldName = getColumnField(col);
+      const displayName = getColumnDisplay(col);
+      
       // Adjust column widths for mobile
       let width = undefined;
       let minWidth = 100;
       
       if (isMobile) {
         // Set specific widths for mobile
-        if (fieldName === 'name') {
+        if (fieldName === 'name' || fieldName === 'first_name' || fieldName === 'last_name') {
           minWidth = 120;
           width = 140;
         } else if (fieldName === 'email') {
@@ -75,7 +98,7 @@ export default function Grid({
       }
 
       return {
-        headerName: fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1'),
+        headerName: displayName,
         field: fieldName,
         editable: allowEditing,
         sortable: true,
@@ -108,15 +131,17 @@ export default function Grid({
                 </svg>
               </button>
             )}
-            <button 
-              onClick={() => onDeleteRow?.(row)} 
-              className={`icon-btn danger ${isMobile ? 'mobile' : ''}`}
-              aria-label="Delete"
-            >
-              <svg width={isMobile ? "14" : "16"} height={isMobile ? "14" : "16"} viewBox="0 0 24 24" fill="none">
-                <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
-              </svg>
-            </button>
+            {allowDelete && (
+              <button 
+                onClick={() => onDeleteRow?.(row)} 
+                className={`icon-btn danger ${isMobile ? 'mobile' : ''}`}
+                aria-label="Delete"
+              >
+                <svg width={isMobile ? "14" : "16"} height={isMobile ? "14" : "16"} viewBox="0 0 24 24" fill="none">
+                  <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+                </svg>
+              </button>
+            )}
           </div>
         );
       },
@@ -131,7 +156,7 @@ export default function Grid({
     };
 
     return [...baseCols, actionCol];
-  }, [effectiveColumns, allowEditing, onDeleteRow, isMobile]);
+  }, [effectiveColumns, allowEditing, allowDelete, onDeleteRow, isMobile]);
 
   const defaultColDef = useMemo(() => ({
     sortable: true,

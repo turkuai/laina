@@ -35,6 +35,59 @@
   justify-content: flex-end;
 }
 
+/* Tabs */
+.admin-tabs {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
+  margin: 0 1rem;
+  padding: 0 1.5rem;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.admin-tab-list {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.admin-tab-button {
+  padding: 0.85rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+.admin-tab-button:hover {
+  color: #2563eb;
+}
+
+.admin-tab-button.active {
+  color: #1f2937;
+  border-bottom-color: #2563eb;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), transparent);
+}
+
+.admin-tab-button.camera-tab {
+  padding: 1rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  border-bottom-color: #2563eb;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.12), transparent);
+  border-top-left-radius: 999px;
+  border-top-right-radius: 999px;
+  box-shadow: 0 -2px 10px rgba(37, 99, 235, 0.08);
+}
+
 /* Borrow Button */
 .borrow-button {
   padding: 0.5rem 1rem;
@@ -140,10 +193,187 @@
   color: #9ca3af;
 }
 
+/* Settings Panel */
+.admin-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-settings-section {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.admin-settings-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.75rem 0;
+}
+
+.settings-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-field:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.settings-value {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.password-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.password-form-field input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.password-form-field input:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.password-status {
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+.password-status.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.password-status.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.password-submit-btn {
+  padding: 0.75rem;
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.password-submit-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.settings-logout-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Bottom Navigation */
+.bottom-tab-bar {
+  display: none;
+}
+
+.bottom-tab-button {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.45rem 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 0.65rem;
+  transition: color 0.2s ease;
+}
+
+.bottom-tab-button .bottom-tab-icon {
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+.bottom-tab-button.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.bottom-tab-button.camera-tab {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-radius: 9999px;
+  width: 3.85rem;
+  height: 3.85rem;
+  padding: 0;
+  flex: 0 0 auto;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+  border: none;
+}
+
+.bottom-tab-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 /* Tablet styles (min-width: 640px) */
 @media (min-width: 640px) {
+  .admin-tab-button.camera-tab {
+    display: none;
+  }
   .admin-header {
     padding: 1rem 1.5rem;
+  }
+
+  .admin-tabs {
+    margin: 0 1.5rem;
   }
 
   .admin-header h1 {
@@ -179,6 +409,11 @@
     flex-wrap: nowrap;
   }
 
+  .admin-tabs {
+    margin: 0 2rem;
+    padding: 0 2rem;
+  }
+
   .admin-header h1 {
     flex: 0 1 auto;
   }
@@ -196,22 +431,26 @@
   }
 }
 
-/* Mobile-specific adjustments */
-@media (max-width: 639px) {
-  /* Stack header elements vertically on very small screens */
+@media (max-width: 767px) {
+  .admin-page {
+    padding-bottom: 5.75rem;
+  }
+
+  .admin-content {
+    padding-bottom: 5.75rem;
+  }
+
   .admin-header-actions {
     width: 100%;
     justify-content: space-between;
   }
 
-  /* Make user info take full width on mobile */
   .user-info {
     flex: 1 1 100%;
     order: -1;
     margin-bottom: 0.5rem;
   }
 
-  /* Adjust button sizes for touch targets */
   .borrow-button,
   .logout-button {
     padding: 0.625rem 1rem;
@@ -221,9 +460,54 @@
   .user-search {
     margin: 0.5rem 0 0.875rem 0;
   }
+
+  .bottom-tab-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.12);
+    z-index: 50;
+    padding: 0.5rem 0.9rem 0.65rem;
+    gap: 0.5rem;
+    align-items: center;
+    border-radius: 2rem;
+    margin: 0 0.85rem 0.6rem;
+  }
+
+  .bottom-tab-button {
+    flex: 1;
+    min-height: 3.35rem;
+    border-radius: 0.75rem;
+    background-color: transparent;
+  }
+
+  .bottom-tab-button.camera-tab {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .bottom-tab-button.camera-tab .bottom-tab-icon {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
 }
 
-/* Extra small screens */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 374px) {
   .admin-header h1 {
     font-size: 1.125rem;

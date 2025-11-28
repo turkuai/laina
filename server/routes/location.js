@@ -24,7 +24,12 @@ router.post('/', (req, res) => {
   }
 
   db.addLocation(location_name, description, (err, result) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
+    if (err) {
+      if (err.error === "Location name already exists") {
+        return res.status(400).json({ error: err.error });
+      }
+      return res.status(500).json({ error: "DB error" });
+    }
     res.status(201).json(result);
   });
 });
