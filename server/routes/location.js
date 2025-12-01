@@ -4,13 +4,25 @@ import db from '../db/location.js';
 const router = express.Router();
 
 // GET /locations?page=1 - list locations with pagination
+// GET /locations?page=1 - list locations with pagination
 router.get('/', (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  db.getLocations(page, (err, result) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json(result);
-  });
+  try {
+    const page = parseInt(req.query.page) || 1;
+    console.log("🛰️ GET /locations?page=", page);
+
+    db.getLocations(page, (err, result) => {
+      if (err) {
+        console.error("❌ FULL ERROR OBJECT FROM DB:", JSON.stringify(err, null, 2));
+        return res.status(500).json({ error: err });
+      }
+      res.json(result);
+    });
+  } catch (e) {
+    console.error("🔥 Unexpected crash in GET /locations:", e);
+    res.status(500).json({ error: "Server crash: " + e.message });
+  }
 });
+
 
 // POST /locations - create new location
 router.post('/', (req, res) => {
@@ -25,6 +37,7 @@ router.post('/', (req, res) => {
 
   db.addLocation(location_name, description, (err, result) => {
     if (err) {
+      console.error("❌ Database error in POST /locations:", err);
       if (err.error === "Location name already exists") {
         return res.status(400).json({ error: err.error });
       }
@@ -43,7 +56,10 @@ router.patch('/:id', (req, res) => {
   }
 
   db.updateLocation(id, location_name, (err, result) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
+    if (err) {
+      console.error("❌ Database error in PATCH /locations:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
     res.json(result);
   });
 });
@@ -52,7 +68,10 @@ router.patch('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   const id = req.params.id;
   db.deleteLocation(id, (err, result) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
+    if (err) {
+      console.error("❌ Database error in DELETE /locations:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
     res.json(result);
   });
 });

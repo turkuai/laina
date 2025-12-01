@@ -25,9 +25,7 @@ export default function App() {
         <Route path="/borrow" element={<BorrowPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-      
-
+      <Route path="*" element={<Navigate to="/" replace />} />      
     </Routes>
   );
 }
