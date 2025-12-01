@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { QrCode } from 'lucide-react';
+import { Camera, History, Package, QrCode, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -338,6 +338,28 @@ export default function Admin({ productsData }) {
     ? ['camera', 'users', 'products', 'history']
     : ['camera', 'history', 'products'];
   const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs.filter(t => t !== 'camera');
+
+  const tabIconMap = {
+    camera: Camera,
+    users: Users,
+    products: Package,
+    history: History,
+    settings: Settings
+  };
+
+  const renderTabIcon = (tab) => {
+    const IconComponent = tabIconMap[tab];
+    if (!IconComponent) return null;
+    const isCamera = tab === 'camera';
+
+    return (
+      <IconComponent
+        size={isCamera ? 28 : 22}
+        strokeWidth={isCamera ? 2.6 : 2.2}
+        aria-hidden="true"
+      />
+    );
+  };
 
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
@@ -897,9 +919,13 @@ export default function Admin({ productsData }) {
                 tab === 'camera' ? 'camera-tab' : '',
                 activeTab === tab ? 'active' : ''
               ].join(' ').trim()}
+              aria-label={getTabLabel(tab, true)}
               onClick={() => handleTabClick(tab)}
             >
-              <span>{getTabLabel(tab, true)}</span>
+              <span className="sr-only">{getTabLabel(tab, true)}</span>
+              <span className="bottom-tab-icon">
+                {renderTabIcon(tab)}
+              </span>
             </button>
           ))}
         </nav>

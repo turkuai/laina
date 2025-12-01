@@ -475,15 +475,24 @@
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  padding: 0.75rem 0.25rem;
+  padding: 0.45rem 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.bottom-tab-button span {
+.bottom-tab-button .bottom-tab-icon {
   pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
 }
 
 .bottom-tab-button.active {
@@ -496,6 +505,10 @@
   font-size: 0.85rem;
 }
 
+.bottom-tab-button:active {
+  color: #dc2626 !important;
+}
+
 .bottom-tab-button:hover {
   color: #b91c1c !important;
 }
@@ -505,9 +518,36 @@
   outline-offset: 2px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ============================================
    RESPONSIVE BREAKPOINTS
    ============================================ */
+
+/* Extra Small Mobile (< 375px) */
+@media (max-width: 374px) {
+  .admin-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .borrow-button span:last-child {
+    display: none;
+  }
+
+  .borrow-button {
+    padding: 0.625rem;
+  }
+}
 
 /* Mobile (< 640px) */
 @media (max-width: 639px) {
@@ -520,7 +560,7 @@
   }
 
   .bottom-tab-bar {
-    display: flex !important;
+    display: flex;
   }
 
   .admin-header-actions {
@@ -556,21 +596,6 @@
   .mobile-content-section {
     margin: 0.75rem;
     padding: 0.75rem;
-  }
-}
-
-/* Extra Small Mobile (< 375px) */
-@media (max-width: 374px) {
-  .admin-header h1 {
-    font-size: 1.125rem;
-  }
-
-  .borrow-button span:last-child {
-    display: none;
-  }
-
-  .borrow-button {
-    padding: 0.625rem;
   }
 }
 
@@ -615,7 +640,7 @@
   }
 
   .bottom-tab-bar {
-    display: none !important;
+    display: none;
   }
 }
 
