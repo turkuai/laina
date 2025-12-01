@@ -35,7 +35,69 @@
   justify-content: flex-end;
 }
 
-/* Tabs */
+/* User Info */
+.user-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.user-info strong {
+  color: #1f2937;
+}
+
+.admin-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Buttons */
+.borrow-button {
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.borrow-button:hover {
+  background-color: #b91c1c;
+}
+
+.logout-button {
+  padding: 0.5rem 1rem;
+  background-color: #4b5563;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.logout-button:hover {
+  background-color: #374151;
+}
+
+/* Tabs - Desktop */
 .admin-tabs {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
@@ -76,19 +138,50 @@
   background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent);
 }
 
-.admin-tab-button.camera-tab {
-  padding: 1rem 1.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-  border-bottom-color: #dc2626;
-  background: linear-gradient(180deg, rgba(220, 38, 38, 0.12), transparent);
-  border-top-left-radius: 999px;
-  border-top-right-radius: 999px;
-  box-shadow: 0 -2px 10px rgba(220, 38, 38, 0.08);
+/* Content Area */
+.admin-content {
+  display: block;
 }
 
-/* Borrow Content Area */
+.admin-content-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-content-card h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+/* Search Box */
+.user-search {
+  background: #f7f8fb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.user-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+}
+
+.user-search input::placeholder {
+  color: #9ca3af;
+}
+
+/* Camera/Borrow Content */
 .borrow-content {
   display: flex;
   flex-direction: column;
@@ -98,7 +191,6 @@
   min-height: 50vh;
 }
 
-/* Scan Button */
 .scan-button {
   padding: 1.25rem 3rem;
   background-color: #dc2626;
@@ -126,7 +218,6 @@
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
-/* Help Text */
 .help-text {
   margin-top: 1.5rem;
   color: #dc2626;
@@ -135,111 +226,26 @@
   text-align: center;
 }
 
-/* Borrow Button */
-.borrow-button {
-  padding: 0.5rem 1rem;
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
+/* Mobile Tab Content */
+.mobile-tab-content {
+  background-color: #f3f4f6;
+  min-height: calc(100vh - 140px);
+  padding-bottom: 5rem;
 }
 
-.borrow-button:hover {
-  background-color: #b91c1c;
-}
-
-/* User Info */
-.user-info {
-  font-size: 0.875rem;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.user-info strong {
-  color: #1f2937;
-}
-
-.admin-badge {
-  padding: 0.25rem 0.5rem;
-  background-color: #fee2e2;
-  color: #991b1b;
-  font-size: 0.75rem;
-  border-radius: 9999px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-/* Logout Button */
-.logout-button {
-  padding: 0.5rem 1rem;
-  background-color: #4b5563;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-}
-
-.logout-button:hover {
-  background-color: #374151;
-}
-
-.admin-content-card {
+.mobile-content-section {
   background-color: white;
-  border-radius: 8px;
-  padding: 1rem;
   margin: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.admin-content-card h2 {
+.mobile-content-section h2 {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
   color: #1f2937;
-}
-
-/* User Search Box */
-.user-search {
-  background: #f7f8fb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-  margin: 0.5rem 0 1rem 0;
-}
-
-.user-search input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 0.875rem;
-}
-
-.user-search input::placeholder {
-  color: #9ca3af;
-}
-
-.borrow-content-button {
-  display: flex;
-  justify-content: center;
-  padding: 1rem;
 }
 
 /* Mobile Product Box */
@@ -326,21 +332,6 @@
 
 .mobile-action-button:active {
   background-color: #374151;
-}
-
-/* Mobile bottom nav hidden by default (desktop & tablet) */
-.mobile-bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: white;
-  border-top: 2px solid #d1d5db;
-  justify-content: space-evenly;
-  align-items: center;
-  padding: 0.5rem 0;
-  z-index: 9999;
 }
 
 /* Settings Panel */
@@ -463,12 +454,21 @@
   background-color: #dc2626;
 }
 
-/* Bottom Navigation */
+/* Bottom Tab Bar - Mobile */
 .bottom-tab-bar {
   display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -2px 8px rgba(15, 23, 42, 0.08);
+  z-index: 50;
 }
 
 .bottom-tab-button {
+  flex: 1;
   background: transparent !important;
   border: none;
   color: #6b7280 !important;
@@ -479,8 +479,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  border-radius: 0;
   transition: color 0.2s ease;
 }
 
@@ -491,14 +489,15 @@
 .bottom-tab-button.active {
   color: #dc2626 !important;
   font-weight: 600;
-  background: transparent !important;
 }
 
 .bottom-tab-button.camera-tab.active {
   font-weight: 700;
   font-size: 0.85rem;
-  color: #dc2626 !important;
-  background: transparent !important;
+}
+
+.bottom-tab-button:hover {
+  color: #b91c1c !important;
 }
 
 .bottom-tab-button:focus-visible {
@@ -506,108 +505,24 @@
   outline-offset: 2px;
 }
 
-.bottom-tab-button:hover {
-  color: #b91c1c !important;
-  background: transparent !important;
-}
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
 
-/* Tablet styles (min-width: 640px) */
-@media (min-width: 640px) {
-  .hide-on-desktop {
-    display: none;
-  }
-
-  .camera-tab {
-    display: none;
-  }
-
-  .admin-header {
-    padding: 1rem 1.5rem;
-  }
-
-  .admin-tabs {
-    margin: 0 1.5rem;
-  }
-
-  .admin-header h1 {
-    font-size: 1.5rem;
-    flex: 0 1 auto;
-  }
-
-  .admin-content-card {
-    padding: 1.5rem;
-    margin: 1.5rem;
-  }
-
-  .admin-content-card h2 {
-    font-size: 1.25rem;
-  }
-  
-  .user-search {
-    padding: 0.625rem 0.875rem;
-  }
-  
-  .user-search input {
-    font-size: 0.9375rem;
-  }
-
-  /* Show logout button on desktop */
-  .logout-button {
-    display: flex !important;
-  }
-
-  /* Hide bottom tab bar on desktop */
-  .bottom-tab-bar {
-    display: none !important;
-  }
-}
-
-/* Desktop styles (min-width: 1024px) */
-@media (min-width: 1024px) {
-  .admin-header {
-    padding: 1rem 2rem;
-    flex-wrap: nowrap;
-  }
-
-  .admin-tabs {
-    margin: 0 2rem;
-    padding: 0 2rem;
-  }
-
-  .admin-header h1 {
-    flex: 0 1 auto;
-  }
-
-  .admin-header-actions {
-    gap: 1rem;
-  }
-
-  .admin-content-card {
-    padding: 1.5rem 2rem;
-    margin: 1.5rem 2rem;
-  }
-}
-
-/* Mobile-specific adjustments */
+/* Mobile (< 640px) */
 @media (max-width: 639px) {
   .admin-page {
-    padding-bottom: 4.5rem;
-  }
-
-  .admin-content {
-    padding-bottom: 4.5rem;
-  }
-
-  /* Show bottom nav only on mobile */
-  .mobile-bottom-nav {
-    display: flex;
+    padding-bottom: 0;
   }
 
   .hide-on-mobile {
     display: none;
   }
 
-  /* Stack header elements vertically on very small screens */
+  .bottom-tab-bar {
+    display: flex !important;
+  }
+
   .admin-header-actions {
     width: 100%;
     justify-content: space-between;
@@ -619,63 +534,32 @@
     margin-bottom: 0.5rem;
   }
 
-  .borrow-button {
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
-  }
-  
-  .user-search {
-    margin: 0.5rem 0 0.875rem 0;
+  .mobile-header-user {
+    text-align: right;
+    font-size: 0.9rem;
   }
 
-  /* Show logout button on mobile too */
   .logout-button {
-    display: flex !important;
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
   }
 
-  /* Show bottom tab bar on mobile */
-  .bottom-tab-bar {
-    display: flex !important;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    box-shadow: 0 -2px 8px rgba(15, 23, 42, 0.08);
-    z-index: 50;
+  .borrow-button {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
   }
 
-  .bottom-tab-button {
-    flex: 1;
-  }
-
-  /* Mobile header layout */
-  .admin-logo-text {
-    flex: 1;
-    text-align: left;
+  .admin-header h1 {
     font-size: 1.5rem;
   }
 
-  .mobile-header-user {
-    flex: 0 1 auto;
-    text-align: right;
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-  }
-
-  .admin-header {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap; 
-    justify-content: space-between;
-    align-items: center;
+  .mobile-content-section {
+    margin: 0.75rem;
+    padding: 0.75rem;
   }
 }
 
-/* Extra small screens */
+/* Extra Small Mobile (< 375px) */
 @media (max-width: 374px) {
   .admin-header h1 {
     font-size: 1.125rem;
@@ -690,42 +574,73 @@
   }
 }
 
-/* Mobile Bottom Navigation Buttons */
-.mobile-nav-btn {
-  flex: 1;
-  text-align: center;
-  background: none;
-  border: none;
-  padding: 0.75rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
-  transition: background-color 0.25s, color 0.25s;
-  border-right: 1px solid #e5e7eb;
-}
-
-/* Remove right border from last button */
-.mobile-nav-btn:last-child {
-  border-right: none;
-}
-
-.mobile-nav-btn:hover,
-.mobile-nav-btn:active {
-  background-color: #dc2626;
-  color: white;
-}
-
-/* Logo text */
-.admin-logo-text {
-  font-size: 1.75rem;
-  font-weight: 900;
-  margin: 0;
-  color: #1f2937;
-}
-
-/* Desktop default - will be overridden on mobile */
+/* Tablet (≥ 640px) */
 @media (min-width: 640px) {
-  .admin-logo-text {
+  .hide-on-desktop {
+    display: none;
+  }
+
+  .camera-tab {
+    display: none;
+  }
+
+  .admin-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .admin-header h1 {
     font-size: 1.5rem;
+    flex: 0 1 auto;
+  }
+
+  .admin-tabs {
+    margin: 0 1.5rem;
+  }
+
+  .admin-content-card {
+    padding: 1.5rem;
+    margin: 1.5rem;
+  }
+
+  .admin-content-card h2 {
+    font-size: 1.25rem;
+  }
+
+  .user-search {
+    padding: 0.625rem 0.875rem;
+  }
+
+  .user-search input {
+    font-size: 0.9375rem;
+  }
+
+  .bottom-tab-bar {
+    display: none !important;
+  }
+}
+
+/* Desktop (≥ 1024px) */
+@media (min-width: 1024px) {
+  .admin-header {
+    padding: 1rem 2rem;
+    flex-wrap: nowrap;
+  }
+
+  .admin-header h1 {
+    flex: 0 1 auto;
+  }
+
+  .admin-header-actions {
+    gap: 1rem;
+  }
+
+  .admin-tabs {
+    margin: 0 2rem;
+    padding: 0 2rem;
+  }
+
+  .admin-content-card {
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 2rem;
   }
 }

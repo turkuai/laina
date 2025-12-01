@@ -192,25 +192,54 @@ export default function Admin({ productsData }) {
     return borrowingHistory.filter(r => r.userId === currentUser?.id);
   };
 
+  // Filter functions for search
+  const getFilteredUsers = () => {
+    const data = getUserData();
+    if (!userQuery.trim()) return data;
+    
+    const query = userQuery.toLowerCase();
+    return data.filter(user => 
+      user.name?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      user.role?.toLowerCase().includes(query)
+    );
+  };
+
+  const getFilteredHistory = () => {
+    const data = getBorrowingHistory();
+    if (!userQuery.trim()) return data;
+    
+    const query = userQuery.toLowerCase();
+    return data.filter(record => 
+      record.userName?.toLowerCase().includes(query) ||
+      record.productName?.toLowerCase().includes(query) ||
+      record.status?.toLowerCase().includes(query)
+    );
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => {
       const mobile = window.innerWidth < 640;
+      const wasMobile = isMobile;
       setIsMobile(mobile);
       
-      // When switching to mobile, set active tab to camera
-      if (mobile && activeTab !== 'camera' && activeTab !== 'settings') {
-        setActiveTab('camera');
-      }
-      // When switching to desktop from camera tab, switch to appropriate tab
-      else if (!mobile && activeTab === 'camera') {
-        setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+      // Only change tab when transitioning between mobile/desktop
+      if (mobile !== wasMobile) {
+        // When switching TO mobile from desktop
+        if (mobile && !wasMobile && activeTab !== 'camera' && activeTab !== 'settings') {
+          setActiveTab('camera');
+        }
+        // When switching TO desktop from mobile  
+        else if (!mobile && wasMobile && activeTab === 'camera') {
+          setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+        }
       }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [activeTab, currentUser]);
+  }, [isMobile, activeTab, currentUser]);
 
   useEffect(() => {
     if (!isMobile && activeTab === 'settings') {
@@ -448,6 +477,182 @@ export default function Admin({ productsData }) {
     </div>
   );
 
+  // Render mobile content for each tab
+  const renderMobileContent = () => {
+    if (activeTab === 'camera') {
+      return renderCameraView();
+    }
+
+    if (activeTab === 'users' && currentUser?.role === 'admin') {
+      return (
+        <div className="mobile-tab-content">
+          <div className="mobile-content-section">
+            <h2>Users Management</h2>
+            
+            {/* Search Box */}
+            <div className="user-search">
+              <input
+                placeholder="Search ..."
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+              />
+            </div>
+
+            <div style={{ height: '500px', width: '100%' }}>
+              <Grid
+                columns={['name', 'email', 'role']}
+                data={getFilteredUsers()}
+                allowEditing={true}
+                allowDelete={true}
+                onDeleteRow={handleDeleteUser}
+                onDataChange={handleDataChange}
+                pageSize={10}
+                height="500px"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'products') {
+      return (
+        <div className="mobile-tab-content">
+          <div className="mobile-content-section">
+            {/* Search Box */}
+            <div className="user-search">
+              <input
+                placeholder="Search ..."
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+              />
+            </div>
+
+            <Products
+              currentUser={currentUser}
+              borrowingHistory={borrowingHistory}
+              productsData={productsData}
+              query={userQuery}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'history') {
+      return (
+        <div className="mobile-tab-content">
+          <div className="mobile-content-section">
+            <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
+            
+            {/* Search Box */}
+            <div className="user-search">
+              <input
+                placeholder="Search ..."
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+              />
+            </div>
+
+            <div style={{ height: '500px', width: '100%' }}>
+              <Grid
+                columns={currentUser?.role === 'admin'
+                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
+                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
+                data={getFilteredHistory()}
+                allowEditing={false}
+                allowDelete={false}
+                pageSize={10}
+                height="500px"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'settings') {
+      return (
+        <div className="mobile-tab-content">
+          <div className="mobile-content-section">
+            <div className="admin-settings">
+              <div className="admin-settings-section">
+                <h3>User Details</h3>
+                <div className="settings-field">
+                  <span className="settings-label">Name</span>
+                  <span className="settings-value">{currentUser?.name || '-'}</span>
+                </div>
+                <div className="settings-field">
+                  <span className="settings-label">Username</span>
+                  <span className="settings-value">{currentUser?.username || '-'}</span>
+                </div>
+                <div className="settings-field">
+                  <span className="settings-label">Role</span>
+                  <span className="settings-value">{currentUser?.role || '-'}</span>
+                </div>
+              </div>
+
+              <div className="admin-settings-section">
+                <h3>Change Password</h3>
+                <form className="password-form" onSubmit={handlePasswordSubmit}>
+                  <label className="password-form-field">
+                    <span>Current password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                      placeholder="Enter current password"
+                    />
+                  </label>
+                  <label className="password-form-field">
+                    <span>New password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                      placeholder="Enter new password"
+                    />
+                  </label>
+                  <label className="password-form-field">
+                    <span>Confirm new password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                      placeholder="Re-enter new password"
+                    />
+                  </label>
+
+                  {passwordStatus && (
+                    <div
+                      className={`password-status ${passwordStatus.type === 'error' ? 'error' : 'success'}`}
+                      role="alert"
+                    >
+                      {passwordStatus.message}
+                    </div>
+                  )}
+
+                  <button type="submit" className="password-submit-btn">
+                    Update Password
+                  </button>
+                </form>
+              </div>
+
+              <div className="admin-settings-section">
+                <h3>Account</h3>
+                <button type="button" className="settings-logout-btn" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="admin-page">
 
@@ -485,15 +690,10 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Mobile Content - Show based on active tab */}
-      {isMobile && activeTab === 'camera' && renderCameraView()}
-
-      {/* Mobile Content Area - Other Tabs */}
-      {isMobile && activeTab !== 'camera' && (
-        <div className="admin-content">
-          <div className="admin-content-card">
-            {/* Empty view for mobile - content coming soon */}
-          </div>
+      {/* Mobile Content - Render based on active tab */}
+      {isMobile && (
+        <div key={activeTab}>
+          {renderMobileContent()}
         </div>
       )}
 
@@ -574,11 +774,13 @@ export default function Admin({ productsData }) {
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
               <h2>Users Management</h2>
-              <ServerGrid
-                columns={['first_name', 'email', 'role']}
-                path="/users"
+              <Grid
+                columns={['name', 'email', 'role']}
+                data={getFilteredUsers()}
                 allowEditing={true}
                 allowDelete={true}
+                onDeleteRow={handleDeleteUser}
+                onDataChange={handleDataChange}
                 pageSize={10}
               />
             </div>
@@ -589,6 +791,7 @@ export default function Admin({ productsData }) {
               currentUser={currentUser}
               borrowingHistory={borrowingHistory}
               productsData={productsData}
+              query={userQuery}
             />
           )}
 
@@ -599,7 +802,7 @@ export default function Admin({ productsData }) {
                 columns={currentUser?.role === 'admin'
                   ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
                   : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getBorrowingHistory()}
+                data={getFilteredHistory()}
                 allowEditing={false}
                 allowDelete={false}
                 pageSize={10}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Products({ currentUser, borrowingHistory, productsData }) {
+export default function Products({ currentUser, borrowingHistory, productsData, query }) {
   const defaultProducts = [
     { id: 1, name: 'Laptop Dell XPS', category: 'Electronics', status: 'Available' },
     { id: 2, name: 'Mouse Logitech', category: 'Electronics', status: 'Available' },
@@ -32,6 +32,15 @@ export default function Products({ currentUser, borrowingHistory, productsData }
     setShowAddForm(false);
     alert(`Product "${formData.name}" added successfully!`);
   };
+  const filteredProducts = products.filter(p => {
+    if (!query?.trim()) return true;
+    const q = query.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.status.toLowerCase().includes(q)
+    );
+  });
 
   const handleDelete = (productId) => {
     if (currentUser.role !== 'admin') return;
@@ -159,8 +168,8 @@ export default function Products({ currentUser, borrowingHistory, productsData }
           </tr>
         </thead>
         <tbody>
-          {products && products.length > 0 ? (
-            products.map((p) => (
+          {filteredProducts && filteredProducts.length > 0 ? (
+            filteredProducts.map((p) => (
               <tr key={p.id}>
                 <td style={{ padding: '8px', border: '1px solid #ddd' }}>{p.name}</td>
                 <td style={{ padding: '8px', border: '1px solid #ddd' }}>{p.category}</td>
