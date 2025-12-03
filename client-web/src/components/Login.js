@@ -13,18 +13,12 @@ export default function Login() {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Load remembered credentials on mount
+    // Load remembered username on mount (password NOT stored)
     useEffect(() => {
-        const savedCredentials = localStorage.getItem("remembered_credentials");
-        if (savedCredentials) {
-            try {
-                const { username, password } = JSON.parse(savedCredentials);
-                setUsername(username || "");
-                setPassword(password || "");
-                setRememberMe(true);
-            } catch {
-                localStorage.removeItem("remembered_credentials");
-            }
+        const savedUsername = localStorage.getItem("remembered_username");
+        if (savedUsername) {
+            setUsername(savedUsername);
+            setRememberMe(true);
         }
     }, []);
 
@@ -43,15 +37,14 @@ export default function Login() {
             const result = await login(username, password);
 
             if (result.success) {
-                // Store or clear credentials based on checkbox
+                // Store only the username if remember me is checked
                 if (rememberMe) {
-                    localStorage.setItem(
-                        "remembered_credentials",
-                        JSON.stringify({ username, password })
-                    );
+                    localStorage.setItem("remembered_username", username);
                 } else {
-                    localStorage.removeItem("remembered_credentials");
+                    localStorage.removeItem("remembered_username");
                 }
+                // Clear password from component state after successful login
+                setPassword("");
             } else {
                 setError(result.error);
             }
@@ -121,7 +114,7 @@ export default function Login() {
                                 onChange={(e) => setRememberMe(e.target.checked)}
                                 disabled={loading}
                             />
-                            Remember me
+                            Remember username
                         </label>
                     </div>
 
