@@ -137,6 +137,7 @@
   border-bottom: 1px solid #e5e7eb;
   font-weight: 600;
   font-size: 14px;
+  vertical-align: middle;
 }
 
 .products-table th.text-center {
@@ -154,6 +155,7 @@
 
 .products-table td {
   padding: 12px;
+  vertical-align: middle;
 }
 
 .products-table td.text-center {
@@ -168,11 +170,13 @@
 
 /* ===== STATUS BADGES ===== */
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 500;
   display: inline-block;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .status-available {
@@ -247,11 +251,13 @@
   background: white;
   border-radius: 12px;
   padding: 24px;
-  max-width: 400px;
+  max-width: 500px;
   width: 100%;
   position: relative;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 @keyframes slideUp {
@@ -290,6 +296,7 @@
   color: #1f2937;
   margin-bottom: 16px;
   margin-top: 0;
+  padding-right: 30px;
 }
 
 .product-modal-info {
@@ -307,13 +314,15 @@
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .qr-section-title {
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   margin-top: 0;
+  text-align: center;
 }
 
 .product-hash-preview {
@@ -370,8 +379,8 @@
 
 /* ===== QR CODE DISPLAY ===== */
 .qr-code-container {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  max-width: 300px;
   background: white;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
@@ -379,22 +388,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 20px;
 }
 
 .qr-code-image {
-  width: 150px;
-  height: 150px;
-  background-size: contain;
+  width: 250px;
+  height: 250px;
+  background-size: 250px 250px;
   background-repeat: no-repeat;
   background-position: center;
+  margin: 0 auto;
 }
 
 .qr-code-label {
-  font-size: 10px;
-  margin-top: 8px;
+  font-size: 12px;
+  margin-top: 12px;
   text-align: center;
   color: #6b7280;
+  font-weight: 500;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -414,5 +425,63 @@
   .products-table th,
   .products-table td {
     padding: 8px;
+  }
+  
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .product-modal {
+    padding: 20px;
+    max-width: 95%;
+  }
+  
+  .qr-code-container {
+    max-width: 280px;
+    padding: 16px;
+  }
+  
+  .qr-code-image {
+    width: 220px;
+    height: 220px;
+    background-size: 220px 220px;
+  }
+  
+  .product-modal-actions {
+    flex-direction: column;
+  }
+  
+  .product-modal-print-btn,
+  .product-modal-close-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-table th,
+  .products-table td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+  
+  .view-qr-btn {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .qr-code-container {
+    max-width: 240px;
+  }
+  
+  .qr-code-image {
+    width: 200px;
+    height: 200px;
+    background-size: 200px 200px;
   }
 }
