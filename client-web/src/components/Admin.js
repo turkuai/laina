@@ -162,10 +162,17 @@ export default function Admin({ productsData }) {
 
   // Set default tab to 'camera' on mobile, otherwise based on role
   const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 640) {
-      return 'camera';
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+
+    if (currentUser?.role === "student") {
+      return "history"; // opiskelijan aloitusnäkymä
     }
-    return currentUser?.role === 'admin' ? 'users' : 'history';
+
+    if (isMobile) {
+      return "camera";
+    }
+
+    return currentUser?.role === "admin" ? "users" : "history";
   });
 
   const [users, setUsers] = useState([
@@ -334,10 +341,16 @@ export default function Admin({ productsData }) {
   };
 
   // Tab configuration
-  const baseTabs = currentUser?.role === 'admin'
+// Admin & teacher → kamera mukana
+// Student → EI kamera-tabia
+const baseTabs =
+  currentUser?.role === 'admin' || currentUser?.role === 'teacher'
     ? ['camera', 'users', 'products', 'history']
-    : ['camera', 'history', 'products'];
-  const tabs = isMobile ? [...baseTabs, 'settings'] : baseTabs.filter(t => t !== 'camera');
+    : ['history', 'products'];
+
+  const tabs = isMobile
+  ? [...new Set([...baseTabs, 'settings'])]   // estää duplikaatit
+  : baseTabs.filter(t => t !== 'camera');
 
   const tabIconMap = {
     camera: Camera,
@@ -414,16 +427,20 @@ export default function Admin({ productsData }) {
   // Render camera view content
   const renderCameraView = () => (
     <div className="borrow-content">
+    {currentUser?.role !== 'student' && (
       <button
         onClick={() => setShowCamera(true)}
         className="scan-button"
       >
         SCAN QR CODE
       </button>
-      
+    )}
+    
+    {currentUser?.role !== 'student' && (
       <p className="help-text">
         Press the button to scan a product QR code
       </p>
+    )}
 
       {/* Mobile Product Info Box */}
       {scannedProduct && (
@@ -719,11 +736,11 @@ export default function Admin({ productsData }) {
         </div>
       )}
 
-      {showCamera && (
-        <QRScannerCamera
-          onScan={handleQRScan}
-          onClose={() => setShowCamera(false)}
-        />
+      {showCamera && currentUser?.role !== 'student' && (
+          <QRScannerCamera
+            onScan={handleQRScan}
+            onClose={() => setShowCamera(false)}
+          />
       )}
 
       {/* Product Modals - Desktop Only */}
