@@ -19,13 +19,13 @@ export default function App() {
       />
       <Route path="/login" element={<Login />} />
       <Route path="/locations-test" element={<LocationsTest />} />
-      
+
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<Admin />} />
         <Route path="/borrow" element={<BorrowPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />      
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
