@@ -10,12 +10,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .products-card .title {
   font-weight: 600;
   font-size: 18px;
+  margin: 0;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #111827;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1f2937;
 }
 
 /* ===== SEARCH BAR ===== */
@@ -40,25 +60,6 @@
   outline: none;
   background: transparent;
   font-size: 14px;
-}
-
-/* ===== BUTTONS ===== */
-.btn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background: #111827;
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: #1f2937;
 }
 
 /* ===== ADD PRODUCT FORM ===== */
@@ -115,6 +116,66 @@
   background-color: #059669;
 }
 
+/* ===== STATUS BADGES ===== */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.status-available {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-on-loan {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-borrowed {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-maintenance {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.view-qr-btn {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.view-qr-btn:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
 /* ===== TABLE ===== */
 .products-card__table {
   border: 1px solid #eef0f3;
@@ -164,60 +225,6 @@
   text-align: center;
   padding: 20px;
   color: #6b7280;
-}
-
-/* ===== STATUS BADGES ===== */
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  display: inline-block;
-}
-
-.status-available {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-on-loan {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-maintenance {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-/* ===== ACTION BUTTONS ===== */
-.view-qr-btn {
-  background: #111827;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.view-qr-btn:hover {
-  background: #1f2937;
-  transform: translateY(-1px);
-}
-
-.delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  transition: all 0.2s ease;
-}
-
-.delete-btn:hover {
-  transform: scale(1.1);
 }
 
 /* ===== PRODUCT MODAL ===== */
@@ -316,14 +323,6 @@
   margin-top: 0;
 }
 
-.product-hash-preview {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 12px;
-  text-align: center;
-  word-break: break-all;
-}
-
 /* ===== PRODUCT MODAL ACTIONS ===== */
 .product-modal-actions {
   display: flex;
@@ -395,6 +394,7 @@
   margin-top: 8px;
   text-align: center;
   color: #6b7280;
+  margin-bottom: 0;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -407,12 +407,11 @@
     width: 100%;
   }
 
-  .products-table {
-    font-size: 14px;
+  .product-modal {
+    padding: 20px;
   }
 
-  .products-table th,
-  .products-table td {
-    padding: 8px;
+  .product-modal-actions {
+    flex-direction: column;
   }
 }
