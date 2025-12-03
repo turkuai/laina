@@ -10,7 +10,23 @@ export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    // Load remembered credentials on mount
+    useEffect(() => {
+        const savedCredentials = localStorage.getItem("remembered_credentials");
+        if (savedCredentials) {
+            try {
+                const { username, password } = JSON.parse(savedCredentials);
+                setUsername(username || "");
+                setPassword(password || "");
+                setRememberMe(true);
+            } catch {
+                localStorage.removeItem("remembered_credentials");
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -26,7 +42,17 @@ export default function Login() {
         try {
             const result = await login(username, password);
 
-            if (!result.success) {
+            if (result.success) {
+                // Store or clear credentials based on checkbox
+                if (rememberMe) {
+                    localStorage.setItem(
+                        "remembered_credentials",
+                        JSON.stringify({ username, password })
+                    );
+                } else {
+                    localStorage.removeItem("remembered_credentials");
+                }
+            } else {
                 setError(result.error);
             }
             // Navigation happens automatically via useEffect above
@@ -48,7 +74,7 @@ export default function Login() {
                     <p className="login-subtitle">Please login to continue</p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} autoComplete="on">
                     <div className="login-form-group">
                         <label className="login-label">
                             Username
@@ -83,6 +109,22 @@ export default function Login() {
                         />
                     </div>
 
+                    {/* Remember me checkbox */}
+                    <div className="login-form-group">
+                        <label
+                            className="login-label"
+                            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                disabled={loading}
+                            />
+                            Remember me
+                        </label>
+                    </div>
+
                     {error && (
                         <div className="login-error">
                             {error}
@@ -109,4 +151,4 @@ export default function Login() {
             </div>
         </div>
     );
-}
+};
