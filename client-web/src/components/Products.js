@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ServerGrid from './ServerGrid';
 import './Products.css';
 
 // Generate a unique 45-character hash
@@ -11,14 +12,93 @@ const generateHash = () => {
   return hash;
 };
 
-// QR Code Component (simplified SVG-based QR code)
+// Local Products Grid Component (fallback when database not available)
+const LocalProductsGrid = ({ products, currentUser, renderStatus, renderActions, searchTerm, setSearchTerm }) => {
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div>
+      <div className="products-card__search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
+          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <div className="products-card__table">
+        <table className="products-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th className="text-center">QR Code</th>
+              {currentUser?.role === 'admin' && (
+                <th className="text-center">Actions</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.name}</td>
+                  <td>{p.category}</td>
+                  <td>{renderStatus(p.status)}</td>
+                  <td className="text-center">
+                    <button
+                      onClick={() => renderActions(p).props.children[0].props.onClick()}
+                      className="view-qr-btn"
+                    >
+                      View QR
+                    </button>
+                  </td>
+                  {currentUser?.role === 'admin' && (
+                    <td className="text-center">
+                      <button
+                        onClick={() => renderActions(p).props.children[1].props.onClick()}
+                        className="delete-btn"
+                        aria-label="Delete"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+                        </svg>
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={currentUser?.role === 'admin' ? '5' : '4'} className="empty-state">
+                  {searchTerm ? 'No products found matching your search.' : 'No products available.'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// QR Code Component
 const QRCodeDisplay = ({ data }) => {
-  // For a real implementation, you'd use a QR code library
-  // This is a placeholder that shows the concept
   return (
     <div className="qr-code-container">
       <div className="qr-code-image" style={{
-        background: `url("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data)}")`,
+        background: `url("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data)}")`,
+        backgroundSize: '250px 250px',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
       }}></div>
       <p className="qr-code-label">
         Scan to view product
@@ -166,7 +246,7 @@ const ProductModal = ({ product, onClose }) => {
   );
 };
 
-export default function Products({ currentUser, borrowingHistory, productsData }) {
+export default function Products({ currentUser, productsData }) {
   const defaultProducts = [
     { id: 1, name: 'Laptop Dell XPS', category: 'Electronics', status: 'Available', hash: generateHash() },
     { id: 2, name: 'Mouse Logitech', category: 'Electronics', status: 'Available', hash: generateHash() },
@@ -178,43 +258,126 @@ export default function Products({ currentUser, borrowingHistory, productsData }
     { id: 8, name: 'Projector Epson', category: 'Electronics', status: 'Available', hash: generateHash() },
   ];
 
-  const [products, setProducts] = useState(productsData || defaultProducts);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', category: '', status: 'Available' });
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [useLocalData, setUseLocalData] = useState(true); // Default to local data to show products
+  const [localProducts, setLocalProducts] = useState(productsData || defaultProducts);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleAddProduct = () => {
+  // Check if database is available
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => {
+        if (!res.ok) throw new Error('Database not available');
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          setUseLocalData(false);
+        }
+      })
+      .catch(() => {
+        setUseLocalData(true);
+      });
+  }, []);
+
+  const handleAddProduct = async () => {
     if (!formData.name.trim() || !formData.category.trim()) {
       alert('Please fill in all fields');
       return;
     }
-    const newProduct = {
-      id: Math.max(...products.map(p => p.id), 0) + 1,
-      name: formData.name,
-      category: formData.category,
-      status: formData.status,
-      hash: generateHash(),
-    };
-    setProducts([...products, newProduct]);
-    setFormData({ name: '', category: '', status: 'Available' });
-    setShowAddForm(false);
-    alert(`Product "${formData.name}" added successfully!`);
+
+    if (useLocalData) {
+      // Add to local data
+      const newProduct = {
+        id: Math.max(...localProducts.map(p => p.id), 0) + 1,
+        name: formData.name,
+        category: formData.category,
+        status: formData.status,
+        hash: generateHash(),
+      };
+      setLocalProducts([...localProducts, newProduct]);
+      setFormData({ name: '', category: '', status: 'Available' });
+      setShowAddForm(false);
+      alert(`Product "${formData.name}" added successfully!`);
+      return;
+    }
+
+    try {
+      const newProduct = {
+        name: formData.name,
+        category: formData.category,
+        status: formData.status,
+        hash: generateHash(),
+      };
+
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newProduct),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add product');
+      }
+
+      setFormData({ name: '', category: '', status: 'Available' });
+      setShowAddForm(false);
+      setRefreshKey(prev => prev + 1);
+      alert(`Product "${formData.name}" added successfully!`);
+    } catch (err) {
+      console.error('Error adding product:', err);
+      alert('Failed to add product. Please try again.');
+    }
   };
 
-  const handleDelete = (productId) => {
+  // Handle delete for local data
+  const handleLocalDelete = (productId) => {
     if (currentUser.role !== 'admin') return;
-    const product = products.find(p => p.id === productId);
+    const product = localProducts.find(p => p.id === productId);
     if (window.confirm(`Delete product "${product.name}"?`)) {
-      setProducts(products.filter(p => p.id !== productId));
+      setLocalProducts(localProducts.filter(p => p.id !== productId));
       alert(`Product "${product.name}" deleted.`);
     }
   };
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Custom action renderer for QR code button
+  const renderActions = (row) => {
+    return (
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+        <button
+          onClick={() => setSelectedProduct(row)}
+          className="view-qr-btn"
+        >
+          View QR
+        </button>
+        {useLocalData && currentUser?.role === 'admin' && (
+          <button
+            onClick={() => handleLocalDelete(row.id)}
+            className="delete-btn"
+            aria-label="Delete"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+            </svg>
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // Custom status renderer for colored badges
+  const renderStatus = (status) => {
+    return (
+      <span className={`status-badge status-${status.toLowerCase().replace(' ', '-')}`}>
+        {status}
+      </span>
+    );
+  };
 
   return (
     <div className="products-card">
@@ -228,18 +391,6 @@ export default function Products({ currentUser, borrowingHistory, productsData }
             {showAddForm ? '✕ Cancel' : '+ Add Product'}
           </button>
         )}
-      </div>
-
-      <div className="products-card__search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
-          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
       </div>
 
       {showAddForm && (
@@ -290,63 +441,29 @@ export default function Products({ currentUser, borrowingHistory, productsData }
         </div>
       )}
 
-      <div className="products-card__table">
-        <table className="products-table">
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th className="text-center">QR Code</th>
-              {currentUser?.role === 'admin' && (
-                <th className="text-center">Actions</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts && filteredProducts.length > 0 ? (
-              filteredProducts.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.category}</td>
-                  <td>
-                    <span className={`status-badge status-${p.status.toLowerCase().replace(' ', '-')}`}>
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="text-center">
-                    <button
-                      onClick={() => setSelectedProduct(p)}
-                      className="view-qr-btn"
-                    >
-                      View QR
-                    </button>
-                  </td>
-                  {currentUser?.role === 'admin' && (
-                    <td className="text-center">
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="delete-btn"
-                        aria-label="Delete"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
-                        </svg>
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={currentUser?.role === 'admin' ? '5' : '4'} className="empty-state">
-                  {searchTerm ? 'No products found matching your search.' : 'No products available.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {useLocalData ? (
+        <LocalProductsGrid 
+          products={localProducts}
+          currentUser={currentUser}
+          renderStatus={renderStatus}
+          renderActions={renderActions}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+      ) : (
+        <ServerGrid
+          key={refreshKey}
+          columns={['name', 'category', 'status']}
+          path="/products"
+          allowEditing={currentUser?.role === 'admin'}
+          allowDelete={currentUser?.role === 'admin'}
+          pageSize={10}
+          customRenderers={{
+            status: renderStatus,
+          }}
+          customActions={renderActions}
+        />
+      )}
 
       {selectedProduct && (
         <ProductModal

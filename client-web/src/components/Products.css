@@ -137,7 +137,6 @@
   border-bottom: 1px solid #e5e7eb;
   font-weight: 600;
   font-size: 14px;
-  vertical-align: middle;
 }
 
 .products-table th.text-center {
@@ -155,7 +154,6 @@
 
 .products-table td {
   padding: 12px;
-  vertical-align: middle;
 }
 
 .products-table td.text-center {
@@ -169,30 +167,7 @@
 }
 
 /* ===== STATUS BADGES ===== */
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-block;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.status-available {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-on-loan {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-maintenance {
-  background: #e5e7eb;
-  color: #374151;
-}
+/* Status badges removed - plain text only */
 
 /* ===== ACTION BUTTONS ===== */
 .view-qr-btn {
@@ -427,11 +402,6 @@
     padding: 8px;
   }
   
-  .status-badge {
-    padding: 5px 10px;
-    font-size: 12px;
-  }
-  
   .product-modal {
     padding: 20px;
     max-width: 95%;
@@ -468,11 +438,6 @@
   .view-qr-btn {
     font-size: 11px;
     padding: 4px 8px;
-  }
-  
-  .status-badge {
-    padding: 4px 8px;
-    font-size: 11px;
   }
   
   .qr-code-container {
