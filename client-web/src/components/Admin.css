@@ -76,9 +76,8 @@
   white-space: nowrap;
 }
 
-  .borrow-button:hover {
-    background-color: #b91c1c;
-  }
+.borrow-button:hover {
+  background-color: #b91c1c;
 }
 
 .logout-button {
@@ -94,9 +93,8 @@
   white-space: nowrap;
 }
 
-  .logout-button:hover {
-    background-color: #374151;
-  }
+.logout-button:hover {
+  background-color: #374151;
 }
 
 /* Tabs - Desktop */

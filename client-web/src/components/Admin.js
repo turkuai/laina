@@ -43,10 +43,10 @@ const ProductModalBorrowed = ({ product, onClose, onReturn }) => {
           <p className="info-label">Borrowed by:</p>
           <p className="info-value">{product.borrower}</p>
           <p className="info-value">{product.borrowDate}</p>
-          
+
           <p className="info-label">Return deadline:</p>
           <p className="info-value">{product.returnDate}</p>
-          
+
           <p className="info-label">Return date:</p>
           <div className="return-date-display">
             {getCurrentDate()}
@@ -74,9 +74,9 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
       alert('Fill in all fields!');
       return;
     }
-    onBorrow({ 
-      borrowerName, 
-      borrowerPhone, 
+    onBorrow({
+      borrowerName,
+      borrowerPhone,
       returnDate,
       borrowDate: getCurrentDate()
     });
@@ -106,7 +106,7 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
               className="info-input"
             />
           </div>
-          
+
           <div className="info-input-wrapper">
             <input
               type="tel"
@@ -116,7 +116,7 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
               className="info-input"
             />
           </div>
-          
+
           <div className="info-input-wrapper">
             <label className="info-label">Return deadline:</label>
             <input
@@ -142,12 +142,12 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
-  
+
   // QR Scanner states
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
-  
+
   // Password form states
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -196,9 +196,9 @@ export default function Admin({ productsData }) {
   const getFilteredUsers = () => {
     const data = getUserData();
     if (!userQuery.trim()) return data;
-    
+
     const query = userQuery.toLowerCase();
-    return data.filter(user => 
+    return data.filter(user =>
       user.name?.toLowerCase().includes(query) ||
       user.email?.toLowerCase().includes(query) ||
       user.role?.toLowerCase().includes(query)
@@ -208,9 +208,9 @@ export default function Admin({ productsData }) {
   const getFilteredHistory = () => {
     const data = getBorrowingHistory();
     if (!userQuery.trim()) return data;
-    
+
     const query = userQuery.toLowerCase();
-    return data.filter(record => 
+    return data.filter(record =>
       record.userName?.toLowerCase().includes(query) ||
       record.productName?.toLowerCase().includes(query) ||
       record.status?.toLowerCase().includes(query)
@@ -223,7 +223,7 @@ export default function Admin({ productsData }) {
       const mobile = window.innerWidth < 640;
       const wasMobile = isMobile;
       setIsMobile(mobile);
-      
+
       // Only change tab when transitioning between mobile/desktop
       if (mobile !== wasMobile) {
         // When switching TO mobile from desktop
@@ -420,7 +420,7 @@ export default function Admin({ productsData }) {
       >
         SCAN QR CODE
       </button>
-      
+
       <p className="help-text">
         Press the button to scan a product QR code
       </p>
@@ -510,7 +510,7 @@ export default function Admin({ productsData }) {
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
             <h2>Users Management</h2>
-            
+
             {/* Search Box */}
             <div className="user-search">
               <input
@@ -566,7 +566,7 @@ export default function Admin({ productsData }) {
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
             <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-            
+
             {/* Search Box */}
             <div className="user-search">
               <input
@@ -911,55 +911,56 @@ export default function Admin({ productsData }) {
       {isMobile && (
         <nav className="bottom-tab-bar" aria-label="Bottom navigation">
           {tabs.map(tab => (
-            <button
-              type="button"
-              onClick={() => setActiveTab('users')}
-              className={[
-                'bottom-tab-button',
-                tab === 'camera' ? 'camera-tab' : '',
-                activeTab === tab ? 'active' : ''
-              ].join(' ').trim()}
-              aria-label="Users"
-            >
-              <Users />
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('products')}
-              className={[
-                'admin-mobile-nav__cell',
-                activeTab === 'products' ? 'is-active' : ''
-              ].join(' ').trim()}
-              aria-label="Products"
-            >
-              <Package />
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('history')}
-              className={[
-                'admin-mobile-nav__cell',
-                activeTab === 'history' ? 'is-active' : ''
-              ].join(' ').trim()}
-              aria-label="Borrowing history"
-            >
-              <History />
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('settings')}
-              className={[
-                'admin-mobile-nav__cell',
-                activeTab === 'settings' ? 'is-active' : ''
-              ].join(' ').trim()}
-              aria-label="Settings"
-            >
-              <Settings />
-            </button>
-          </div>
+            <>
+              <button
+                type="button"
+                onClick={() => setActiveTab('users')}
+                className={[
+                  'bottom-tab-button',
+                  tab === 'camera' ? 'camera-tab' : '',
+                  activeTab === tab ? 'active' : ''
+                ].join(' ').trim()}
+                aria-label="Users"
+              >
+                <Users />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('products')}
+                className={[
+                  'admin-mobile-nav__cell',
+                  activeTab === 'products' ? 'is-active' : ''
+                ].join(' ').trim()}
+                aria-label="Products"
+              >
+                <Package />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('history')}
+                className={[
+                  'admin-mobile-nav__cell',
+                  activeTab === 'history' ? 'is-active' : ''
+                ].join(' ').trim()}
+                aria-label="Borrowing history"
+              >
+                <History />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('settings')}
+                className={[
+                  'admin-mobile-nav__cell',
+                  activeTab === 'settings' ? 'is-active' : ''
+                ].join(' ').trim()}
+                aria-label="Settings"
+              >
+                <Settings />
+              </button>
+            </>
+          ))}
         </nav>
       )}
-
     </div>
   );
 }
