@@ -526,7 +526,7 @@ const baseTabs =
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <h2>Users Management</h2>
+            
             
             {/* Search Box */}
             <div className="user-search">
@@ -536,6 +536,7 @@ const baseTabs =
                 onChange={(e) => setUserQuery(e.target.value)}
               />
             </div>
+            <h2>Users Management</h2>
 
             <div style={{ height: '500px', width: '100%' }}>
               <Grid
@@ -582,7 +583,6 @@ const baseTabs =
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
             
             {/* Search Box */}
             <div className="user-search">
@@ -592,6 +592,8 @@ const baseTabs =
                 onChange={(e) => setUserQuery(e.target.value)}
               />
             </div>
+
+            <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
 
             <div style={{ height: '500px', width: '100%' }}>
               <Grid
@@ -703,10 +705,15 @@ const baseTabs =
 
         <div className="admin-header-actions">
 
-          {/* Welcome oikealle mobilella */}
           <span className="user-info mobile-header-user">
             Welcome, <strong>{currentUser?.username}</strong>
             <span className="admin-badge">({currentUser?.role})</span>
+            <button
+              onClick={handleLogout}
+              className="logout-button"
+            >
+              Logout
+            </button>
           </span>
 
           {canAccessBorrow && (
@@ -718,13 +725,6 @@ const baseTabs =
               Borrow/Return
             </button>
           )}
-
-          <button
-            onClick={handleLogout}
-            className="logout-button"
-          >
-            Logout
-          </button>
 
         </div>
       </div>
