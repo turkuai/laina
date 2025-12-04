@@ -8,9 +8,9 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // On first load, try to restore user from localStorage
+  // On first load, try to restore user from localStorage OR sessionStorage
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
         const user = JSON.parse(stored);
@@ -18,11 +18,12 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(user);
       } catch {
         localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
       }
     }
   }, []);
 
-  // Login function now calls the backend API
+  // Login function - remember flag tells server to set httpOnly cookie with JWT
   const login = async (username, password, remember = false) => {
     try {
       const response = await fetch('/users/login', {
@@ -30,7 +31,8 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        credentials: 'include', // Important: allows cookies to be sent/received
+        body: JSON.stringify({ username, password, remember }),
       });
 
       const data = await response.json();
@@ -42,7 +44,7 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      // Backend returns { message, user }
+      // Backend returns { message, user } and sets httpOnly cookie if remember=true
       const safeUser = {
         id: data.user.id,
         username: data.user.username,
@@ -53,11 +55,13 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setCurrentUser(safeUser);
 
-      // Persist user if remember is checked
+      // Use localStorage for persistent login, sessionStorage for session-only
       if (remember) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
+        sessionStorage.removeItem(STORAGE_KEY); // Clear session storage if exists
       } else {
-        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
+        localStorage.removeItem(STORAGE_KEY); // Clear localStorage if exists
       }
 
       return { success: true };
@@ -74,6 +78,13 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     setCurrentUser(null);
     localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+    
+    // Call logout endpoint to clear httpOnly cookie
+    fetch('/users/logout', {
+      method: 'POST',
+      credentials: 'include'
+    }).catch(err => console.error('Logout error:', err));
   };
 
   return (
