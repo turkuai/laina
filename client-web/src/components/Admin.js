@@ -928,7 +928,7 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Bottom Tab Bar */}
       {isMobile && (
-        <nav className="admin-mobile-nav" aria-label="Admin quick actions">
+        <nav className="admin-mobile-nav" aria-label="Navigation">
 
           {currentUser?.role === 'admin' && (
             <button
