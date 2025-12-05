@@ -197,7 +197,7 @@ function BorrowPage() {
   return (
     <div className="borrow-page">
       {/* Header */}
-      <header className="borrow-header">
+      {/* <header className="borrow-header">
         <button 
           onClick={() => navigate('/admin')}
           className="header-back-btn"
@@ -208,7 +208,7 @@ function BorrowPage() {
         <button className="header-menu-btn">
           <Menu className="w-8 h-8" />
         </button>
-      </header>
+      </header> */}
 
       {/* Content Area */}
       <div className="borrow-content">
