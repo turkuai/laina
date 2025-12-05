@@ -122,10 +122,10 @@ export default function Admin({ productsData }) {
   // Construct the API path with borrower filter for students
   const getHistoryPath = () => {
     if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
-      return '/api/borrowing-history';
+      return 'borrowing-history';
     } else {
       // Filter by current user's ID for students
-      return `/api/borrowing-history?borrower_id=${currentUser?.id}`;
+      return `borrowing-history?borrower_id=${currentUser?.id}`;
     }
   };
 
@@ -212,7 +212,7 @@ export default function Admin({ productsData }) {
               <h2>Users Management</h2>
               <ServerGrid
                 columns={['first_name', 'last_name', 'email', 'role']}
-                path="/users"
+                path="users"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
@@ -225,7 +225,7 @@ export default function Admin({ productsData }) {
               <h2>Products Management</h2>
               <ServerGrid
                 columns={getProductsColumns()}
-                path="/api/products"
+                path="products"
                 allowEditing={currentUser?.role === 'admin'}
                 allowDelete={currentUser?.role === 'admin'}
                 pageSize={10}

@@ -13,15 +13,6 @@ export default function Login() {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Load remembered username on mount (password NOT stored)
-    useEffect(() => {
-        const savedUsername = localStorage.getItem("remembered_username");
-        if (savedUsername) {
-            setUsername(savedUsername);
-            setRememberMe(true);
-        }
-    }, []);
-
     useEffect(() => {
         if (isAuthenticated) {
             navigate("/admin", { replace: true });
@@ -34,16 +25,11 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const result = await login(username, password);
+            const result = await login(username, password, rememberMe);
 
             if (result.success) {
-                // Store only the username if remember me is checked
-                if (rememberMe) {
-                    localStorage.setItem("remembered_username", username);
-                } else {
-                    localStorage.removeItem("remembered_username");
-                }
-                // Clear password from component state after successful login
+                // Server automatically sets httpOnly cookie with JWT token if rememberMe is true
+                // No client-side storage needed
                 setPassword("");
             } else {
                 setError(result.error);
@@ -114,7 +100,7 @@ export default function Login() {
                                 onChange={(e) => setRememberMe(e.target.checked)}
                                 disabled={loading}
                             />
-                            Remember username
+                            Remember me
                         </label>
                     </div>
 

@@ -2,35 +2,59 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = 'borrowing_system_current_user';
-
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // On first load, try to restore user from localStorage
+  // On first load, verify JWT token from httpOnly cookie
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const verifyToken = async () => {
       try {
-        const user = JSON.parse(stored);
-        setIsAuthenticated(true);
-        setCurrentUser(user);
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
+        const response = await fetch('/api/users/verify', {
+          method: 'GET',
+          credentials: 'include', // Include cookies in request
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const safeUser = {
+            id: data.user.id,
+            username: data.user.username,
+            name: data.user.displayName,
+            role: data.user.role
+          };
+          setIsAuthenticated(true);
+          setCurrentUser(safeUser);
+        } else {
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
+      } catch (error) {
+        console.error('Token verification error:', error);
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    verifyToken();
   }, []);
 
-  // Login function now calls the backend API
-  const login = async (username, password, remember = false) => {
+  // Login function - now with rememberMe parameter for httpOnly cookie
+  const login = async (username, password, rememberMe = false) => {
     try {
-      const response = await fetch('/users/login', {
+      const response = await fetch('/api/users/login', {
         method: 'POST',
+        credentials: 'include', // Include cookies in request
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, rememberMe }),
       });
 
       const data = await response.json();
@@ -38,11 +62,11 @@ export const AuthProvider = ({ children }) => {
       if (!response.ok) {
         return { 
           success: false, 
-          error: data.message || 'Invalid username or password' 
+          error: data.error || 'Invalid username or password' 
         };
       }
 
-      // Backend returns { message, user }
+      // Backend returns { success, message, user }
       const safeUser = {
         id: data.user.id,
         username: data.user.username,
@@ -53,12 +77,8 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setCurrentUser(safeUser);
 
-      // Persist user if remember is checked
-      if (remember) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
+      // httpOnly cookie is automatically set by the server
+      // No client-side storage needed
 
       return { success: true };
     } catch (error) {
@@ -70,14 +90,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+  // Logout function - clear httpOnly cookie on server
+  const logout = async () => {
+    try {
+      await fetch('/api/users/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
