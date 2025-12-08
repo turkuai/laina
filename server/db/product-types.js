@@ -1,64 +1,105 @@
-// server/db/product-types.js
-import db from './db.js';
+import db from "./db.js";
 
-// CREATE - insert a new product type
-async function insertProductType(name, description) {
-  const [result] = await db.execute(
-    'INSERT INTO product_types (name, description) VALUES (?, ?)',
-    [name, description]
+// CREATE — insert a new product type
+function insertProductType(name, description, callback) {
+  db.query(
+    "INSERT INTO product_types (name, description) VALUES (?, ?)",
+    [name, description],
+    (err, result) => {
+      if (err) {
+        return callback(err);
+      }
+      callback(null, { id: result.insertId, name, description });
+    }
   );
-  return { id: result.insertId, name, description };
 }
 
-// READ - get paginated list of product types
-async function selectProductTypes(page = 1, limit = 20) {
+// READ — get paginated list of product types
+function selectProductTypes(page, callback) {
+  const limit = 20;
   const offset = (page - 1) * limit;
 
-  const [[{ count }]] = await db.query('SELECT COUNT(*) AS count FROM product_types');
-  const [rows] = await db.query(
-    'SELECT * FROM product_types ORDER BY id DESC LIMIT ? OFFSET ?',
-    [limit, offset]
+  db.query(
+    "SELECT COUNT(*) AS count FROM product_types",
+    (err, countResult) => {
+      if (err) {
+        return callback(err);
+      }
+
+      const total = countResult[0].count;
+      const totalPages = Math.ceil(total / limit);
+
+      db.query(
+        "SELECT * FROM product_types ORDER BY id DESC LIMIT ? OFFSET ?",
+        [limit, offset],
+        (err, rows) => {
+          if (err) {
+            return callback(err);
+          }
+          callback(null, {
+            data: rows,
+            pagination: {
+              currentPage: page,
+              totalPages,
+              totalItems: total,
+              limit,
+            },
+          });
+        }
+      );
+    }
   );
-
-  const totalPages = Math.ceil(count / limit);
-
-  return {
-    data: rows,
-    pagination: {
-      currentPage: page,
-      totalPages,
-      totalItems: count,
-      limit,
-    },
-  };
 }
 
-// READ - get a single product type by ID
-async function selectProductTypeById(id) {
-  const [rows] = await db.query('SELECT * FROM product_types WHERE id = ?', [id]);
-  return rows[0] || null;
+// READ — get a single product type by ID
+function selectProductTypeById(id, callback) {
+  db.query("SELECT * FROM product_types WHERE id = ?", [id], (err, rows) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, rows[0] || null);
+  });
 }
 
-// UPDATE - modify an existing product type
-async function updateProductType(id, fields) {
+// UPDATE — modify an existing product type
+function updateProductType(id, fields, callback) {
   const { name, description } = fields;
-  await db.execute(
-    'UPDATE product_types SET name = ?, description = ? WHERE id = ?',
-    [name, description, id]
+
+  db.query(
+    "UPDATE product_types SET name = ?, description = ? WHERE id = ?",
+    [name, description, id],
+    (err, result) => {
+      if (err) {
+        return callback(err);
+      }
+
+      // Fetch updated record
+      selectProductTypeById(id, (err2, updatedType) => {
+        if (err2) {
+          return callback(err2);
+        }
+        callback(null, updatedType);
+      });
+    }
   );
-  return selectProductTypeById(id);
 }
 
-// DELETE - remove a product type
-async function deleteProductType(id) {
-  const [result] = await db.execute('DELETE FROM product_types WHERE id = ?', [id]);
-  return result.affectedRows > 0;
+// DELETE — remove a product type
+function deleteProductType(id, callback) {
+  db.query("DELETE FROM product_types WHERE id = ?", [id], (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, result.affectedRows > 0);
+  });
 }
 
-module.exports = {
+const productTypes = {
   insertProductType,
   selectProductTypes,
   selectProductTypeById,
   updateProductType,
   deleteProductType,
 };
+
+export default productTypes;

@@ -1,60 +1,94 @@
-import db from './db.js';
+import db from "./db.js";
 
-// INSERT
-async function insertUser(user) {
-    const { username, displayName, password, role, disabled } = user;
-    const [result] = await db.execute(
-        'INSERT INTO users (username, displayName, password, role, disabled, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-        [username, displayName, password, role, disabled]
+// CREATE — insert a new user
+function insertUser(userData, callback) {
+  const { first_name, last_name, email, password, role } = userData;
+
+  db.query(
+    "INSERT INTO users (first_name, last_name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
+    [first_name, last_name, email, password, role || "student"],
+    (err, result) => {
+      if (err) return callback(err);
+      callback(null, { id: result.insertId, ...userData });
+    }
+  );
+}
+
+// READ — get all users with pagination
+function selectUsers(page, callback) {
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  db.query("SELECT COUNT(*) AS count FROM users", (err, countResult) => {
+    if (err) return callback(err);
+
+    const total = countResult[0].count;
+    const totalPages = Math.ceil(total / limit);
+
+    db.query(
+      "SELECT id, first_name, last_name, email, role, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
+      [limit, offset],
+      (err, rows) => {
+        if (err) return callback(err);
+        callback(null, {
+          data: rows,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems: total,
+            limit,
+          },
+        });
+      }
     );
-    return result.insertId;
+  });
 }
 
-// SELECT with pagination
-async function selectUsers(page = 1, limit = 20) {
-    const offset = (page - 1) * limit;
-
-    const [[{ count }]] = await db.execute('SELECT COUNT(*) AS count FROM users');
-    const totalPages = Math.ceil(count / limit);
-
-    const [rows] = await db.execute(
-        'SELECT * FROM users ORDER BY id LIMIT ? OFFSET ?',
-        [limit, offset]
-    );
-
-    return { users: rows, currentPage: page, totalPages };
+// READ — get single user by ID
+function selectUserById(id, callback) {
+  db.query(
+    "SELECT id, first_name, last_name, email, role, created_at FROM users WHERE id = ?",
+    [id],
+    (err, rows) => {
+      if (err) return callback(err);
+      callback(null, rows[0] || null);
+    }
+  );
 }
 
-// SELECT single user
-async function selectUserById(id) {
-    const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [id]);
-    return rows[0];
+// UPDATE — modify an existing user
+function updateUser(id, fields, callback) {
+  const { first_name, last_name, email, password, role } = fields;
+
+  db.query(
+    "UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, role = ? WHERE id = ?",
+    [first_name, last_name, email, password, role, id],
+    (err, result) => {
+      if (err) return callback(err);
+
+      // Fetch updated record
+      selectUserById(id, (err2, updatedUser) => {
+        if (err2) return callback(err2);
+        callback(null, updatedUser);
+      });
+    }
+  );
 }
 
-// UPDATE
-async function updateUser(user) {
-    const { username, displayName, password, role, disabled, id } = user;
-    const [result] = await db.execute(
-        'UPDATE users SET username = ?, displayName = ?, password = ?, role = ?, disabled = ? WHERE id = ?',
-        [username, displayName, password, role, disabled, id]
-    );
-    return result.affectedRows;
+// DELETE — remove a user
+function deleteUser(id, callback) {
+  db.query("DELETE FROM users WHERE id = ?", [id], (err, result) => {
+    if (err) return callback(err);
+    callback(null, result.affectedRows > 0);
+  });
 }
 
-// DELETE
-async function deleteUser(id) {
-    const [result] = await db.execute('DELETE FROM users WHERE id = ?', [id]);
-    return result.affectedRows;
-}
-
-
-
-const users = { 
-    insertUser,
-    selectUsers,
-    selectUserById,
-    updateUser,
-    deleteUser
+const users = {
+  insertUser,
+  selectUsers,
+  selectUserById,
+  updateUser,
+  deleteUser,
 };
 
 export default users;

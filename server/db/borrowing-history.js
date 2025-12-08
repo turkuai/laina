@@ -1,35 +1,41 @@
 import db from './db.js';
 
 // INSERT - Create new borrow record
-async function insertBorrowHistory(borrowData) {
-    const { 
-        product_id, 
-        borrower_id, 
-        lender_id, 
-        estimated_return_date, 
-        notes 
-    } = borrowData;
+function insertBorrowHistory(borrowData, callback) {
+    const borrowData = {
+        product_id,
+        borrower_id,
+        lender_id,
+        estimated_return_date,
+        notes
+    };
     
-    const [result] = await db.execute(
+    db.query(
         `INSERT INTO borrow_history 
         (product_id, borrower_id, lender_id, borrow_date, estimated_return_date, notes) 
         VALUES (?, ?, ?, NOW(), ?, ?)`,
-        [product_id, borrower_id, lender_id, estimated_return_date, notes]
+        [borrowData], (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, { id: result.insertId, ...borrowData });
+        }
     );
-    return result.insertId;
 }
 
 // SELECT with pagination and joins to get readable data
-async function selectBorrowHistory(page = 1, limit = 20) {
+function selectBorrowHistory(page = 1, limit = 20, callback) {
     const offset = (page - 1) * limit;
 
-    const [[{ count }]] = await db.execute(
-        'SELECT COUNT(*) AS count FROM borrow_history'
-    );
-    const totalPages = Math.ceil(count / limit);
+    db.query('SELECT COUNT(*) AS count FROM borrow_history', (err, countResult) => {
+        if (err) {
+            return callback(err);
+        }
+        const total = countResult[0].count;
+        const totalPages = Math.ceil(total / limit);
 
-    const [rows] = await db.execute(
-        `SELECT 
+        db.query(
+            `SELECT 
             bh.id,
             bh.product_id,
             p.product_name,
@@ -47,23 +53,28 @@ async function selectBorrowHistory(page = 1, limit = 20) {
                 WHEN bh.actual_return_date IS NULL THEN 'On Loan'
                 ELSE 'Returned'
             END as status
-        FROM borrow_history bh
-        LEFT JOIN products p ON bh.product_id = p.id
-        LEFT JOIN users ub ON bh.borrower_id = ub.id
-        LEFT JOIN users ul ON bh.lender_id = ul.id
-        LEFT JOIN users ur ON bh.return_processed_by = ur.id
-        ORDER BY bh.borrow_date DESC
-        LIMIT ? OFFSET ?`,
-        [limit, offset]
-    );
-
-    return { history: rows, currentPage: page, totalPages };
+            FROM borrow_history bh
+            LEFT JOIN products p ON bh.product_id = p.id
+            LEFT JOIN users ub ON bh.borrower_id = ub.id
+            LEFT JOIN users ul ON bh.lender_id = ul.id
+            LEFT JOIN users ur ON bh.return_processed_by = ur.id
+            ORDER BY bh.borrow_date DESC
+            LIMIT ? OFFSET ?`,
+            [limit, offset],
+            (err, rows) => {
+                if (err) {
+                    return callback(err);
+                };
+                callback(null, { history: rows, currentPage: page, totalPages });
+            }
+        );
+    });
 }
 
 // SELECT single borrow record by ID
-async function selectBorrowHistoryById(id) {
-    const [rows] = await db.execute(
-        `SELECT 
+function selectBorrowHistoryById(id, callback) {
+    db.query(
+            `SELECT 
             bh.id,
             bh.product_id,
             p.product_name,
@@ -81,29 +92,36 @@ async function selectBorrowHistoryById(id) {
                 WHEN bh.actual_return_date IS NULL THEN 'On Loan'
                 ELSE 'Returned'
             END as status
-        FROM borrow_history bh
-        LEFT JOIN products p ON bh.product_id = p.id
-        LEFT JOIN users ub ON bh.borrower_id = ub.id
-        LEFT JOIN users ul ON bh.lender_id = ul.id
-        LEFT JOIN users ur ON bh.return_processed_by = ur.id
-        WHERE bh.id = ?`,
-        [id]
+            FROM borrow_history bh
+            LEFT JOIN products p ON bh.product_id = p.id
+            LEFT JOIN users ub ON bh.borrower_id = ub.id
+            LEFT JOIN users ul ON bh.lender_id = ul.id
+            LEFT JOIN users ur ON bh.return_processed_by = ur.id
+            WHERE bh.id = ?`,
+        [id],
+        (err, rows) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, rows[0]);
+        }
     );
-    return rows[0];
 }
 
 // SELECT by borrower - for students to see their own history
-async function selectBorrowHistoryByBorrower(borrowerId, page = 1, limit = 20) {
+function selectBorrowHistoryByBorrower(borrowerId, page = 1, limit = 20, callback) {
+    const limit = 20;
     const offset = (page - 1) * limit;
 
-    const [[{ count }]] = await db.execute(
-        'SELECT COUNT(*) AS count FROM borrow_history WHERE borrower_id = ?',
-        [borrowerId]
-    );
-    const totalPages = Math.ceil(count / limit);
+    db.query('SELECT COUNT(*) AS count FROM borrow_history WHERE borrower_id = ?', [borrowerId], (err, countResult) => {
+        if (err) {
+            return callback(err);
+        }
+        const total = countResult[0].count;
+        const totalPages = Math.ceil(total / limit);
 
-    const [rows] = await db.execute(
-        `SELECT 
+        db.query(
+            `SELECT 
             bh.id,
             bh.product_id,
             p.product_name,
@@ -121,52 +139,64 @@ async function selectBorrowHistoryByBorrower(borrowerId, page = 1, limit = 20) {
                 WHEN bh.actual_return_date IS NULL THEN 'On Loan'
                 ELSE 'Returned'
             END as status
-        FROM borrow_history bh
-        LEFT JOIN products p ON bh.product_id = p.id
-        LEFT JOIN users ub ON bh.borrower_id = ub.id
-        LEFT JOIN users ul ON bh.lender_id = ul.id
-        LEFT JOIN users ur ON bh.return_processed_by = ur.id
-        WHERE bh.borrower_id = ?
-        ORDER BY bh.borrow_date DESC
-        LIMIT ? OFFSET ?`,
-        [borrowerId, limit, offset]
-    );
-
-    return { history: rows, currentPage: page, totalPages };
-}
+            FROM borrow_history bh
+            LEFT JOIN products p ON bh.product_id = p.id
+            LEFT JOIN users ub ON bh.borrower_id = ub.id
+            LEFT JOIN users ul ON bh.lender_id = ul.id
+            LEFT JOIN users ur ON bh.return_processed_by = ur.id
+            WHERE bh.borrower_id = ?
+            ORDER BY bh.borrow_date DESC
+            LIMIT ? OFFSET ?`,
+            [borrowerId, limit, offset], (err, rows) => {
+                if (err)
+                {
+                    return callback(err);
+                };
+                callback(null, { history: rows, currentPage: page, totalPages });
+            }
+        );
+    });
+};
 
 // UPDATE - Mainly for adding return information or updating notes
-async function updateBorrowHistory(borrowData) {
-    const { 
+function updateBorrowHistory(borrowData, callback) {
+    const {
         id,
-        estimated_return_date, 
+        estimated_return_date,
         actual_return_date,
         return_processed_by,
-        notes 
+        notes
     } = borrowData;
-    
-    const [result] = await db.execute(
-        `UPDATE borrow_history 
-        SET estimated_return_date = ?, 
-            actual_return_date = ?, 
-            return_processed_by = ?,
-            notes = ?
-        WHERE id = ?`,
-        [estimated_return_date, actual_return_date, return_processed_by, notes, id]
+
+    db.query(
+        "UPDATE borrow_history SET estimated_return_date = ?, actual_return_date = ?, return_processed_by = ?, notes = ? WHERE id = ?",
+        [estimated_return_date, actual_return_date, return_processed_by, notes, id],
+        (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result.affectedRows);
+        }
     );
-    return result.affectedRows;
 }
 
-// DELETE - Usually not recommended for history, but included for completeness
-async function deleteBorrowHistory(id) {
-    const [result] = await db.execute(
-        'DELETE FROM borrow_history WHERE id = ?', 
-        [id]
+
+// DELETE — not usually recommended but included for completeness
+function deleteBorrowHistory(id, callback) {
+    db.query(
+        "DELETE FROM borrow_history WHERE id = ?",
+        [id],
+        (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result.affectedRows);
+        }
     );
-    return result.affectedRows;
 }
 
-const borrowHistory = { 
+
+const borrowHistory = {
     insertBorrowHistory,
     selectBorrowHistory,
     selectBorrowHistoryById,
