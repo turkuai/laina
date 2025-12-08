@@ -58,4 +58,3 @@ async function resetPassword() {
 }
 
 resetPassword();
-// closed
