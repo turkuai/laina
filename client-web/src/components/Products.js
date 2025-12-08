@@ -15,8 +15,8 @@ const generateHash = () => {
 // Local Products Grid Component (fallback when database not available)
 const LocalProductsGrid = ({ products, currentUser, renderStatus, renderActions, searchTerm, setSearchTerm }) => {
   const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+    p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.type_name && p.type_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -38,7 +38,9 @@ const LocalProductsGrid = ({ products, currentUser, renderStatus, renderActions,
           <thead>
             <tr>
               <th>Product Name</th>
-              <th>Category</th>
+              <th>Device Type</th>
+              <th>Purchase Year</th>
+              <th>Location</th>
               <th>Status</th>
               <th className="text-center">QR Code</th>
               {currentUser?.role === 'admin' && (
@@ -50,8 +52,10 @@ const LocalProductsGrid = ({ products, currentUser, renderStatus, renderActions,
             {filteredProducts.length > 0 ? (
               filteredProducts.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.category}</td>
+                  <td>{p.product_name}</td>
+                  <td>{p.type_name || 'N/A'}</td>
+                  <td>{p.purchase_date}</td>
+                  <td>{p.location_name || 'N/A'}</td>
                   <td>{renderStatus(p.status)}</td>
                   <td className="text-center">
                     <button
@@ -78,7 +82,7 @@ const LocalProductsGrid = ({ products, currentUser, renderStatus, renderActions,
               ))
             ) : (
               <tr>
-                <td colSpan={currentUser?.role === 'admin' ? '5' : '4'} className="empty-state">
+                <td colSpan={currentUser?.role === 'admin' ? '7' : '6'} className="empty-state">
                   {searchTerm ? 'No products found matching your search.' : 'No products available.'}
                 </td>
               </tr>
@@ -110,14 +114,18 @@ const QRCodeDisplay = ({ data }) => {
 // Product Modal with QR Code
 const ProductModal = ({ product, onClose }) => {
   const productData = JSON.stringify({
-    name: product.name,
-    category: product.category,
-    status: product.status.toLowerCase() === 'on loan' ? 'borrowed' : 'available',
-    hash: product.hash,
-    ...(product.status.toLowerCase() === 'on loan' && {
-      borrower: 'Current Borrower',
-      borrowDate: new Date().toLocaleDateString('fi-FI'),
-      returnDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('fi-FI')
+    id: product.id,
+    name: product.product_name,
+    deviceType: product.type_name,
+    purchaseDate: product.purchase_date,
+    location: product.location_name,
+    status: product.status,
+    details: product.details,
+    qr_code: product.qr_code,
+    ...(product.status === 'borrowed' && product.current_borrower_name && {
+      borrower: product.current_borrower_name,
+      borrowDate: product.current_borrow_date,
+      estimatedReturn: product.estimated_return_date
     })
   });
 
@@ -129,7 +137,7 @@ const ProductModal = ({ product, onClose }) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Print QR Code - ${product.name}</title>
+          <title>Print QR Code - ${product.product_name}</title>
           <style>
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
@@ -171,6 +179,12 @@ const ProductModal = ({ product, onClose }) => {
               color: #9ca3af;
               margin-top: 16px;
             }
+            .hash-code {
+              font-size: 10px;
+              color: #9ca3af;
+              margin-top: 8px;
+              word-break: break-all;
+            }
             @media print {
               body {
                 padding: 0;
@@ -183,14 +197,16 @@ const ProductModal = ({ product, onClose }) => {
         </head>
         <body>
           <div class="print-container">
-            <h1>${product.name}</h1>
+            <h1>${product.product_name}</h1>
             <div class="product-details">
-              <p><strong>Category:</strong> ${product.category}</p>
+              <p><strong>Device Type:</strong> ${product.type_name || 'N/A'}</p>
+              <p><strong>Location:</strong> ${product.location_name || 'N/A'}</p>
               <p><strong>Status:</strong> ${product.status}</p>
             </div>
             <div class="qr-code">
-              <img src="${qrUrl}" alt="QR Code for ${product.name}" />
+              <img src="${qrUrl}" alt="QR Code for ${product.product_name}" />
             </div>
+            ${product.qr_code ? `<p class="hash-code">Hash: ${product.qr_code}</p>` : ''}
             <p class="instructions">Scan this QR code with the TAIN Scanner app</p>
           </div>
           <script>
@@ -214,16 +230,39 @@ const ProductModal = ({ product, onClose }) => {
         </button>
 
         <h2 className="product-modal-title">
-          {product.name}
+          {product.product_name}
         </h2>
 
         <div className="product-modal-info">
           <p className="product-info-item">
-            <strong>Category:</strong> {product.category}
+            <strong>Device Type:</strong> {product.type_name || 'N/A'}
+          </p>
+          <p className="product-info-item">
+            <strong>Purchase Year:</strong> {product.purchase_date}
+          </p>
+          <p className="product-info-item">
+            <strong>Location:</strong> {product.location_name || 'N/A'}
           </p>
           <p className="product-info-item">
             <strong>Status:</strong> {product.status}
           </p>
+          {product.details && (
+            <p className="product-info-item">
+              <strong>Details:</strong> {product.details}
+            </p>
+          )}
+          {product.status === 'borrowed' && product.current_borrower_name && (
+            <>
+              <p className="product-info-item">
+                <strong>Borrowed by:</strong> {product.current_borrower_name}
+              </p>
+              {product.estimated_return_date && (
+                <p className="product-info-item">
+                  <strong>Expected return:</strong> {new Date(product.estimated_return_date).toLocaleDateString('fi-FI')}
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         <div className="product-modal-qr">
@@ -231,6 +270,11 @@ const ProductModal = ({ product, onClose }) => {
             Product QR Code
           </h3>
           <QRCodeDisplay data={productData} />
+          {product.qr_code && (
+            <p className="product-hash-preview">
+              Hash: {product.qr_code}
+            </p>
+          )}
         </div>
 
         <div className="product-modal-actions">
@@ -247,45 +291,59 @@ const ProductModal = ({ product, onClose }) => {
 };
 
 export default function Products({ currentUser, productsData }) {
-  const defaultProducts = [
-    { id: 1, name: 'Laptop Dell XPS', category: 'Electronics', status: 'Available', hash: generateHash() },
-    { id: 2, name: 'Mouse Logitech', category: 'Electronics', status: 'Available', hash: generateHash() },
-    { id: 3, name: 'Monitor Samsung', category: 'Electronics', status: 'On Loan', hash: generateHash() },
-    { id: 4, name: 'Keyboard Mechanical', category: 'Electronics', status: 'Available', hash: generateHash() },
-    { id: 5, name: 'Tablet iPad', category: 'Electronics', status: 'On Loan', hash: generateHash() },
-    { id: 6, name: 'Headphones Sony', category: 'Audio', status: 'Available', hash: generateHash() },
-    { id: 7, name: 'Camera Canon DSLR', category: 'Photography', status: 'On Loan', hash: generateHash() },
-    { id: 8, name: 'Projector Epson', category: 'Electronics', status: 'Available', hash: generateHash() },
-  ];
-
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({ name: '', category: '', status: 'Available' });
+  const [formData, setFormData] = useState({ 
+    product_name: '', 
+    device_type_id: '', 
+    purchase_date: new Date().getFullYear(),
+    location_id: '',
+    status: 'available',
+    details: ''
+  });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [useLocalData, setUseLocalData] = useState(true); // Default to local data to show products
-  const [localProducts, setLocalProducts] = useState(productsData || defaultProducts);
+  const [useLocalData, setUseLocalData] = useState(false);
+  const [localProducts, setLocalProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deviceTypes, setDeviceTypes] = useState([]);
+  const [locations, setLocations] = useState([]);
+
+  // Fetch device types and locations for the form
+  useEffect(() => {
+    Promise.all([
+      fetch('../server/db/device-types').then(res => res.ok ? res.json() : { items: [] }),
+      fetch('../server/db/locations').then(res => res.ok ? res.json() : { items: [] })
+    ]).then(([typesData, locationsData]) => {
+      setDeviceTypes(typesData.items || []);
+      setLocations(locationsData.items || []);
+    }).catch(err => {
+      console.error('Error fetching dropdown data:', err);
+    });
+  }, []);
 
   // Check if database is available
   useEffect(() => {
-    fetch('/api/products')
+    fetch('../server/db/products')
       .then(res => {
         if (!res.ok) throw new Error('Database not available');
         return res.json();
       })
       .then(data => {
-        if (data && data.length > 0) {
+        if (data && data.items) {
           setUseLocalData(false);
         }
       })
       .catch(() => {
         setUseLocalData(true);
+        if (productsData) {
+          setLocalProducts(productsData);
+        }
       });
-  }, []);
+  }, [productsData]);
 
   const handleAddProduct = async () => {
-    if (!formData.name.trim() || !formData.category.trim()) {
-      alert('Please fill in all fields');
+    if (!formData.product_name.trim() || !formData.device_type_id || !formData.purchase_date) {
+      alert('Please fill in all required fields (Product Name, Device Type, Purchase Year)');
       return;
     }
 
@@ -293,24 +351,40 @@ export default function Products({ currentUser, productsData }) {
       // Add to local data
       const newProduct = {
         id: Math.max(...localProducts.map(p => p.id), 0) + 1,
-        name: formData.name,
-        category: formData.category,
+        product_name: formData.product_name,
+        device_type_id: formData.device_type_id,
+        type_name: deviceTypes.find(t => t.id === parseInt(formData.device_type_id))?.type_name || 'Unknown',
+        purchase_date: formData.purchase_date,
+        location_id: formData.location_id || null,
+        location_name: locations.find(l => l.id === parseInt(formData.location_id))?.location_name || null,
         status: formData.status,
-        hash: generateHash(),
+        details: formData.details || null,
+        qr_code: generateHash(),
+        is_retired: 0
       };
       setLocalProducts([...localProducts, newProduct]);
-      setFormData({ name: '', category: '', status: 'Available' });
+      setFormData({ 
+        product_name: '', 
+        device_type_id: '', 
+        purchase_date: new Date().getFullYear(),
+        location_id: '',
+        status: 'available',
+        details: ''
+      });
       setShowAddForm(false);
-      alert(`Product "${formData.name}" added successfully!`);
+      alert(`Product "${formData.product_name}" added successfully!`);
       return;
     }
 
     try {
       const newProduct = {
-        name: formData.name,
-        category: formData.category,
+        device_type_id: parseInt(formData.device_type_id),
+        product_name: formData.product_name,
+        purchase_date: parseInt(formData.purchase_date),
+        location_id: formData.location_id ? parseInt(formData.location_id) : null,
         status: formData.status,
-        hash: generateHash(),
+        details: formData.details || null,
+        qr_code: generateHash() // Generate hash once on creation
       };
 
       const response = await fetch('/api/products', {
@@ -325,10 +399,17 @@ export default function Products({ currentUser, productsData }) {
         throw new Error('Failed to add product');
       }
 
-      setFormData({ name: '', category: '', status: 'Available' });
+      setFormData({ 
+        product_name: '', 
+        device_type_id: '', 
+        purchase_date: new Date().getFullYear(),
+        location_id: '',
+        status: 'available',
+        details: ''
+      });
       setShowAddForm(false);
       setRefreshKey(prev => prev + 1);
-      alert(`Product "${formData.name}" added successfully!`);
+      alert(`Product "${formData.product_name}" added successfully!`);
     } catch (err) {
       console.error('Error adding product:', err);
       alert('Failed to add product. Please try again.');
@@ -339,9 +420,9 @@ export default function Products({ currentUser, productsData }) {
   const handleLocalDelete = (productId) => {
     if (currentUser.role !== 'admin') return;
     const product = localProducts.find(p => p.id === productId);
-    if (window.confirm(`Delete product "${product.name}"?`)) {
+    if (window.confirm(`Delete product "${product.product_name}"?`)) {
       setLocalProducts(localProducts.filter(p => p.id !== productId));
-      alert(`Product "${product.name}" deleted.`);
+      alert(`Product "${product.product_name}" deleted.`);
     }
   };
 
@@ -373,8 +454,8 @@ export default function Products({ currentUser, productsData }) {
   // Custom status renderer for colored badges
   const renderStatus = (status) => {
     return (
-      <span className={`status-badge status-${status.toLowerCase().replace(' ', '-')}`}>
-        {status}
+      <span className={`status-badge status-${status}`}>
+        {status === 'available' ? 'Available' : 'Borrowed'}
       </span>
     );
   };
@@ -398,27 +479,59 @@ export default function Products({ currentUser, productsData }) {
           <div className="add-product-form-grid">
             <div>
               <label className="form-label">
-                Product Name
+                Product Name *
               </label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.product_name}
+                onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
                 placeholder="Enter product name"
                 className="form-input"
               />
             </div>
             <div>
               <label className="form-label">
-                Category
+                Device Type *
+              </label>
+              <select
+                value={formData.device_type_id}
+                onChange={(e) => setFormData({ ...formData, device_type_id: e.target.value })}
+                className="form-select"
+              >
+                <option value="">Select type...</option>
+                {deviceTypes.map(type => (
+                  <option key={type.id} value={type.id}>{type.type_name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">
+                Purchase Year *
               </label>
               <input
-                type="text"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="Enter category"
+                type="number"
+                value={formData.purchase_date}
+                onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                placeholder="2024"
+                min="1900"
+                max={new Date().getFullYear() + 1}
                 className="form-input"
               />
+            </div>
+            <div>
+              <label className="form-label">
+                Location
+              </label>
+              <select
+                value={formData.location_id}
+                onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
+                className="form-select"
+              >
+                <option value="">Select location...</option>
+                {locations.map(loc => (
+                  <option key={loc.id} value={loc.id}>{loc.location_name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="form-label">
@@ -429,10 +542,21 @@ export default function Products({ currentUser, productsData }) {
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 className="form-select"
               >
-                <option>Available</option>
-                <option>On Loan</option>
-                <option>Maintenance</option>
+                <option value="available">Available</option>
+                <option value="borrowed">Borrowed</option>
               </select>
+            </div>
+            <div>
+              <label className="form-label">
+                Details
+              </label>
+              <input
+                type="text"
+                value={formData.details}
+                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                placeholder="Additional details"
+                className="form-input"
+              />
             </div>
             <button onClick={handleAddProduct} className="form-add-btn">
               Add
@@ -453,7 +577,7 @@ export default function Products({ currentUser, productsData }) {
       ) : (
         <ServerGrid
           key={refreshKey}
-          columns={['name', 'category', 'status']}
+          columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status']}
           path="/products"
           allowEditing={currentUser?.role === 'admin'}
           allowDelete={currentUser?.role === 'admin'}

@@ -72,7 +72,7 @@
 
 .add-product-form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
   align-items: end;
 }
@@ -101,6 +101,7 @@
 }
 
 .form-add-btn {
+  grid-column: span 1;
   padding: 8px 16px;
   background-color: #10b981;
   color: white;
@@ -167,7 +168,24 @@
 }
 
 /* ===== STATUS BADGES ===== */
-/* Status badges removed - plain text only */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.status-available {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.status-borrowed {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
 
 /* ===== ACTION BUTTONS ===== */
 .view-qr-btn {
@@ -301,11 +319,15 @@
 }
 
 .product-hash-preview {
-  font-size: 12px;
+  font-size: 11px;
   color: #9ca3af;
   margin-top: 12px;
+  padding: 8px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
   text-align: center;
   word-break: break-all;
+  font-family: monospace;
 }
 
 /* ===== PRODUCT MODAL ACTIONS ===== */

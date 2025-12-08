@@ -1,90 +1,119 @@
-const express = require('express');
+// server/routes/locations.js
+import express from 'express';
+import db from '../db/db.js';
+
 const router = express.Router();
 
-const {
-  insertProductType,
-  selectProductTypes,
-  selectProductTypeById,
-  updateProductType,
-  deleteProductType,
-} = require('../db/product-types');
-
-// POST /api/product-types
-router.post('/', async (req, res) => {
+// GET all locations
+router.get('/', async (req, res, next) => {
   try {
-    const { name, description } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-    const newType = await insertProductType(name, description || '');
-    res.status(201).json(newType);
+    const [rows] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations ORDER BY location_name ASC'
+    );
+    res.json({ items: rows });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    next(err);
   }
 });
 
-// GET /api/product-types?page=1
-router.get('/', async (req, res) => {
+// GET single location
+router.get('/:id', async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const result = await selectProductTypes(page);
-    res.json(result);
+    const [rows] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations WHERE id = ?',
+      [req.params.id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+    res.json(rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    next(err);
   }
 });
 
-// GET /api/product-types/:id
-router.get('/:id', async (req, res) => {
+// POST create new location
+router.post('/', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id);
-    const type = await selectProductTypeById(id);
-    if (!type) {
-      return res.status(404).json({ error: 'Product type not found' });
+    const { location_name, description } = req.body;
+    if (!location_name) {
+      return res.status(400).json({ error: 'location_name is required' });
     }
-    res.json(type);
+
+    const [result] = await db.query(
+      'INSERT INTO locations (location_name, description) VALUES (?, ?)',
+      [location_name, description || null]
+    );
+
+    const [created] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations WHERE id = ?',
+      [result.insertId]
+    );
+
+    res.status(201).json(created[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    next(err);
   }
 });
 
-// PATCH /api/product-types/:id
-router.patch('/:id', async (req, res) => {
+// PATCH update location
+router.patch('/:id', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id);
-    const { name, description } = req.body;
-    const existing = await selectProductTypeById(id);
-    if (!existing) {
-      return res.status(404).json({ error: 'Product type not found' });
+    const { location_name, description } = req.body;
+    const updates = [];
+    const values = [];
+
+    if (location_name !== undefined) {
+      updates.push('location_name = ?');
+      values.push(location_name);
+    }
+    if (description !== undefined) {
+      updates.push('description = ?');
+      values.push(description);
     }
 
-    const updated = await updateProductType(id, {
-      name: name ?? existing.name,
-      description: description ?? existing.description,
-    });
-    res.json(updated);
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+
+    const [result] = await db.query(
+      `UPDATE locations SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+
+    const [updated] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations WHERE id = ?',
+      [req.params.id]
+    );
+
+    res.json(updated[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    next(err);
   }
 });
 
-// DELETE /api/product-types/:id
-router.delete('/:id', async (req, res) => {
+// DELETE location
+router.delete('/:id', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id);
-    const success = await deleteProductType(id);
-    if (!success) {
-      return res.status(404).json({ error: 'Product type not found' });
+    const [result] = await db.query(
+      'DELETE FROM locations WHERE id = ?',
+      [req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Location not found' });
     }
+
     res.status(204).send();
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    next(err);
   }
 });
 
-module.exports = router;
+export default router;
