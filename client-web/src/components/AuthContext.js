@@ -2,28 +2,46 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = 'borrowing_system_current_user';
-
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // On first load, try to restore user from localStorage OR sessionStorage
+  // On first load, check if user is authenticated via httpOnly cookie
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const checkAuth = async () => {
       try {
-        const user = JSON.parse(stored);
-        setIsAuthenticated(true);
-        setCurrentUser(user);
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
-        sessionStorage.removeItem(STORAGE_KEY);
+        const response = await fetch('/users/verify', {
+          method: 'GET',
+          credentials: 'include', // Send cookies with request
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setIsAuthenticated(true);
+          setCurrentUser({
+            id: data.user.id,
+            username: data.user.username,
+            name: data.user.displayName,
+            role: data.user.role
+          });
+        } else {
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    checkAuth();
   }, []);
 
-  // Login function - remember flag tells server to set httpOnly cookie with JWT
+  // Login function - remember flag tells server to set persistent httpOnly cookie
   const login = async (username, password, remember = false) => {
     try {
       const response = await fetch('/users/login', {
@@ -44,7 +62,7 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      // Backend returns { message, user } and sets httpOnly cookie if remember=true
+      // Backend returns { message, user } and sets httpOnly cookie
       const safeUser = {
         id: data.user.id,
         username: data.user.username,
@@ -54,15 +72,6 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(true);
       setCurrentUser(safeUser);
-
-      // Use localStorage for persistent login, sessionStorage for session-only
-      if (remember) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-        sessionStorage.removeItem(STORAGE_KEY); // Clear session storage if exists
-      } else {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-        localStorage.removeItem(STORAGE_KEY); // Clear localStorage if exists
-      }
 
       return { success: true };
     } catch (error) {
@@ -74,21 +83,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
-    
-    // Call logout endpoint to clear httpOnly cookie
-    fetch('/users/logout', {
-      method: 'POST',
-      credentials: 'include'
-    }).catch(err => console.error('Logout error:', err));
+  const logout = async () => {
+    try {
+      // Call logout endpoint to clear httpOnly cookie
+      await fetch('/users/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      currentUser, 
+      login, 
+      logout,
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

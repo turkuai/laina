@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import '../App.css';
 import './Login.css';
 
 export default function Login() {
-    const { login, isAuthenticated } = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -13,25 +13,20 @@ export default function Login() {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate("/admin", { replace: true });
-        }
-    }, [isAuthenticated, navigate]);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setLoading(true);
 
         try {
-            // Pass rememberMe flag to backend - server will set httpOnly cookie with JWT
             const result = await login(username, password, rememberMe);
 
-            if (!result.success) {
+            if (result.success) {
+                // Navigate to admin after successful login
+                navigate("/admin", { replace: true });
+            } else {
                 setError(result.error);
             }
-            // Navigation happens automatically via useEffect above
         } catch (err) {
             console.error("Login error:", err);
             setError("An unexpected error occurred");
@@ -85,7 +80,7 @@ export default function Login() {
                         />
                     </div>
 
-                    {/* Remember me checkbox - tells server to set httpOnly cookie */}
+                    {/* Remember me checkbox - tells server to set persistent httpOnly cookie */}
                     <div className="login-form-group">
                         <label
                             className="login-label"
@@ -127,4 +122,4 @@ export default function Login() {
             </div>
         </div>
     );
-};
+}
