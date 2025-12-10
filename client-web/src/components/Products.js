@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ServerGrid from './ServerGrid';
 import './Products.css';
 
 // Generate a unique 45-character hash
@@ -10,88 +9,6 @@ const generateHash = () => {
     hash += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return hash;
-};
-
-// Local Products Grid Component (fallback when database not available)
-const LocalProductsGrid = ({ products, currentUser, renderStatus, renderActions, searchTerm, setSearchTerm }) => {
-  const filteredProducts = products.filter(p =>
-    p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.type_name && p.type_name.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  return (
-    <div>
-      <div className="products-card__search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
-          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <div className="products-card__table">
-        <table className="products-table">
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Device Type</th>
-              <th>Purchase Year</th>
-              <th>Location</th>
-              <th>Status</th>
-              <th className="text-center">QR Code</th>
-              {currentUser?.role === 'admin' && (
-                <th className="text-center">Actions</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.product_name}</td>
-                  <td>{p.type_name || 'N/A'}</td>
-                  <td>{p.purchase_date}</td>
-                  <td>{p.location_name || 'N/A'}</td>
-                  <td>{renderStatus(p.status)}</td>
-                  <td className="text-center">
-                    <button
-                      onClick={() => renderActions(p).props.children[0].props.onClick()}
-                      className="view-qr-btn"
-                    >
-                      View QR
-                    </button>
-                  </td>
-                  {currentUser?.role === 'admin' && (
-                    <td className="text-center">
-                      <button
-                        onClick={() => renderActions(p).props.children[1].props.onClick()}
-                        className="delete-btn"
-                        aria-label="Delete"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
-                        </svg>
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={currentUser?.role === 'admin' ? '7' : '6'} className="empty-state">
-                  {searchTerm ? 'No products found matching your search.' : 'No products available.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
 };
 
 // QR Code Component
@@ -290,7 +207,7 @@ const ProductModal = ({ product, onClose }) => {
   );
 };
 
-export default function Products({ currentUser, productsData }) {
+export default function Products({ currentUser }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ 
     product_name: '', 
@@ -301,78 +218,52 @@ export default function Products({ currentUser, productsData }) {
     details: ''
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [useLocalData, setUseLocalData] = useState(false);
-  const [localProducts, setLocalProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deviceTypes, setDeviceTypes] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch device types and locations for the form
+  // Fetch all data on component mount
   useEffect(() => {
-    Promise.all([
-      fetch('../server/db/device-types').then(res => res.ok ? res.json() : { items: [] }),
-      fetch('../server/db/locations').then(res => res.ok ? res.json() : { items: [] })
-    ]).then(([typesData, locationsData]) => {
-      setDeviceTypes(typesData.items || []);
-      setLocations(locationsData.items || []);
-    }).catch(err => {
-      console.error('Error fetching dropdown data:', err);
-    });
+    loadAllData();
   }, []);
 
-  // Check if database is available
-  useEffect(() => {
-    fetch('../server/db/products')
-      .then(res => {
-        if (!res.ok) throw new Error('Database not available');
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.items) {
-          setUseLocalData(false);
-        }
-      })
-      .catch(() => {
-        setUseLocalData(true);
-        if (productsData) {
-          setLocalProducts(productsData);
-        }
-      });
-  }, [productsData]);
+  const loadAllData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch products, device types, and locations in parallel
+      const [productsRes, typesRes, locationsRes] = await Promise.all([
+        fetch('/products'),
+        fetch('/device-types'),
+        fetch('/locations')
+      ]);
+
+      if (!productsRes.ok || !typesRes.ok || !locationsRes.ok) {
+        throw new Error('Failed to fetch data from server');
+      }
+
+      const productsData = await productsRes.json();
+      const typesData = await typesRes.json();
+      const locationsData = await locationsRes.json();
+
+      setProducts(productsData.items || []);
+      setDeviceTypes(typesData.items || []);
+      setLocations(locationsData.items || []);
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError('Failed to connect to server.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddProduct = async () => {
     if (!formData.product_name.trim() || !formData.device_type_id || !formData.purchase_date) {
       alert('Please fill in all required fields (Product Name, Device Type, Purchase Year)');
-      return;
-    }
-
-    if (useLocalData) {
-      // Add to local data
-      const newProduct = {
-        id: Math.max(...localProducts.map(p => p.id), 0) + 1,
-        product_name: formData.product_name,
-        device_type_id: formData.device_type_id,
-        type_name: deviceTypes.find(t => t.id === parseInt(formData.device_type_id))?.type_name || 'Unknown',
-        purchase_date: formData.purchase_date,
-        location_id: formData.location_id || null,
-        location_name: locations.find(l => l.id === parseInt(formData.location_id))?.location_name || null,
-        status: formData.status,
-        details: formData.details || null,
-        qr_code: generateHash(),
-        is_retired: 0
-      };
-      setLocalProducts([...localProducts, newProduct]);
-      setFormData({ 
-        product_name: '', 
-        device_type_id: '', 
-        purchase_date: new Date().getFullYear(),
-        location_id: '',
-        status: 'available',
-        details: ''
-      });
-      setShowAddForm(false);
-      alert(`Product "${formData.product_name}" added successfully!`);
       return;
     }
 
@@ -384,10 +275,10 @@ export default function Products({ currentUser, productsData }) {
         location_id: formData.location_id ? parseInt(formData.location_id) : null,
         status: formData.status,
         details: formData.details || null,
-        qr_code: generateHash() // Generate hash once on creation
+        qr_code: generateHash() // Generate hash once and send to database
       };
 
-      const response = await fetch('/api/products', {
+      const response = await fetch('/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -396,9 +287,13 @@ export default function Products({ currentUser, productsData }) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add product');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add product');
       }
 
+      // Reload products from database
+      await loadAllData();
+      
       setFormData({ 
         product_name: '', 
         device_type_id: '', 
@@ -408,48 +303,43 @@ export default function Products({ currentUser, productsData }) {
         details: ''
       });
       setShowAddForm(false);
-      setRefreshKey(prev => prev + 1);
-      alert(`Product "${formData.product_name}" added successfully!`);
+      alert(`Product "${formData.product_name}" added successfully and saved to database with unique hash!`);
     } catch (err) {
       console.error('Error adding product:', err);
-      alert('Failed to add product. Please try again.');
+      alert(`Failed to add product: ${err.message}`);
     }
   };
 
-  // Handle delete for local data
-  const handleLocalDelete = (productId) => {
-    if (currentUser.role !== 'admin') return;
-    const product = localProducts.find(p => p.id === productId);
-    if (window.confirm(`Delete product "${product.product_name}"?`)) {
-      setLocalProducts(localProducts.filter(p => p.id !== productId));
-      alert(`Product "${product.product_name}" deleted.`);
+  const handleDelete = async (productId) => {
+    if (currentUser?.role !== 'admin') return;
+    
+    const product = products.find(p => p.id === productId);
+    if (!window.confirm(`Delete product "${product.product_name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/products/${productId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+
+      // Reload products from database
+      await loadAllData();
+      alert(`Product "${product.product_name}" deleted from database.`);
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert('Failed to delete product. Please make sure the server is running.');
     }
   };
 
-  // Custom action renderer for QR code button
-  const renderActions = (row) => {
-    return (
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-        <button
-          onClick={() => setSelectedProduct(row)}
-          className="view-qr-btn"
-        >
-          View QR
-        </button>
-        {useLocalData && currentUser?.role === 'admin' && (
-          <button
-            onClick={() => handleLocalDelete(row.id)}
-            className="delete-btn"
-            aria-label="Delete"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
-            </svg>
-          </button>
-        )}
-      </div>
-    );
-  };
+  const filteredProducts = products.filter(p =>
+    p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.type_name && p.type_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   // Custom status renderer for colored badges
   const renderStatus = (status) => {
@@ -460,10 +350,42 @@ export default function Products({ currentUser, productsData }) {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="products-card">
+        <div className="products-card__header">
+          <h2 className="title">Products</h2>
+        </div>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+          Loading products from database...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="products-card">
+        <div className="products-card__header">
+          <h2 className="title">Products</h2>
+        </div>
+        <div style={{ padding: '20px', textAlign: 'center', color: '#dc2626', backgroundColor: '#fee2e2', borderRadius: '8px', margin: '10px' }}>
+          <p><strong>Error:</strong> {error}</p>
+          <button 
+            onClick={loadAllData}
+            style={{ marginTop: '10px', padding: '8px 16px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="products-card">
       <div className="products-card__header">
-        <h2 className="title">Products</h2>
+        <h2 className="title">Products ({products.length})</h2>
         {currentUser?.role === 'admin' && (
           <button
             onClick={() => setShowAddForm(!showAddForm)}
@@ -559,35 +481,81 @@ export default function Products({ currentUser, productsData }) {
               />
             </div>
             <button onClick={handleAddProduct} className="form-add-btn">
-              Add
+              Add to Database
             </button>
           </div>
         </div>
       )}
 
-      {useLocalData ? (
-        <LocalProductsGrid 
-          products={localProducts}
-          currentUser={currentUser}
-          renderStatus={renderStatus}
-          renderActions={renderActions}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+      <div className="products-card__search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
+          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-      ) : (
-        <ServerGrid
-          key={refreshKey}
-          columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status']}
-          path="/products"
-          allowEditing={currentUser?.role === 'admin'}
-          allowDelete={currentUser?.role === 'admin'}
-          pageSize={10}
-          customRenderers={{
-            status: renderStatus,
-          }}
-          customActions={renderActions}
-        />
-      )}
+      </div>
+
+      <div className="products-card__table">
+        <table className="products-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Device Type</th>
+              <th>Purchase Year</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th className="text-center">QR Code</th>
+              {currentUser?.role === 'admin' && (
+                <th className="text-center">Actions</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.product_name}</td>
+                  <td>{p.type_name || 'N/A'}</td>
+                  <td>{p.purchase_date}</td>
+                  <td>{p.location_name || 'N/A'}</td>
+                  <td>{renderStatus(p.status)}</td>
+                  <td className="text-center">
+                    <button
+                      onClick={() => setSelectedProduct(p)}
+                      className="view-qr-btn"
+                    >
+                      View QR
+                    </button>
+                  </td>
+                  {currentUser?.role === 'admin' && (
+                    <td className="text-center">
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="delete-btn"
+                        aria-label="Delete"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+                        </svg>
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={currentUser?.role === 'admin' ? '7' : '6'} className="empty-state">
+                  {searchTerm ? 'No products found matching your search.' : 'No products in database. Add your first product!'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {selectedProduct && (
         <ProductModal

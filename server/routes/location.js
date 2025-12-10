@@ -1,62 +1,59 @@
-// Create express router
-const express = require('express')
-const router = express.Router()
+// server/routes/location.js
+import express from 'express';
+import db from '../db/db.js';
 
-// Import database functions
-const db = require('../db/locations')
+const router = express.Router();
 
-// GET /locations?page=1 - list locations with pagination
-router.get('/', (req, res) => {
-  const page = parseInt(req.query.page) || 1 // default to page 1
-  db.getLocations(page, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    } // if fail
-    res.json(result) // send data to frontend
-  })
-})
-
-// POST /locations - create new location
-router.post('/', (req, res) => {
-  const name = req.body.name
-  if (!name) { 
-    return res.status(400).json({ error: 'name is required' }) 
-  } // bad request
-
-  db.addLocation(name, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    }
-    res.status(201).json(result) // send back new row
-  })
-})
-
-// PATCH /locations/:id - update location name
-router.patch('/:id', (req, res) => {
-  const id = req.params.id
-  const name = req.body.name
-  if (!name) { 
-    return res.status(400).json({ error: 'name is required' }) 
+// GET all locations
+router.get('/', async (req, res, next) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations ORDER BY location_name ASC'
+    );
+    res.json({ items: rows });
+  } catch (err) {
+    next(err);
   }
+});
 
-  db.updateLocation(id, name, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
+// GET single location
+router.get('/:id', async (req, res, next) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations WHERE id = ?',
+      [req.params.id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Location not found' });
     }
-    res.json(result) // send updated info
-  })
-})
+    res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
 
-// DELETE /locations/:id - remove location
-router.delete('/:id', (req, res) => {
-  const id = req.params.id
-  db.deleteLocation(id, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: 'DB error' }) 
+// POST create new location
+router.post('/', async (req, res, next) => {
+  try {
+    const { location_name, description } = req.body;
+    if (!location_name) {
+      return res.status(400).json({ error: 'location_name is required' });
     }
-    res.json(result) // confirm deletion
-  })
-})
 
-// Export the router so server can use it
-module.exports = router
+    const [result] = await db.query(
+      'INSERT INTO locations (location_name, description) VALUES (?, ?)',
+      [location_name, description || null]
+    );
+
+    const [created] = await db.query(
+      'SELECT id, location_name, description, created_at FROM locations WHERE id = ?',
+      [result.insertId]
+    );
+
+    res.status(201).json(created[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;
