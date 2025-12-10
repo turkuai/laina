@@ -928,33 +928,49 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Bottom Tab Bar */}
       {isMobile && (
-        <nav className="admin-mobile-nav" aria-label="Navigation">
+  <nav className="admin-mobile-nav" aria-label="Navigation">
 
-          {currentUser?.role === 'admin' && (
-            <button
-              type="button"
-              className="admin-mobile-nav__camera"
-              onClick={() => navigate('/borrow')}
-              aria-label="Open camera scanner"
-            >
-              <ScanQrCode className="admin-mobile-nav__camera-icon" />
-            </button>
-          )}
-          {tabs.map(tab => (
-            <button
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={[
-                'admin-mobile-nav__cell',
-                activeTab === tab ? 'is-active' : ''
-              ].join(' ').trim()}
-              aria-label={tab}
-            >
-              {renderTabIcon(tab)}
-            </button>)
-          )}
-        </nav>
-      )}
+    {/* LEFT 2 */}
+    {tabs.slice(0, 2).map(tab => (
+      <button
+        key={tab}
+        type="button"
+        onClick={() => setActiveTab(tab)}
+        className={`admin-mobile-nav__cell ${activeTab === tab ? 'is-active' : ''}`}
+        aria-label={tab}
+      >
+        {renderTabIcon(tab)}
+      </button>
+    ))}
+
+    {/* CENTER CAMERA */}
+    {currentUser?.role === 'admin' && (
+      <button
+        type="button"
+        className="admin-mobile-nav__camera"
+        onClick={() => navigate('/borrow')}
+        aria-label="Open camera scanner"
+      >
+        <ScanQrCode className="admin-mobile-nav__camera-icon" />
+      </button>
+    )}
+
+    {/* RIGHT 2 */}
+    {tabs.slice(2).map(tab => (
+      <button
+        key={tab}
+        type="button"
+        onClick={() => setActiveTab(tab)}
+        className={`admin-mobile-nav__cell ${activeTab === tab ? 'is-active' : ''}`}
+        aria-label={tab}
+      >
+        {renderTabIcon(tab)}
+      </button>
+    ))}
+
+  </nav>
+)}
+
 
     </div >
   );
