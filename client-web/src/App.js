@@ -7,13 +7,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import BorrowPage from './components/BorrowPage';
 
-import Admin, {
+import Home, {
   UsersTab,
   ProductsTab,
   HistoryTab,
   MyHistoryTab,
-  SettingsTab,
 } from './components/Admin';
+import SettingsTab from './components/SettingsTab';
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -26,7 +26,7 @@ export default function App() {
       {/* Everything else is protected */}
       <Route element={<ProtectedRoute />}>
         {/* Root layout with header, tabs, and <Outlet /> */}
-        <Route path="/" element={<Admin />}>
+        <Route path="/" element={<Home />}>
           {/* Default tab when visiting "/" */}
           <Route index element={<HistoryTab />} />
 
@@ -38,16 +38,16 @@ export default function App() {
           <Route path="my-history" element={<MyHistoryTab />} />
           <Route path="settings" element={<SettingsTab />} />
         </Route>
+
+        {/* Keep old /admin URL working (optional) */}
+        <Route path="/admin" element={<Navigate to="/" replace />} />
       </Route>
 
       {/* Fallback: if URL is unknown, go either to / or /login */}
       <Route
         path="*"
         element={
-          <Navigate
-            to={isAuthenticated ? '/' : '/login'}
-            replace
-          />
+          <Navigate to={isAuthenticated ? '/' : '/login'} replace />
         }
       />
     </Routes>
