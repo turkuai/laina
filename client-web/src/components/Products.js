@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Products.css';
+import ServerGrid from './ServerGrid';
+import Grid from './Grid';
 
 // Generate a unique 45-character hash
 const generateHash = () => {
@@ -187,11 +189,6 @@ const ProductModal = ({ product, onClose }) => {
             Product QR Code
           </h3>
           <QRCodeDisplay data={productData} />
-          {product.qr_code && (
-            <p className="product-hash-preview">
-              Hash: {product.qr_code}
-            </p>
-          )}
         </div>
 
         <div className="product-modal-actions">
