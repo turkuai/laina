@@ -254,7 +254,6 @@ export default function Home() {
 
 // ---------- TAB COMPONENTS ----------
 
-// /users
 export function UsersTab() {
   const { currentUser } = useAuth();
 
