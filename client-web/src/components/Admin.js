@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Camera, History, Package, QrCode, Settings, Users } from 'lucide-react';
+import { ScanQrCode, History, Package, QrCode, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -43,10 +43,10 @@ const ProductModalBorrowed = ({ product, onClose, onReturn }) => {
           <p className="info-label">Borrowed by:</p>
           <p className="info-value">{product.borrower}</p>
           <p className="info-value">{product.borrowDate}</p>
-          
+
           <p className="info-label">Return deadline:</p>
           <p className="info-value">{product.returnDate}</p>
-          
+
           <p className="info-label">Return date:</p>
           <div className="return-date-display">
             {getCurrentDate()}
@@ -74,9 +74,9 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
       alert('Fill in all fields!');
       return;
     }
-    onBorrow({ 
-      borrowerName, 
-      borrowerPhone, 
+    onBorrow({
+      borrowerName,
+      borrowerPhone,
       returnDate,
       borrowDate: getCurrentDate()
     });
@@ -106,7 +106,7 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
               className="info-input"
             />
           </div>
-          
+
           <div className="info-input-wrapper">
             <input
               type="tel"
@@ -116,7 +116,7 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
               className="info-input"
             />
           </div>
-          
+
           <div className="info-input-wrapper">
             <label className="info-label">Return deadline:</label>
             <input
@@ -142,12 +142,12 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
-  
+
   // QR Scanner states
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
-  
+
   // Password form states
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -203,9 +203,9 @@ export default function Admin({ productsData }) {
   const getFilteredUsers = () => {
     const data = getUserData();
     if (!userQuery.trim()) return data;
-    
+
     const query = userQuery.toLowerCase();
-    return data.filter(user => 
+    return data.filter(user =>
       user.name?.toLowerCase().includes(query) ||
       user.email?.toLowerCase().includes(query) ||
       user.role?.toLowerCase().includes(query)
@@ -215,9 +215,9 @@ export default function Admin({ productsData }) {
   const getFilteredHistory = () => {
     const data = getBorrowingHistory();
     if (!userQuery.trim()) return data;
-    
+
     const query = userQuery.toLowerCase();
-    return data.filter(record => 
+    return data.filter(record =>
       record.userName?.toLowerCase().includes(query) ||
       record.productName?.toLowerCase().includes(query) ||
       record.status?.toLowerCase().includes(query)
@@ -230,7 +230,7 @@ export default function Admin({ productsData }) {
       const mobile = window.innerWidth < 640;
       const wasMobile = isMobile;
       setIsMobile(mobile);
-      
+
       // Only change tab when transitioning between mobile/desktop
       if (mobile !== wasMobile) {
         // When switching TO mobile from desktop
@@ -341,19 +341,19 @@ export default function Admin({ productsData }) {
   };
 
   // Tab configuration
-// Admin & teacher → kamera mukana
-// Student → EI kamera-tabia
-const baseTabs =
-  currentUser?.role === 'admin' || currentUser?.role === 'teacher'
-    ? ['camera', 'users', 'products', 'history']
-    : ['history', 'products'];
+  // Admin & teacher → kamera on lisätty palautettuun JSX:iin
+  // Student → EI kamera-tabia
+  const tabs = ['history', 'products'];
 
-  const tabs = isMobile
-  ? [...new Set([...baseTabs, 'settings'])]   // estää duplikaatit
-  : baseTabs.filter(t => t !== 'camera');
+  if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
+    tabs.push('users');
+  }
+  if (isMobile) {
+    tabs.push('settings');
+  }
 
   const tabIconMap = {
-    camera: Camera,
+    camera: ScanQrCode,
     users: Users,
     products: Package,
     history: History,
@@ -362,7 +362,9 @@ const baseTabs =
 
   const renderTabIcon = (tab) => {
     const IconComponent = tabIconMap[tab];
-    if (!IconComponent) return null;
+    if (!IconComponent) {
+      return null;
+    }
     const isCamera = tab === 'camera';
 
     return (
@@ -427,20 +429,20 @@ const baseTabs =
   // Render camera view content
   const renderCameraView = () => (
     <div className="borrow-content">
-    {currentUser?.role !== 'student' && (
-      <button
-        onClick={() => setShowCamera(true)}
-        className="scan-button"
-      >
-        SCAN QR CODE
-      </button>
-    )}
-    
-    {currentUser?.role !== 'student' && (
-      <p className="help-text">
-        Press the button to scan a product QR code
-      </p>
-    )}
+      {currentUser?.role !== 'student' && (
+        <button
+          onClick={() => setShowCamera(true)}
+          className="scan-button"
+        >
+          SCAN QR CODE
+        </button>
+      )}
+
+      {currentUser?.role !== 'student' && (
+        <p className="help-text">
+          Press the button to scan a product QR code
+        </p>
+      )}
 
       {/* Mobile Product Info Box */}
       {scannedProduct && (
@@ -526,8 +528,8 @@ const baseTabs =
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            
-            
+
+
             {/* Search Box */}
             <div className="user-search">
               <input
@@ -583,7 +585,7 @@ const baseTabs =
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            
+
             {/* Search Box */}
             <div className="user-search">
               <input
@@ -737,10 +739,10 @@ const baseTabs =
       )}
 
       {showCamera && currentUser?.role !== 'student' && (
-          <QRScannerCamera
-            onScan={handleQRScan}
-            onClose={() => setShowCamera(false)}
-          />
+        <QRScannerCamera
+          onScan={handleQRScan}
+          onClose={() => setShowCamera(false)}
+        />
       )}
 
       {/* Product Modals - Desktop Only */}
@@ -926,27 +928,34 @@ const baseTabs =
 
       {/* Mobile Bottom Tab Bar */}
       {isMobile && (
-        <nav className="bottom-tab-bar" aria-label="Bottom navigation">
+        <nav className="admin-mobile-nav" aria-label="Navigation">
+
+          {currentUser?.role === 'admin' && (
+            <button
+              type="button"
+              className="admin-mobile-nav__camera"
+              onClick={() => navigate('/borrow')}
+              aria-label="Open camera scanner"
+            >
+              <ScanQrCode className="admin-mobile-nav__camera-icon" />
+            </button>
+          )}
           {tabs.map(tab => (
             <button
-              key={tab}
               type="button"
+              onClick={() => setActiveTab(tab)}
               className={[
-                'bottom-tab-button',
-                tab === 'camera' ? 'camera-tab' : '',
-                activeTab === tab ? 'active' : ''
+                'admin-mobile-nav__cell',
+                activeTab === tab ? 'is-active' : ''
               ].join(' ').trim()}
-              aria-label={getTabLabel(tab, true)}
-              onClick={() => handleTabClick(tab)}
+              aria-label={tab}
             >
-              <span className="sr-only">{getTabLabel(tab, true)}</span>
-              <span className="bottom-tab-icon">
-                {renderTabIcon(tab)}
-              </span>
-            </button>
-          ))}
+              {renderTabIcon(tab)}
+            </button>)
+          )}
         </nav>
       )}
-    </div>
+
+    </div >
   );
 }
