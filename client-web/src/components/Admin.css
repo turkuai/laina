@@ -78,6 +78,8 @@
 
 .borrow-button:hover {
   background-color: #b91c1c;
+    color: white;
+
 }
 
 .logout-button {
@@ -95,6 +97,8 @@
 
 .logout-button:hover {
   background-color: #374151;
+    color: white;
+
 }
 
 /* Tabs - Desktop */
@@ -130,11 +134,13 @@
 
 .admin-tab-button:hover {
   color: #dc2626;
+    color: white;
+
 }
 
 .admin-tab-button.active {
   color: #1f2937;
-  border-bottom-color: #2563eb;
+  border-bottom-color: #dc2626;
   background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), transparent);
 }
 
@@ -143,7 +149,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
-  border-bottom-color: #2563eb;
+  border-bottom-color: #dc2626;
   background: linear-gradient(180deg, rgba(37, 99, 235, 0.12), transparent);
   border-top-left-radius: 999px;
   border-top-right-radius: 999px;
@@ -170,6 +176,8 @@
 
   .borrow-button:hover {
     background-color: #b91c1c;
+      color: white;
+
   }
 }
 
@@ -190,7 +198,7 @@
 .admin-badge {
   padding: 0.25rem 0.5rem;
   background-color: #dbeafe;
-  color: #1e40af;
+  color: #dc2626;
   font-size: 0.75rem;
   border-radius: 9999px;
   font-weight: 500;
@@ -214,6 +222,8 @@
 
   .logout-button:hover {
     background-color: #374151;
+      color: white;
+
   }
 }
 
@@ -286,6 +296,7 @@
 }
 
 .scan-button:hover {
+  color: white;
   background-color: #b91c1c;
   border-color: #b91c1c;
   transform: translateY(-2px);
@@ -515,6 +526,7 @@
 
 .password-submit-btn:hover {
   background-color: #b91c1c;
+  color: white;
 }
 
 .settings-logout-btn {
@@ -531,6 +543,7 @@
 
 .settings-logout-btn:hover {
   background-color: #dc2626;
+  color: white;
 }
 
 /* Mobile Admin Navigation */
@@ -753,6 +766,7 @@
 
 .bottom-tab-button:hover {
   color: #b91c1c !important;
+  color: white;
 }
 
 .bottom-tab-button:focus-visible {
