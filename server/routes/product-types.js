@@ -1,90 +1,72 @@
-const express = require('express');
+import express from "express";
+import db from "../db/product-types.js";
+
 const router = express.Router();
 
-const {
-  insertProductType,
-  selectProductTypes,
-  selectProductTypeById,
-  updateProductType,
-  deleteProductType,
-} = require('../db/product-types');
+// CREATE - Add product type
+router.post("/", (req, res) => {
+  const { name, description } = req.body;
+  if (!name) return res.status(400).json({ error: "Name is required" });
 
-// POST /api/product-types
-router.post('/', async (req, res) => {
-  try {
-    const { name, description } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-    const newType = await insertProductType(name, description || '');
+  db.insertProductType(name, description || "", (err, newType) => {
+    if (err) return res.status(500).json({ error: err });
     res.status(201).json(newType);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
-// GET /api/product-types?page=1
-router.get('/', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const result = await selectProductTypes(page);
+// READ - All product types (paginated)
+router.get("/", (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+
+  db.selectProductTypes(page, (err, result) => {
+    if (err) return res.status(500).json({ error: err });
     res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
-// GET /api/product-types/:id
-router.get('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const type = await selectProductTypeById(id);
-    if (!type) {
-      return res.status(404).json({ error: 'Product type not found' });
-    }
+// READ - Single product type
+router.get("/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+
+  db.selectProductTypeById(id, (err, type) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!type) return res.status(404).json({ error: "Product type not found" });
     res.json(type);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
-// PATCH /api/product-types/:id
-router.patch('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const { name, description } = req.body;
-    const existing = await selectProductTypeById(id);
-    if (!existing) {
-      return res.status(404).json({ error: 'Product type not found' });
-    }
+// UPDATE - Edit product type
+router.patch("/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const { name, description } = req.body;
 
-    const updated = await updateProductType(id, {
+  db.selectProductTypeById(id, (err, existing) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!existing)
+      return res.status(404).json({ error: "Product type not found" });
+
+    const updatedFields = {
       name: name ?? existing.name,
       description: description ?? existing.description,
+    };
+
+    db.updateProductType(id, updatedFields, (err2, updated) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.json(updated);
     });
-    res.json(updated);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
-// DELETE /api/product-types/:id
-router.delete('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const success = await deleteProductType(id);
-    if (!success) {
-      return res.status(404).json({ error: 'Product type not found' });
-    }
+// DELETE
+router.delete("/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+
+  db.deleteProductType(id, (err, success) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!success)
+      return res.status(404).json({ error: "Product type not found" });
     res.status(204).send();
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
-module.exports = router;
+export default router;

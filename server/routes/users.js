@@ -1,62 +1,59 @@
 import express from "express";
+import db from "../db/users.js";
+
 const router = express.Router();
-import db from '../db/users.js';
 
 // CREATE
-router.post('/', async (req, res) => {
-    try {
-        const id = await db.insertUser(req.body);
-        const newUser = await db.selectUserById(id);
-        res.status(201).json(newUser);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.post("/", (req, res) => {
+  db.insertUser(req.body, (err, id) => {
+    if (err) return res.status(500).json({ error: err });
+
+    db.selectUserById(id, (err2, newUser) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.status(201).json(newUser);
+    });
+  });
 });
 
 // READ (paginated)
-router.get('/', async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const data = await db.selectUsers(page, 20);
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.get("/", (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+
+  db.selectUsers(page, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
 });
 
 // READ single
-router.get('/:id', async (req, res) => {
-    try {
-        const user = await db.selectUserById(req.params.id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        res.json(user);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.get("/:id", (req, res) => {
+  db.selectUserById(req.params.id, (err, user) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  });
 });
 
 // UPDATE
-router.patch('/:id', async (req, res) => {
-    try {
-        const userData = { ...req.body, id: req.params.id };
-        const affected = await db.updateUser(userData);
-        if (!affected) return res.status(404).json({ message: 'User not found' });
-        const updatedUser = await db.selectUserById(req.params.id);
-        res.json(updatedUser);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.patch("/:id", (req, res) => {
+  const id = req.params.id;
+  const fields = req.body;
+
+  db.updateUser(id, fields, (err, updatedUser) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!updatedUser)
+      return res.status(404).json({ message: "User not found" });
+    res.json(updatedUser);
+  });
 });
 
 // DELETE
-router.delete('/:id', async (req, res) => {
-    try {
-        const affected = await db.deleteUser(req.params.id);
-        if (!affected) return res.status(404).json({ message: 'User not found' });
-        res.json({ message: 'User deleted' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.delete("/:id", (req, res) => {
+  db.deleteUser(req.params.id, (err, affected) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!affected) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "User deleted" });
+  });
 });
 
 export default router;

@@ -1,62 +1,60 @@
 import express from "express";
+import db from "../db/products.js";
+
 const router = express.Router();
-import db from '../db/products.js';
 
 // CREATE
-router.post('/', async (req, res) => {
-    try {
-        const id = await db.insertProduct(req.body);
-        const newProduct = await db.selectProductById(id);
-        res.status(201).json(newProduct);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.post("/", (req, res) => {
+  db.insertProduct(req.body, (err, id) => {
+    if (err) return res.status(500).json({ error: err });
+
+    db.selectProductById(id, (err2, newProduct) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.status(201).json(newProduct);
+    });
+  });
 });
 
 // READ (paginated)
-router.get('/', async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const data = await db.selectProducts(page, 20);
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.get("/", (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+
+  db.selectProducts(page, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
 });
 
 // READ single
-router.get('/:id', async (req, res) => {
-    try {
-        const product = await db.selectProductById(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
-        res.json(product);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.get("/:id", (req, res) => {
+  db.selectProductById(req.params.id, (err, product) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  });
 });
 
 // UPDATE
-router.patch('/:id', async (req, res) => {
-    try {
-        const productData = { ...req.body, id: req.params.id };
-        const affected = await db.updateProduct(productData);
-        if (!affected) return res.status(404).json({ message: 'Product not found' });
-        const updatedProduct = await db.selectProductById(req.params.id);
-        res.json(updatedProduct);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+router.patch("/:id", (req, res) => {
+  const id = req.params.id;
+  const fields = req.body;
+
+  db.updateProduct(id, fields, (err, updatedProduct) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!updatedProduct)
+      return res.status(404).json({ message: "Product not found" });
+    res.json(updatedProduct);
+  });
 });
 
-// DELETE (soft delete)
-router.delete('/:id', async (req, res) => {
-    try {
-        const affected = await db.deleteProduct(req.params.id);
-        if (!affected) return res.status(404).json({ message: 'Product not found' });
-        res.json({ message: 'Product deleted' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+// DELETE
+router.delete("/:id", (req, res) => {
+  db.deleteProduct(req.params.id, (err, affected) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!affected)
+      return res.status(404).json({ message: "Product not found" });
+    res.json({ message: "Product deleted" });
+  });
 });
 
 export default router;
