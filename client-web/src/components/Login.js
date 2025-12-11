@@ -1,62 +1,37 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import '../App.css';
 import './Login.css';
 
 export default function Login() {
-    const { login, isAuthenticated } = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-
-    // Remember me state
     const [rememberMe, setRememberMe] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    // ⬇️ NEW: on first render, load remembered credentials (if any)
-    useEffect(() => {
-        const saved = localStorage.getItem("remembered_credentials");
-        if (saved) {
-            try {
-                const { username, password } = JSON.parse(saved);
-                setUsername(username || "");
-                setPassword(password || "");
-                setRememberMe(true);
-            } catch {
-                localStorage.removeItem("remembered_credentials");
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate("/admin", { replace: true });
-        }
-    }, [isAuthenticated, navigate]);
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // pass rememberMe flag to AuthContext (as we did before)
-        const result = login(username, password, rememberMe);
-        
-        if (result.success) {
-            setError("");
+        setError("");
+        setLoading(true);
 
-            // ⬇️ NEW: store or clear credentials based on checkbox
-            if (rememberMe) {
-                localStorage.setItem(
-                    "remembered_credentials",
-                    JSON.stringify({ username, password })
-                );
+        try {
+            const result = await login(username, password, rememberMe);
+
+            if (result.success) {
+                // Navigate to admin after successful login
+                navigate("/admin", { replace: true });
             } else {
-                localStorage.removeItem("remembered_credentials");
+                setError(result.error);
             }
-
-            navigate("/admin", { replace: true });
-        } else {
-            setError(result.error);
+        } catch (err) {
+            console.error("Login error:", err);
+            setError("An unexpected error occurred");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -70,7 +45,7 @@ export default function Login() {
                     <p className="login-subtitle">Please login to continue</p>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} autoComplete="on">
                     <div className="login-form-group">
                         <label className="login-label">
                             Username
@@ -84,6 +59,7 @@ export default function Login() {
                             className="login-input"
                             name="username"
                             autoComplete="username"
+                            disabled={loading}
                         />
                     </div>
 
@@ -100,10 +76,11 @@ export default function Login() {
                             className="login-input"
                             name="password"
                             autoComplete="current-password"
+                            disabled={loading}
                         />
                     </div>
 
-                    {/* Remember me checkbox */}
+                    {/* Remember me checkbox - tells server to set persistent httpOnly cookie */}
                     <div className="login-form-group">
                         <label
                             className="login-label"
@@ -113,6 +90,7 @@ export default function Login() {
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
+                                disabled={loading}
                             />
                             Remember me
                         </label>
@@ -127,29 +105,22 @@ export default function Login() {
                     <button 
                         type="submit"
                         className="login-submit-btn"
+                        disabled={loading}
                     >
-                        Sign in
+                        {loading ? "Signing in..." : "Sign in"}
                     </button>
                 </form>
 
                 <div className="login-demo-credentials">
                     <p className="login-demo-title">
-                        Demo Credentials:
+                        Use credentials from your database
                     </p>
                     <p className="login-demo-text">
-                        <strong>Admin:</strong> admin / admin123
-                    </p>
-                    <p className="login-demo-text">
-                        <strong>Student:</strong> mikko / pass123
-                    </p>
-                    <p className="login-demo-text">
-                        <strong>Student:</strong> ville / pass123
-                    </p>
-                    <p className="login-demo-text">
-                        <strong>Student:</strong> aino / pass123
+                        Login with any username/password from the users table
                     </p>
                 </div>
             </div>
         </div>
     );
 }
+

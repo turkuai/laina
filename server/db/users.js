@@ -1,17 +1,47 @@
 import db from "./db.js";
+import bcrypt from "bcrypt";
 
-// CREATE — insert a new user
+// CREATE — insert a new user (hash password before saving)
 function insertUser(userData, callback) {
-  const { first_name, last_name, email, password, role } = userData;
+  const {
+    username,
+    first_name,
+    last_name,
+    email,
+    password,
+    role,
+    phone_number,
+  } = userData;
 
-  db.query(
-    "INSERT INTO users (first_name, last_name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
-    [first_name, last_name, email, password, role || "student"],
-    (err, result) => {
-      if (err) return callback(err);
-      callback(null, { id: result.insertId, ...userData });
-    }
-  );
+  // Hash password before inserting
+  bcrypt.hash(password, 10, (err, hashedPassword) => {
+    if (err) return callback(err);
+
+    db.query(
+      "INSERT INTO users (username, first_name, last_name, email, password, role, phone_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
+      [
+        username,
+        first_name,
+        last_name,
+        email,
+        hashedPassword,
+        role || "student",
+        phone_number || null,
+      ],
+      (err2, result) => {
+        if (err2) return callback(err2);
+        callback(null, {
+          id: result.insertId,
+          username,
+          first_name,
+          last_name,
+          email,
+          role,
+          phone_number,
+        });
+      }
+    );
+  });
 }
 
 // READ — get all users with pagination
@@ -26,10 +56,10 @@ function selectUsers(page, callback) {
     const totalPages = Math.ceil(total / limit);
 
     db.query(
-      "SELECT id, first_name, last_name, email, role, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
+      "SELECT id, username, first_name, last_name, email, role, phone_number, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?",
       [limit, offset],
-      (err, rows) => {
-        if (err) return callback(err);
+      (err2, rows) => {
+        if (err2) return callback(err2);
         callback(null, {
           data: rows,
           pagination: {
@@ -47,7 +77,7 @@ function selectUsers(page, callback) {
 // READ — get single user by ID
 function selectUserById(id, callback) {
   db.query(
-    "SELECT id, first_name, last_name, email, role, created_at FROM users WHERE id = ?",
+    "SELECT id, username, first_name, last_name, email, role, phone_number, created_at FROM users WHERE id = ?",
     [id],
     (err, rows) => {
       if (err) return callback(err);
@@ -56,23 +86,88 @@ function selectUserById(id, callback) {
   );
 }
 
-// UPDATE — modify an existing user
-function updateUser(id, fields, callback) {
-  const { first_name, last_name, email, password, role } = fields;
-
+// VERIFY USER — check username + password (used for login)
+function verifyUser(username, password, callback) {
   db.query(
-    "UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, role = ? WHERE id = ?",
-    [first_name, last_name, email, password, role, id],
-    (err, result) => {
+    "SELECT id, username, password, first_name, last_name, role FROM users WHERE username = ?",
+    [username],
+    (err, rows) => {
       if (err) return callback(err);
+      if (rows.length === 0) return callback(null, null); // No user found
 
-      // Fetch updated record
-      selectUserById(id, (err2, updatedUser) => {
+      const user = rows[0];
+
+      // Compare hashed password with entered password
+      bcrypt.compare(password, user.password, (err2, isMatch) => {
         if (err2) return callback(err2);
-        callback(null, updatedUser);
+        if (!isMatch) return callback(null, null);
+
+        // Return user info without password
+        callback(null, {
+          id: user.id,
+          username: user.username,
+          displayName: `${user.first_name} ${user.last_name}`,
+          role: user.role,
+        });
       });
     }
   );
+}
+
+// UPDATE — modify an existing user (rehash password if changed)
+function updateUser(id, fields, callback) {
+  const {
+    username,
+    first_name,
+    last_name,
+    email,
+    password,
+    role,
+    phone_number,
+  } = fields;
+
+  // If password provided, hash it first
+  if (password) {
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+      if (err) return callback(err);
+
+      db.query(
+        "UPDATE users SET username = ?, first_name = ?, last_name = ?, email = ?, password = ?, role = ?, phone_number = ? WHERE id = ?",
+        [
+          username,
+          first_name,
+          last_name,
+          email,
+          hashedPassword,
+          role,
+          phone_number,
+          id,
+        ],
+        (err2, result) => {
+          if (err2) return callback(err2);
+
+          selectUserById(id, (err3, updatedUser) => {
+            if (err3) return callback(err3);
+            callback(null, updatedUser);
+          });
+        }
+      );
+    });
+  } else {
+    // No password change
+    db.query(
+      "UPDATE users SET username = ?, first_name = ?, last_name = ?, email = ?, role = ?, phone_number = ? WHERE id = ?",
+      [username, first_name, last_name, email, role, phone_number, id],
+      (err, result) => {
+        if (err) return callback(err);
+
+        selectUserById(id, (err2, updatedUser) => {
+          if (err2) return callback(err2);
+          callback(null, updatedUser);
+        });
+      }
+    );
+  }
 }
 
 // DELETE — remove a user
@@ -87,6 +182,7 @@ const users = {
   insertUser,
   selectUsers,
   selectUserById,
+  verifyUser,
   updateUser,
   deleteUser,
 };

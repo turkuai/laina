@@ -9,7 +9,22 @@ import LocationsTest from "./components/LocationsTest";
 
 
 export default function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -19,6 +34,14 @@ export default function App() {
       />
       <Route path="/login" element={<Login />} />
       <Route path="/locations-test" element={<LocationsTest />} />
+
+      
+      {/* Redirect to admin if already authenticated */}
+      <Route 
+        path="/login" 
+        element={isAuthenticated ? <Navigate to="/admin" replace /> : <Login />} 
+      />
+
 
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<Admin />} />
