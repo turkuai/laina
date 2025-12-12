@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import '../App.css';
 import './Login.css';
 
@@ -34,7 +34,6 @@ export default function Login() {
             } else {
                 setError(result.error);
             }
-            // Navigation happens automatically via useEffect above
         } catch (err) {
             console.error("Login error:", err);
             setError("An unexpected error occurred");
@@ -88,7 +87,7 @@ export default function Login() {
                         />
                     </div>
 
-                    {/* Remember me checkbox */}
+                    {/* Remember me checkbox - tells server to set persistent httpOnly cookie */}
                     <div className="login-form-group">
                         <label
                             className="login-label"
@@ -130,4 +129,5 @@ export default function Login() {
             </div>
         </div>
     );
-};
+}
+

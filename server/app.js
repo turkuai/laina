@@ -23,12 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-
 // Routes
 app.use('/api/users', userRouter);
-app.use('/api/borrowing-history', borrowingRouter);
-app.use('/api/products', productsRouter);
 app.use('/api/borrowing-history', borrowingRouter);
 app.use('/api/products', productsRouter);
 
