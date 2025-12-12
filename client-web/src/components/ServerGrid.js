@@ -4,6 +4,7 @@ import Grid from './Grid';
 
 export default function ServerGrid({
   columns,
+  columnRenderers,
   path,                 // API endpoint
   allowEditing = false,
   allowDelete = false,
@@ -90,6 +91,7 @@ export default function ServerGrid({
 
       <Grid
         columns={columns}
+        columnRenderers={columnRenderers}
         data={data}
         allowEditing={allowEditing}
         allowDelete={allowDelete}

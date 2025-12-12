@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Products.css';
 import ServerGrid from './ServerGrid';
-import Grid from './Grid';
 
 // Generate a unique 45-character hash
 const generateHash = () => {

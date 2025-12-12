@@ -11,6 +11,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function Grid({
   columns,
+  columnRenderers,
   data,
   allowEditing = false,
   allowDelete = false,
@@ -31,10 +32,10 @@ export default function Grid({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -53,7 +54,7 @@ export default function Grid({
       // Adjust column widths for mobile
       let width = undefined;
       let minWidth = 100;
-      
+
       if (isMobile) {
         // Set specific widths for mobile
         if (fieldName === 'name') {
@@ -87,6 +88,7 @@ export default function Grid({
         minWidth: minWidth,
         wrapText: isMobile,
         autoHeight: isMobile,
+        cellRenderer: columnRenderers ? columnRenderers[fieldName] : undefined
       };
     });
 
@@ -98,23 +100,23 @@ export default function Grid({
         return (
           <div className={`grid-actions ${isMobile ? 'mobile' : ''}`}>
             {allowEditing && (
-              <button 
-                onClick={() => openEditModal(row)} 
+              <button
+                onClick={() => openEditModal(row)}
                 className={`icon-btn ${isMobile ? 'mobile' : ''}`}
                 aria-label="Edit"
               >
                 <svg width={isMobile ? "14" : "16"} height={isMobile ? "14" : "16"} viewBox="0 0 24 24" fill="none">
-                  <path d="M3 21l3.75-1 11.1-11.1a1.5 1.5 0 000-2.12L14.23 2.16a1.5 1.5 0 00-2.12 0L1 13.27V17h3.73L3 21z" fill="#111827"/>
+                  <path d="M3 21l3.75-1 11.1-11.1a1.5 1.5 0 000-2.12L14.23 2.16a1.5 1.5 0 00-2.12 0L1 13.27V17h3.73L3 21z" fill="#111827" />
                 </svg>
               </button>
             )}
-            <button 
-              onClick={() => onDeleteRow?.(row)} 
+            <button
+              onClick={() => onDeleteRow?.(row)}
               className={`icon-btn danger ${isMobile ? 'mobile' : ''}`}
               aria-label="Delete"
             >
               <svg width={isMobile ? "14" : "16"} height={isMobile ? "14" : "16"} viewBox="0 0 24 24" fill="none">
-                <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+                <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626" />
               </svg>
             </button>
           </div>

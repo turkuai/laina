@@ -219,6 +219,7 @@ export default function Admin({ productsData }) {
               <h2>Users Management</h2>
               <ServerGrid
                 columns={['first_name', 'email', 'role']}
+                columnRenderers={{first_name: () => <div>c:</div>}}
                 path="/users"
                 allowEditing={true}
                 allowDelete={true}
@@ -227,12 +228,17 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {activeTab === 'products' && (
-            <Products
-              currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
-              productsData={productsData}
-            />
+          {activeTab === 'products' && currentUser?.role === 'admin' &&(
+            <div>
+              <Products
+                currentUser={currentUser}
+                borrowingHistory={borrowingHistory}
+                productsData={productsData}
+                allowEditing={true}
+                allowDelete={true}
+                pageSize={10}
+              />
+            </div>
           )}
 
           {activeTab === 'history' && (
