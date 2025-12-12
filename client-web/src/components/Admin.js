@@ -6,6 +6,8 @@ import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
 import ServerGrid from './ServerGrid';
+import StatusRenderer from './StatusRenderer';
+import QRCodeRenderer from './QRCodeRenderer';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -219,7 +221,7 @@ export default function Admin({ productsData }) {
               <h2>Users Management</h2>
               <ServerGrid
                 columns={['first_name', 'email', 'role']}
-                columnRenderers={{first_name: () => <div>c:</div>}}
+                columnRenderers={{ first_name: () => <div>c:</div> }}
                 path="/users"
                 allowEditing={true}
                 allowDelete={true}
@@ -228,11 +230,11 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {activeTab === 'products' && currentUser?.role === 'admin' &&(
+          {activeTab === 'products' && currentUser?.role === 'admin' && (
             <div>
               <ServerGrid
                 columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
-                columnRenderers={{product_name: () => <div>c:</div>}}
+                columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
                 path="/products"
                 allowEditing={true}
                 allowDelete={true}
