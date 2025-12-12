@@ -22,7 +22,7 @@ async function selectUsers(page = 1, limit = 20) {
         [limit, offset]
     );
 
-    return { users: rows, currentPage: page, totalPages };
+    return { data: rows, currentPage: page, totalPages };
 }
 
 // SELECT single user

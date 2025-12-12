@@ -73,7 +73,7 @@ export async function listProducts({ page = 1, limit = DEFAULT_PAGE_SIZE } = {})
   const totalPages = Math.max(Math.ceil(total / safeLimit), 1);
 
   return {
-    items: rows,
+    data: rows,
     pagination: {
       page: safePage,
       limit: safeLimit,
