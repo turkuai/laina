@@ -230,10 +230,10 @@ export default function Admin({ productsData }) {
 
           {activeTab === 'products' && currentUser?.role === 'admin' &&(
             <div>
-              <Products
-                currentUser={currentUser}
-                borrowingHistory={borrowingHistory}
-                productsData={productsData}
+              <ServerGrid
+                columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
+                columnRenderers={{product_name: () => <div>c:</div>}}
+                path="/products"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
