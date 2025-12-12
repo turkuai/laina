@@ -1,9 +1,32 @@
 import express from "express";
-const router = express.Router();
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import db from '../db/products.js';
 
-// CREATE
-router.post('/', async (req, res) => {
+dotenv.config();
+
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+// Middleware to verify JWT from httpOnly cookie
+function verifyToken(req, res, next) {
+    const token = req.cookies.authToken;
+
+    if (!token) {
+        return res.status(401).json({ success: false, error: 'No token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+    }
+}
+
+// CREATE - Protected
+router.post('/', verifyToken, async (req, res) => {
     try {
         const id = await db.insertProduct(req.body);
         const newProduct = await db.selectProductById(id);
@@ -13,8 +36,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// READ (paginated)
-router.get('/', async (req, res) => {
+// READ (paginated) - Protected
+router.get('/', verifyToken, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const data = await db.selectProducts(page, 20);
@@ -24,8 +47,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// READ single
-router.get('/:id', async (req, res) => {
+// READ single - Protected
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const product = await db.selectProductById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -35,8 +58,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// UPDATE
-router.patch('/:id', async (req, res) => {
+// UPDATE - Protected
+router.patch('/:id', verifyToken, async (req, res) => {
     try {
         const productData = { ...req.body, id: req.params.id };
         const affected = await db.updateProduct(productData);
@@ -48,8 +71,8 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-// DELETE (soft delete)
-router.delete('/:id', async (req, res) => {
+// DELETE (soft delete) - Protected
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const affected = await db.deleteProduct(req.params.id);
         if (!affected) return res.status(404).json({ message: 'Product not found' });

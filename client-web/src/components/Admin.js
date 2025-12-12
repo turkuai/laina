@@ -22,121 +22,6 @@ const getCurrentDate = () => {
   return formatDate(new Date());
 };
 
-// Product Modal - BORROWED (Lainassa)
-const ProductModalBorrowed = ({ product, onClose, onReturn }) => {
-  if (!product) return null;
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <button onClick={onClose} className="modal-close">
-          ×
-        </button>
-
-        <h2 className="modal-title">{product.name}</h2>
-
-        <div className="modal-status">
-          <h3 className="status-borrowed">Borrowed</h3>
-        </div>
-
-        <div className="modal-content">
-          <p className="info-label">Borrowed by:</p>
-          <p className="info-value">{product.borrower}</p>
-          <p className="info-value">{product.borrowDate}</p>
-
-          <p className="info-label">Return deadline:</p>
-          <p className="info-value">{product.returnDate}</p>
-
-          <p className="info-label">Return date:</p>
-          <div className="return-date-display">
-            {getCurrentDate()}
-          </div>
-        </div>
-
-        <button onClick={onReturn} className="modal-action-btn">
-          Return
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Product Modal - AVAILABLE (Vapaa)
-const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
-  const [borrowerName, setBorrowerName] = useState('');
-  const [borrowerPhone, setBorrowerPhone] = useState('');
-  const [returnDate, setReturnDate] = useState('');
-
-  if (!product) return null;
-
-  const handleBorrow = () => {
-    if (!borrowerName || !borrowerPhone || !returnDate) {
-      alert('Fill in all fields!');
-      return;
-    }
-    onBorrow({
-      borrowerName,
-      borrowerPhone,
-      returnDate,
-      borrowDate: getCurrentDate()
-    });
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <button onClick={onClose} className="modal-close">
-          ×
-        </button>
-
-        <h2 className="modal-title">{product.name}</h2>
-
-        <div className="modal-status">
-          <h3 className="status-available">Available</h3>
-        </div>
-
-        <div className="modal-content">
-          <div className="info-input-wrapper">
-            <label className="info-label">Borrowing to:</label>
-            <input
-              type="text"
-              placeholder="Name:"
-              value={borrowerName}
-              onChange={(e) => setBorrowerName(e.target.value)}
-              className="info-input"
-            />
-          </div>
-
-          <div className="info-input-wrapper">
-            <input
-              type="tel"
-              placeholder="Phone:"
-              value={borrowerPhone}
-              onChange={(e) => setBorrowerPhone(e.target.value)}
-              className="info-input"
-            />
-          </div>
-
-          <div className="info-input-wrapper">
-            <label className="info-label">Return deadline:</label>
-            <input
-              type="text"
-              placeholder="dd.mm.yyyy"
-              value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
-              className="info-input"
-            />
-          </div>
-        </div>
-
-        <button onClick={handleBorrow} className="modal-action-btn">
-          Borrow
-        </button>
-      </div>
-    </div>
-  );
-};
-
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -188,6 +73,16 @@ export default function Admin({ productsData }) {
     { id: 3, userName: 'Aino', productName: 'Keyboard Mechanical', borrowedAt: '2024-01-10', returnedAt: '2024-01-17', status: 'Returned', userId: 5 },
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
   ]);
+
+  // Construct the API path with borrower filter for students
+  const getHistoryPath = () => {
+    if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
+      return 'borrowing-history';
+    } else {
+      // Filter by current user's ID for students
+      return `borrowing-history?borrower_id=${currentUser?.id}`;
+    }
+  };
 
   const getUserData = () => {
     if (currentUser?.role === 'admin') return users;
@@ -529,7 +424,6 @@ export default function Admin({ productsData }) {
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
 
-
             {/* Search Box */}
             <div className="user-search">
               <input
@@ -748,25 +642,66 @@ export default function Admin({ productsData }) {
       {/* Product Modals - Desktop Only */}
       <div className="hide-on-mobile">
         {scannedProduct && productStatus === 'borrowed' && (
-          <ProductModalBorrowed
-            product={scannedProduct}
-            onClose={() => {
-              setScannedProduct(null);
-              setProductStatus(null);
-            }}
-            onReturn={handleReturn}
-          />
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <button onClick={() => { setScannedProduct(null); setProductStatus(null); }} className="modal-close">×</button>
+              <h2 className="modal-title">{scannedProduct.name}</h2>
+              <div className="modal-status"><h3 className="status-borrowed">Borrowed</h3></div>
+              <div className="modal-content">
+                <p className="info-label">Borrowed by:</p>
+                <p className="info-value">{scannedProduct.borrower}</p>
+                <p className="info-value">{scannedProduct.borrowDate}</p>
+                <p className="info-label">Return deadline:</p>
+                <p className="info-value">{scannedProduct.returnDate}</p>
+                <p className="info-label">Return date:</p>
+                <div className="return-date-display">{getCurrentDate()}</div>
+              </div>
+              <button onClick={handleReturn} className="modal-action-btn">Return</button>
+            </div>
+          </div>
         )}
 
         {scannedProduct && productStatus === 'available' && (
-          <ProductModalAvailable
-            product={scannedProduct}
-            onClose={() => {
-              setScannedProduct(null);
-              setProductStatus(null);
-            }}
-            onBorrow={handleBorrow}
-          />
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <button onClick={() => { setScannedProduct(null); setProductStatus(null); }} className="modal-close">×</button>
+              <h2 className="modal-title">{scannedProduct.name}</h2>
+              <div className="modal-status"><h3 className="status-available">Available</h3></div>
+              <div className="modal-content">
+                <div className="info-input-wrapper">
+                  <label className="info-label">Borrowing to:</label>
+                  <input type="text" placeholder="Name:" className="info-input" id="desktop-borrower-name" />
+                </div>
+                <div className="info-input-wrapper">
+                  <input type="tel" placeholder="Phone:" className="info-input" id="desktop-borrower-phone" />
+                </div>
+                <div className="info-input-wrapper">
+                  <label className="info-label">Return deadline:</label>
+                  <input type="text" placeholder="dd.mm.yyyy" className="info-input" id="desktop-return-date" />
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const borrowerName = document.getElementById('desktop-borrower-name').value;
+                  const borrowerPhone = document.getElementById('desktop-borrower-phone').value;
+                  const returnDate = document.getElementById('desktop-return-date').value;
+                  if (!borrowerName || !borrowerPhone || !returnDate) {
+                    alert('Fill in all fields!');
+                    return;
+                  }
+                  handleBorrow({
+                    borrowerName,
+                    borrowerPhone,
+                    returnDate,
+                    borrowDate: getCurrentDate()
+                  });
+                }}
+                className="modal-action-btn"
+              >
+                Borrow
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -815,9 +750,9 @@ export default function Admin({ productsData }) {
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
               <h2>Users Management</h2>
-              <Grid
-                columns={['name', 'email', 'role']}
-                data={getFilteredUsers()}
+              <ServerGrid
+                columns={['first_name', 'last_name', 'email', 'role']}
+                path="users"
                 allowEditing={true}
                 allowDelete={true}
                 onDeleteRow={handleDeleteUser}
@@ -949,10 +884,11 @@ export default function Admin({ productsData }) {
                 activeTab === tab ? 'is-active' : ''
               ].join(' ').trim()}
               aria-label={tab}
+              key={tab}
             >
               {renderTabIcon(tab)}
-            </button>)
-          )}
+            </button>))
+          }
         </nav>
       )}
 

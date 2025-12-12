@@ -34,11 +34,17 @@ export default function ServerGrid({
     try {
       // Build the full URL with page parameter
       let fullUrl = path;
-      const separator = path.includes('?') ? '&' : '?';
-      fullUrl = `${path}${separator}page=${currentPage}`;
+      // Ensure /api/ prefix if not present
+      if (!fullUrl.startsWith('/api/')) {
+        fullUrl = `/api/${fullUrl}`;
+      }
+      
+      const separator = fullUrl.includes('?') ? '&' : '?';
+      fullUrl = `${fullUrl}${separator}page=${currentPage}`;
 
       const res = await fetch(fullUrl, {
         method: 'GET',
+        credentials: 'include', // Include httpOnly cookies
         headers: {
           'Content-Type': 'application/json',
         },
@@ -101,8 +107,15 @@ export default function ServerGrid({
     }
 
     try {
-      const res = await fetch(`${path.split('?')[0]}/${row.id}`, {
+      let deleteUrl = `${path.split('?')[0]}/${row.id}`;
+      // Ensure /api/ prefix if not present
+      if (!deleteUrl.startsWith('/api/')) {
+        deleteUrl = `/api/${deleteUrl}`;
+      }
+
+      const res = await fetch(deleteUrl, {
         method: 'DELETE',
+        credentials: 'include', // Include httpOnly cookies
         headers: {
           'Content-Type': 'application/json',
         },

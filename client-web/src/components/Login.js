@@ -1,17 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import '../App.css';
 import './Login.css';
 
 export default function Login() {
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/admin", { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -22,8 +28,9 @@ export default function Login() {
             const result = await login(username, password, rememberMe);
 
             if (result.success) {
-                // Navigate to admin after successful login
-                navigate("/admin", { replace: true });
+                // Server automatically sets httpOnly cookie with JWT token if rememberMe is true
+                // No client-side storage needed
+                setPassword("");
             } else {
                 setError(result.error);
             }

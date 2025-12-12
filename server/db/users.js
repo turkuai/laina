@@ -1,11 +1,16 @@
 import db from './db.js';
+import bcrypt from 'bcrypt';
 
-// INSERT
+// INSERT - Hash password before storing
 async function insertUser(user) {
     const { username, first_name, last_name, email, password, role, phone_number } = user;
+    
+    // Hash the password with salt rounds of 10
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
     const [result] = await db.execute(
         'INSERT INTO users (username, first_name, last_name, email, password, role, phone_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
-        [username, first_name, last_name, email, password, role, phone_number]
+        [username, first_name, last_name, email, hashedPassword, role, phone_number]
     );
     return result.insertId;
 }
@@ -18,7 +23,7 @@ async function selectUsers(page = 1, limit = 20) {
     const totalPages = Math.ceil(count / limit);
 
     const [rows] = await db.execute(
-        'SELECT * FROM users ORDER BY id LIMIT ? OFFSET ?',
+        'SELECT id, username, first_name, last_name, email, role, phone_number, created_at FROM users ORDER BY id LIMIT ? OFFSET ?',
         [limit, offset]
     );
 
@@ -27,11 +32,14 @@ async function selectUsers(page = 1, limit = 20) {
 
 // SELECT single user
 async function selectUserById(id) {
-    const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [id]);
+    const [rows] = await db.execute(
+        'SELECT id, username, first_name, last_name, email, role, phone_number, created_at FROM users WHERE id = ?',
+        [id]
+    );
     return rows[0];
 }
 
-// VERIFY USER for login
+// VERIFY USER for login - Compare passwords securely
 async function verifyUser(username, password) {
     // First get the user with their hashed password
     const [rows] = await db.execute(
@@ -45,8 +53,7 @@ async function verifyUser(username, password) {
     
     const user = rows[0];
     
-    // Compare the provided password with the hashed password
-    const bcrypt = await import('bcrypt');
+    // Compare the provided password with the hashed password using bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
     if (!isPasswordValid) {
@@ -54,7 +61,7 @@ async function verifyUser(username, password) {
     }
     
     // Return user without password field
-    // Create displayName from first_name and last_name since displayName column doesn't exist
+    // Create displayName from first_name and last_name
     return {
         id: user.id,
         username: user.username,
@@ -63,12 +70,20 @@ async function verifyUser(username, password) {
     };
 }
 
-// UPDATE
+// UPDATE - Hash password only if it's being changed
 async function updateUser(user) {
     const { username, first_name, last_name, email, password, role, phone_number, id } = user;
+    
+    let hashedPassword = password;
+    
+    // Check if password is being updated (only hash if password looks like plaintext, not already hashed)
+    if (password && !password.startsWith('$2b$') && !password.startsWith('$2a$')) {
+        hashedPassword = await bcrypt.hash(password, 10);
+    }
+    
     const [result] = await db.execute(
         'UPDATE users SET username = ?, first_name = ?, last_name = ?, email = ?, password = ?, role = ?, phone_number = ? WHERE id = ?',
-        [username, first_name, last_name, email, password, role, phone_number, id]
+        [username, first_name, last_name, email, hashedPassword, role, phone_number, id]
     );
     return result.affectedRows;
 }

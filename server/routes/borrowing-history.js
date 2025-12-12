@@ -1,10 +1,32 @@
 import express from "express";
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import db from '../db/borrowing-history.js';
 
-const router = express.Router();
+dotenv.config();
 
-// CREATE - New borrow record
-router.post('/', async (req, res) => {
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+// Middleware to verify JWT from httpOnly cookie
+function verifyToken(req, res, next) {
+    const token = req.cookies.authToken;
+
+    if (!token) {
+        return res.status(401).json({ success: false, error: 'No token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+    }
+}
+
+// CREATE - Protected
+router.post('/', verifyToken, async (req, res) => {
     try {
         const id = await db.insertBorrowHistory(req.body);
         const newRecord = await db.selectBorrowHistoryById(id);
@@ -14,8 +36,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// READ (paginated) - All history or filtered by borrower
-router.get('/', async (req, res) => {
+// READ (paginated) - Protected
+router.get('/', verifyToken, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const borrowerId = req.query.borrower_id;
@@ -33,8 +55,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// READ single record
-router.get('/:id', async (req, res) => {
+// READ single record - Protected
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const record = await db.selectBorrowHistoryById(req.params.id);
         if (!record) {
@@ -46,8 +68,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// UPDATE - For updating return info or notes
-router.patch('/:id', async (req, res) => {
+// UPDATE - Protected
+router.patch('/:id', verifyToken, async (req, res) => {
     try {
         const borrowData = { ...req.body, id: req.params.id };
         const affected = await db.updateBorrowHistory(borrowData);
@@ -63,8 +85,8 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-// DELETE
-router.delete('/:id', async (req, res) => {
+// DELETE - Protected
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const affected = await db.deleteBorrowHistory(req.params.id);
         
