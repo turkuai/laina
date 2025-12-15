@@ -169,10 +169,8 @@
 
 /* ===== STATUS BADGES ===== */
 .status-badge {
-  display: inline-block;
   padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
+  border-radius: 5px;
   font-weight: 600;
   text-transform: capitalize;
 }
@@ -180,11 +178,13 @@
 .status-badge.status-available {
   background-color: #d1fae5;
   color: #065f46;
+  font-size: 14px;
 }
 
 .status-badge.status-borrowed {
   background-color: #fee2e2;
   color: #991b1b;
+  font-size: 14px;
 }
 
 /* ===== ACTION BUTTONS ===== */
@@ -201,8 +201,7 @@
 }
 
 .view-qr-btn:hover {
-  background: #1f2937;
-  transform: translateY(-1px);
+  background: #2e2f31;
 }
 
 .delete-btn {
