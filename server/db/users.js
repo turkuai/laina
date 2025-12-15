@@ -143,7 +143,7 @@ function updateUser(id, fields, callback) {
           phone_number,
           id,
         ],
-        (err2, result) => {
+        (err2) => {
           if (err2) return callback(err2);
 
           selectUserById(id, (err3, updatedUser) => {
@@ -178,6 +178,7 @@ function deleteUser(id, callback) {
   });
 }
 
+// Export
 const users = {
   insertUser,
   selectUsers,

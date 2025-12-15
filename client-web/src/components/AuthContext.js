@@ -7,30 +7,34 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On first load, check if user is authenticated via httpOnly cookie
+  // On first load, verify JWT token from httpOnly cookie
   useEffect(() => {
-    const checkAuth = async () => {
+    const verifyToken = async () => {
       try {
-        const response = await fetch('/users/verify', {
+        const response = await fetch('/api/users/verify', {
           method: 'GET',
-          credentials: 'include', // Send cookies with request
+          credentials: 'include', // Include cookies in request
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
 
         if (response.ok) {
           const data = await response.json();
-          setIsAuthenticated(true);
-          setCurrentUser({
+          const safeUser = {
             id: data.user.id,
             username: data.user.username,
             name: data.user.displayName,
             role: data.user.role
-          });
+          };
+          setIsAuthenticated(true);
+          setCurrentUser(safeUser);
         } else {
           setIsAuthenticated(false);
           setCurrentUser(null);
         }
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Token verification error:', error);
         setIsAuthenticated(false);
         setCurrentUser(null);
       } finally {
@@ -38,19 +42,19 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    checkAuth();
+    verifyToken();
   }, []);
 
-  // Login function - remember flag tells server to set persistent httpOnly cookie
-  const login = async (username, password, remember = false) => {
+  // Login function - now with rememberMe parameter for httpOnly cookie
+  const login = async (username, password, rememberMe = false) => {
     try {
-      const response = await fetch('/users/login', {
+      const response = await fetch('/api/users/login', {
         method: 'POST',
+        credentials: 'include', // Include cookies in request
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important: allows cookies to be sent/received
-        body: JSON.stringify({ username, password, remember }),
+        body: JSON.stringify({ username, password, rememberMe }),
       });
 
       const data = await response.json();
@@ -58,11 +62,11 @@ export const AuthProvider = ({ children }) => {
       if (!response.ok) {
         return { 
           success: false, 
-          error: data.message || 'Invalid username or password' 
+          error: data.error || 'Invalid username or password' 
         };
       }
 
-      // Backend returns { message, user } and sets httpOnly cookie
+      // Backend returns { success, message, user }
       const safeUser = {
         id: data.user.id,
         username: data.user.username,
@@ -72,6 +76,9 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(true);
       setCurrentUser(safeUser);
+
+      // httpOnly cookie is automatically set by the server
+      // No client-side storage needed
 
       return { success: true };
     } catch (error) {
@@ -83,15 +90,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout function - clear httpOnly cookie on server
   const logout = async () => {
     try {
-      // Call logout endpoint to clear httpOnly cookie
-      await fetch('/users/logout', {
+      await fetch('/api/users/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-    } catch (err) {
-      console.error('Logout error:', err);
+    } catch (error) {
+      console.error('Logout error:', error);
     } finally {
       setIsAuthenticated(false);
       setCurrentUser(null);
@@ -99,13 +109,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      currentUser, 
-      login, 
-      logout,
-      loading 
-    }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

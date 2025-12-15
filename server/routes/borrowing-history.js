@@ -1,12 +1,43 @@
 import express from "express";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import db from "../db/borrowing-history.js";
 
+dotenv.config();
 const router = express.Router();
 
-// CREATE - New borrow record
-router.post("/", (req, res) => {
+// Middleware to verify JWT (from cookies or headers)
+function verifyToken(req, res, next) {
+  const token =
+    req.cookies?.authToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401).json({ success: false, error: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key"
+    );
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ success: false, error: "Invalid or expired token" });
+  }
+}
+
+router.use(cookieParser());
+
+// CREATE - Protected
+router.post("/", verifyToken, (req, res) => {
   db.insertBorrowHistory(req.body, (err, id) => {
     if (err) return res.status(500).json({ error: err });
+
     db.selectBorrowHistoryById(id, (err2, newRecord) => {
       if (err2) return res.status(500).json({ error: err2 });
       res.status(201).json(newRecord);
@@ -14,8 +45,8 @@ router.post("/", (req, res) => {
   });
 });
 
-// READ (paginated) - All history or filtered by borrower
-router.get("/", (req, res) => {
+// READ (paginated) - Protected
+router.get("/", verifyToken, (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const borrowerId = req.query.borrower_id;
 
@@ -32,8 +63,8 @@ router.get("/", (req, res) => {
   }
 });
 
-// READ single record
-router.get("/:id", (req, res) => {
+// READ single record - Protected
+router.get("/:id", verifyToken, (req, res) => {
   db.selectBorrowHistoryById(req.params.id, (err, record) => {
     if (err) return res.status(500).json({ error: err });
     if (!record)
@@ -42,8 +73,8 @@ router.get("/:id", (req, res) => {
   });
 });
 
-// UPDATE - Update return info or notes
-router.patch("/:id", (req, res) => {
+// UPDATE - Protected
+router.patch("/:id", verifyToken, (req, res) => {
   const borrowData = { ...req.body, id: req.params.id };
 
   db.updateBorrowHistory(borrowData, (err, affected) => {
@@ -58,8 +89,8 @@ router.patch("/:id", (req, res) => {
   });
 });
 
-// DELETE
-router.delete("/:id", (req, res) => {
+// DELETE - Protected
+router.delete("/:id", verifyToken, (req, res) => {
   db.deleteBorrowHistory(req.params.id, (err, affected) => {
     if (err) return res.status(500).json({ error: err });
     if (!affected)
