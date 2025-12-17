@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Products.css';
 import ServerGrid from './ServerGrid';
+import QRCodeRenderer from './QRCodeRenderer';
 
 // Generate a unique 45-character hash
 const generateHash = () => {
@@ -202,6 +203,7 @@ const ProductModal = ({ product, onClose }) => {
     </div>
   );
 };
+
 
 export default function Products({ currentUser }) {
   const [showAddForm, setShowAddForm] = useState(false);

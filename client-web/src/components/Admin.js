@@ -237,7 +237,7 @@ export default function Admin({ productsData }) {
                 columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
                 columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
                 path="/products"
-                allowEditing={true}
+                allowEditing={false}
                 allowDelete={true}
                 pageSize={10}
               />
