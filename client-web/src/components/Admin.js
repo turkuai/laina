@@ -8,14 +8,7 @@ import {
   useOutletContext,
   NavLink,
 } from 'react-router-dom';
-import {
-  Camera,
-  History as HistoryIcon,
-  Package,
-  QrCode,
-  Settings,
-  Users,
-} from 'lucide-react';
+import { Camera, History as HistoryIcon, Package, QrCode, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -26,7 +19,6 @@ export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [userQuery, setUserQuery] = useState('');
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -39,7 +31,7 @@ export default function Admin({ productsData }) {
     return window.innerWidth < 768;
   });
 
-  // demo data – in real app you’ll fetch from API
+  // demo data – in real app you'll fetch from API
   const [users] = useState([
     { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
     { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
@@ -106,8 +98,8 @@ export default function Admin({ productsData }) {
 
   // --------- derive active tab from URL ----------
   const activeTab = useMemo(() => {
-    const path = location.pathname; // e.g. "/", "/users", "/lend" ...
-
+    const path = location.pathname;
+    // e.g. "/", "/users", "/lend" ...
     if (path.startsWith('/lend')) return 'camera';
     if (path.startsWith('/users')) return 'users';
     if (path.startsWith('/products')) return 'products';
@@ -130,12 +122,14 @@ export default function Admin({ productsData }) {
   };
 
   const handlePasswordInputChange = (field, value) => {
-    setPasswordForm((prev) => ({ ...prev, [field]: value }));
+    setPasswordForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handlePasswordSubmit = (event) => {
     event.preventDefault();
-
     if (
       !passwordForm.currentPassword ||
       !passwordForm.newPassword ||
@@ -199,7 +193,6 @@ export default function Admin({ productsData }) {
     const IconComponent = tabIconMap[tab];
     if (!IconComponent) return null;
     const isCamera = tab === 'camera';
-
     return (
       <IconComponent
         size={isCamera ? 28 : 22}
@@ -278,12 +271,8 @@ export default function Admin({ productsData }) {
         <h1>Borrowing System - Admin Panel</h1>
         <div className="admin-header-actions">
           {canAccessBorrow && (
-            <button
-              onClick={() => navigate('/lend')}
-              className="borrow-button"
-            >
-              <QrCode size={18} />
-              Borrow/Return
+            <button onClick={() => navigate('/lend')} className="borrow-button">
+              <QrCode size={18} /> Borrow/Return
             </button>
           )}
           <span className="user-info">
@@ -417,7 +406,8 @@ export function ProductsTab() {
 
 // /history – all or my history depending on role
 export function HistoryTab() {
-  const { currentUser, getBorrowingHistoryForCurrentUser } = useAdminContext();
+  const { currentUser, getBorrowingHistoryForCurrentUser } =
+    useAdminContext();
   const data = getBorrowingHistoryForCurrentUser();
 
   return (
@@ -457,98 +447,6 @@ export function MyHistoryTab() {
         allowDelete={false}
         pageSize={10}
       />
-    </div>
-  );
-}
-
-// /settings
-export function SettingsTab() {
-  const {
-    currentUser,
-    passwordForm,
-    handlePasswordInputChange,
-    handlePasswordSubmit,
-    passwordStatus,
-  } = useAdminContext();
-
-  return (
-    <div className="admin-settings">
-      <div className="admin-settings-section">
-        <h3>User Details</h3>
-        <div className="settings-field">
-          <span className="settings-label">Name</span>
-          <span className="settings-value">{currentUser?.name || '-'}</span>
-        </div>
-        <div className="settings-field">
-          <span className="settings-label">Username</span>
-          <span className="settings-value">
-            {currentUser?.username || '-'}
-          </span>
-        </div>
-        <div className="settings-field">
-          <span className="settings-label">Role</span>
-          <span className="settings-value">{currentUser?.role || '-'}</span>
-        </div>
-      </div>
-
-      <div className="admin-settings-section">
-        <h3>Change Password</h3>
-        <form className="password-form" onSubmit={handlePasswordSubmit}>
-          <label className="password-form-field">
-            <span>Current password</span>
-            <input
-              type="password"
-              value={passwordForm.currentPassword}
-              onChange={(e) =>
-                handlePasswordInputChange('currentPassword', e.target.value)
-              }
-              placeholder="Enter current password"
-            />
-          </label>
-          <label className="password-form-field">
-            <span>New password</span>
-            <input
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={(e) =>
-                handlePasswordInputChange('newPassword', e.target.value)
-              }
-              placeholder="Enter new password"
-            />
-          </label>
-          <label className="password-form-field">
-            <span>Confirm new password</span>
-            <input
-              type="password"
-              value={passwordForm.confirmPassword}
-              onChange={(e) =>
-                handlePasswordInputChange('confirmPassword', e.target.value)
-              }
-              placeholder="Re-enter new password"
-            />
-          </label>
-
-          {passwordStatus && (
-            <div
-              className={`password-status ${
-                passwordStatus.type === 'error' ? 'error' : 'success'
-              }`}
-              role="alert"
-            >
-              {passwordStatus.message}
-            </div>
-          )}
-
-          <button type="submit" className="password-submit-btn">
-            Update Password
-          </button>
-        </form>
-      </div>
-
-      <div className="admin-settings-section">
-        <h3>Account</h3>
-        {/* Extra account actions if you like */}
-      </div>
     </div>
   );
 }

@@ -11,8 +11,8 @@ import Admin, {
   ProductsTab,
   HistoryTab,
   MyHistoryTab,
-  SettingsTab,
 } from './components/Admin';
+import { SettingsTab } from './components/SettingTab';
 
 export default function App() {
   const { isAuthenticated } = useAuth();
