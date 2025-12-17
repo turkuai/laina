@@ -1,6 +1,6 @@
 import React from 'react';
 
-function QRCodePopup({ product }) {
+function QRCodePopup({ ref, product }) {
 
     const productData = JSON.stringify({
         id: product.id,
@@ -13,20 +13,30 @@ function QRCodePopup({ product }) {
         qr_code: product.qr_code,
     });
 
+    const dialog = React.useRef(null);
+
+    React.useImperativeHandle(ref, () => {
+        return {
+            open() {
+                dialog.current.showModal();
+            }
+        };
+    }, [])
+
     return (
-        <dialog className="qr-code-container">
+        <dialog ref={dialog} className="qr-code-container">
             <div className="qr-code-content">
-                
+
                 <h2>{product.product_name}</h2>
-                
+
                 <div className="qr-code-image" style={{
-                        background: `url("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(productData)}")`,
-                        backgroundSize: '250px 250px',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center',
-                        width: '250px',
-                        height: '250px',
-                    }}>
+                    background: `url("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(productData)}")`,
+                    backgroundSize: '250px 250px',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    width: '250px',
+                    height: '250px',
+                }}>
                 </div>
             </div>
         </dialog>
