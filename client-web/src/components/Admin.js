@@ -9,6 +9,7 @@ import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
 
+
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
