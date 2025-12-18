@@ -1,62 +1,83 @@
-// Create express router
-const express = require('express')
-const router = express.Router()
+import express from "express";
+import db from "../db/location.js";
 
-// Import database functions
-const db = require('../db/locations')
+const router = express.Router();
 
 // GET /locations?page=1 - list locations with pagination
-router.get('/', (req, res) => {
-  const page = parseInt(req.query.page) || 1 // default to page 1
-  db.getLocations(page, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    } // if fail
-    res.json(result) // send data to frontend
-  })
-})
+// GET /locations?page=1 - list locations with pagination
+router.get("/", (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    console.log("🛰️ GET /locations?page=", page);
+
+    db.getLocations(page, (err, result) => {
+      if (err) {
+        console.error(
+          "❌ FULL ERROR OBJECT FROM DB:",
+          JSON.stringify(err, null, 2)
+        );
+        return res.status(500).json({ error: err });
+      }
+      res.json(result);
+    });
+  } catch (e) {
+    console.error("🔥 Unexpected crash in GET /locations:", e);
+    res.status(500).json({ error: "Server crash: " + e.message });
+  }
+});
 
 // POST /locations - create new location
-router.post('/', (req, res) => {
-  const name = req.body.name
-  if (!name) { 
-    return res.status(400).json({ error: 'name is required' }) 
-  } // bad request
+router.post("/", (req, res) => {
+  const { location_name, description } = req.body;
 
-  db.addLocation(name, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
-    }
-    res.status(201).json(result) // send back new row
-  })
-})
+  console.log("Received location_name:", location_name);
+  console.log("Received description:", description);
 
-// PATCH /locations/:id - update location name
-router.patch('/:id', (req, res) => {
-  const id = req.params.id
-  const name = req.body.name
-  if (!name) { 
-    return res.status(400).json({ error: 'name is required' }) 
+  if (!location_name || !description) {
+    return res
+      .status(400)
+      .json({ error: "location_name and description are required" });
   }
 
-  db.updateLocation(id, name, (err, result) => {
-    if (err) { 
-      return res.status(500).json({ error: 'DB error' }) 
+  db.addLocation(location_name, description, (err, result) => {
+    if (err) {
+      console.error("❌ Database error in POST /locations:", err);
+      if (err.error === "Location name already exists") {
+        return res.status(400).json({ error: err.error });
+      }
+      return res.status(500).json({ error: "DB error" });
     }
-    res.json(result) // send updated info
-  })
-})
+    res.status(201).json(result);
+  });
+});
+
+// PATCH /locations/:id - update location name
+router.patch("/:id", (req, res) => {
+  const id = req.params.id;
+  const location_name = req.body.location_name;
+  if (!location_name) {
+    return res.status(400).json({ error: "location_name is required" });
+  }
+
+  db.updateLocation(id, location_name, (err, result) => {
+    if (err) {
+      console.error("❌ Database error in PATCH /locations:", err);
+      return res.status(500).json({ error: "DB error" });
+    }
+    res.json(result);
+  });
+});
 
 // DELETE /locations/:id - remove location
-router.delete('/:id', (req, res) => {
-  const id = req.params.id
+router.delete("/:id", (req, res) => {
+  const id = req.params.id;
   db.deleteLocation(id, (err, result) => {
     if (err) {
-      return res.status(500).json({ error: 'DB error' }) 
+      console.error("❌ Database error in DELETE /locations:", err);
+      return res.status(500).json({ error: "DB error" });
     }
-    res.json(result) // confirm deletion
-  })
-})
+    res.json(result);
+  });
+});
 
-// Export the router so server can use it
-module.exports = router
+export default router;

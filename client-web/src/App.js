@@ -5,6 +5,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
 import Admin from "./components/Admin";
 import BorrowPage from "./components/BorrowPage";
+import LocationsTest from "./components/LocationsTest";
+
 
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -30,12 +32,16 @@ export default function App() {
         path="/"
         element={isAuthenticated ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />}
       />
+      <Route path="/login" element={<Login />} />
+      <Route path="/locations-test" element={<LocationsTest />} />
+
       
       {/* Redirect to admin if already authenticated */}
       <Route 
         path="/login" 
         element={isAuthenticated ? <Navigate to="/admin" replace /> : <Login />} 
       />
+
 
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<Admin />} />
