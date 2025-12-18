@@ -57,22 +57,23 @@ router.post('/', async (req, res, next) => {
   
   // UPDATE - Edit product type
   router.patch("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const { name, description } = req.body;
+    const id = parseInt(req.params.id);
+    const { name, description } = req.body;
 
-  db.selectProductTypeById(id, (err, existing) => {
-    if (err) return res.status(500).json({ error: err });
-    if (!existing)
-      return res.status(404).json({ error: "Product type not found" });
+    db.selectProductTypeById(id, (err, existing) => {
+      if (err) return res.status(500).json({ error: err });
+      if (!existing)
+        return res.status(404).json({ error: "Product type not found" });
 
-    const updatedFields = {
-      name: name ?? existing.name,
-      description: description ?? existing.description,
-    };
+      const updatedFields = {
+        name: name ?? existing.name,
+        description: description ?? existing.description,
+      };
 
-    db.updateProductType(id, updatedFields, (err2, updated) => {
-      if (err2) return res.status(500).json({ error: err2 });
-      res.json(updated);
+      db.updateProductType(id, updatedFields, (err2, updated) => {
+        if (err2) return res.status(500).json({ error: err2 });
+        res.json(updated);
+      });
     });
   });
 });
