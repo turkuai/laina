@@ -1,70 +1,88 @@
 import express from "express";
-import {
-  createProduct,
-  listProducts,
-  getProductById,
-  updateProduct,
-  deleteProduct
-} from "../db/products.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import db from "../db/products.js";
 
+dotenv.config();
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-router.post('/', async function(req, res, next) {
-  try {
-    const required = ['device_type_id', 'product_name', 'purchase_date'];
-    for (const k of required) {
-      if (!(k in req.body)) {
-        return res.status(400).json({ error: `Missing required field: ${k}` });
-      }
-    }
+router.use(cookieParser());
 
-    const { id } = await createProduct(req.body);
-    const created = await getProductById(id);
-    res.status(201).json(created);
-  } catch (err) {
-    next(err);
+// Middleware to verify JWT (from cookie or header)
+function verifyToken(req, res, next) {
+  const token =
+    req.cookies?.authToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401).json({ success: false, error: "No token provided" });
   }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ success: false, error: "Invalid or expired token" });
+  }
+}
+
+// CREATE - Protected
+router.post("/", verifyToken, (req, res) => {
+  db.insertProduct(req.body, (err, id) => {
+    if (err) return res.status(500).json({ error: err });
+
+    db.selectProductById(id, (err2, newProduct) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.status(201).json(newProduct);
+    });
+  });
 });
 
-router.get('/', async function(req, res, next) {
-  try {
-    const { page, limit } = req.query;
-    const data = await listProducts({ page, limit });
+// READ (paginated) - Protected
+router.get("/", verifyToken, (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+
+  db.selectProducts(page, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
     res.json(data);
-  } catch (err) {
-    next(err);
-  }
+  });
 });
 
-router.get('/:id', async function(req, res, next) {
-  try {
-    const product = await getProductById(req.params.id);
-    if (!product) return res.status(404).json({ error: 'Not found' });
+// READ single - Protected
+router.get("/:id", verifyToken, (req, res) => {
+  db.selectProductById(req.params.id, (err, product) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
-  } catch (err) {
-    next(err);
-  }
+  });
 });
 
-router.patch('/:id', async function(req, res, next) {
-  try {
-    const { affectedRows } = await updateProduct(req.params.id, req.body || {});
-    if (affectedRows === 0) return res.status(404).json({ error: 'Not found or no changes' });
-    const updated = await getProductById(req.params.id);
-    res.json(updated);
-  } catch (err) {
-    next(err);
-  }
+// UPDATE - Protected
+router.patch("/:id", verifyToken, (req, res) => {
+  const id = req.params.id;
+  const fields = req.body;
+
+  db.updateProduct(id, fields, (err, updatedProduct) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!updatedProduct)
+      return res.status(404).json({ message: "Product not found" });
+    res.json(updatedProduct);
+  });
 });
 
-router.delete('/:id', async function(req, res, next) {
-  try {
-    const { affectedRows } = await deleteProduct(req.params.id);
-    if (affectedRows === 0) return res.status(404).json({ error: 'Not found' });
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
+// DELETE - Protected
+router.delete("/:id", verifyToken, (req, res) => {
+  db.deleteProduct(req.params.id, (err, affected) => {
+    if (err) return res.status(500).json({ error: err });
+    if (!affected)
+      return res.status(404).json({ message: "Product not found" });
+    res.json({ message: "Product deleted" });
+  });
 });
 
 export default router;

@@ -1,19 +1,24 @@
-import createError from "http-errors";
 import express from "express";
-import path from "path";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import logger from "morgan";
 import cors from "cors";
 import { fileURLToPath } from 'url';
+import createError from "http-errors";
 
+// Import routes
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
 import productsRouter from "./routes/products.js";
 import productTypesRouter from "./routes/product-types.js";
 import locationsRouter from "./routes/location.js";
+import borrowingHistoryRouter from "./routes/borrowing-history.js";
+
+dotenv.config();
 
 const app = express();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -25,36 +30,36 @@ app.set('view engine', 'hbs');
 app.use(cors()); // Enable CORS for React app
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/products', productsRouter);
-app.use('/device-types', productTypesRouter);
-app.use('/locations', locationsRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/products', productsRouter);
+app.use('/api/device-types', productTypesRouter);
+app.use('/api/locations', locationsRouter);
+app.use('/api/borrowing-history', borrowingHistoryRouter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+app.get("/api/health", (req, res) => {
+  res.json({ status: "Server is running" });
 });
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
+// Error handler
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err);
   res.status(err.status || 500);
-  res.render('error');
+  res.json({
+    success: false,
+    error: err.message || "Internal Server Error",
+  });
 });
 
 export default app;

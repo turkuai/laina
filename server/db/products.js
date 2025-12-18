@@ -25,8 +25,6 @@ export async function createProduct(product) {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [device_type_id, product_name, purchase_date, location_id, status, details, qr_code, is_retired]
   );
-
-  return { id: result.insertId };
 }
 
 export async function listProducts({ page = 1, limit = DEFAULT_PAGE_SIZE } = {}) {
@@ -111,7 +109,6 @@ export async function getProductById(id) {
      WHERE p.id = ? AND p.is_retired = 0`,
     [id]
   );
-  return rows[0] || null;
 }
 
 export async function updateProduct(id, updates) {
@@ -127,24 +124,34 @@ export async function updateProduct(id, updates) {
     }
   }
 
-  if (fields.length === 0) {
-    return { affectedRows: 0 };
-  }
+  db.query(
+    "UPDATE products SET name = ?, product_type_id = ?, quantity = ?, description = ? WHERE id = ?",
+    [name, product_type_id, quantity, description, id],
+    (err, result) => {
+      if (err) return callback(err);
 
-  values.push(id);
-
-  const [result] = await db.query(
-    `UPDATE products SET ${fields.join(', ')} WHERE id = ?`,
-    values
+      selectProductById(id, (err2, updatedProduct) => {
+        if (err2) return callback(err2);
+        callback(null, updatedProduct);
+      });
+    }
   );
-
-  return { affectedRows: result.affectedRows };
 }
 
-export async function deleteProduct(id) {
-  const [result] = await db.query(
-    'UPDATE products SET is_retired = 1 WHERE id = ?',
-    [id]
-  );
-  return { affectedRows: result.affectedRows };
+// DELETE — remove a product
+function deleteProduct(id, callback) {
+  db.query("DELETE FROM products WHERE id = ?", [id], (err, result) => {
+    if (err) return callback(err);
+    callback(null, result.affectedRows > 0);
+  });
 }
+
+const products = {
+  insertProduct,
+  selectProducts,
+  selectProductById,
+  updateProduct,
+  deleteProduct,
+};
+
+export default products;

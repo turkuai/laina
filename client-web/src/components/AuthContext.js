@@ -2,74 +2,114 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-// NEW: key for localStorage
-const STORAGE_KEY = 'borrowing_system_current_user';
-
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // NEW: on first load, try to restore user from localStorage
+  // On first load, verify JWT token from httpOnly cookie
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const verifyToken = async () => {
       try {
-        const user = JSON.parse(stored);
-        setIsAuthenticated(true);
-        setCurrentUser(user);
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
+        const response = await fetch('/api/users/verify', {
+          method: 'GET',
+          credentials: 'include', // Include cookies in request
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const safeUser = {
+            id: data.user.id,
+            username: data.user.username,
+            name: data.user.displayName,
+            role: data.user.role
+          };
+          setIsAuthenticated(true);
+          setCurrentUser(safeUser);
+        } else {
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
+      } catch (error) {
+        console.error('Token verification error:', error);
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    verifyToken();
   }, []);
 
-  // SMALL CHANGE: added optional "remember" param
-  const login = (username, password, remember = false) => {
-    const users = [
-      { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User' },
-      { id: 2, username: 'mikko', password: 'pass123', role: 'student', name: 'Mikko' },
-      { id: 3, username: 'ville', password: 'pass123', role: 'student', name: 'Ville' },
-      { id: 4, username: 'sanna', password: 'pass123', role: 'teacher', name: 'Sanna' },
-      { id: 5, username: 'aino', password: 'pass123', role: 'student', name: 'Aino' }
-    ];
+  // Login function - now with rememberMe parameter for httpOnly cookie
+  const login = async (username, password, rememberMe = false) => {
+    try {
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        credentials: 'include', // Include cookies in request
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password, rememberMe }),
+      });
 
-    const user = users.find(u => 
-      u.username.toLowerCase().trim() === username.toLowerCase().trim() && 
-      u.password === password.trim()
-    );
-    
-    if (user) {
-      const safeUser = { 
-        id: user.id, 
-        username: user.username, 
-        name: user.name,
-        role: user.role 
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { 
+          success: false, 
+          error: data.error || 'Invalid username or password' 
+        };
+      }
+
+      // Backend returns { success, message, user }
+      const safeUser = {
+        id: data.user.id,
+        username: data.user.username,
+        name: data.user.displayName,
+        role: data.user.role
       };
 
       setIsAuthenticated(true);
       setCurrentUser(safeUser);
 
-      // NEW: if remember is checked, persist user; otherwise clear
-      if (remember) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
+      // httpOnly cookie is automatically set by the server
+      // No client-side storage needed
 
       return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: 'Connection error. Please try again.' 
+      };
     }
-    return { success: false, error: 'Invalid username or password' };
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    // NEW: also clear persisted user
-    localStorage.removeItem(STORAGE_KEY);
+  // Logout function - clear httpOnly cookie on server
+  const logout = async () => {
+    try {
+      await fetch('/api/users/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

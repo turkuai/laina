@@ -13,198 +13,6 @@ const generateHash = () => {
   return hash;
 };
 
-// QR Code Component
-const QRCodeDisplay = ({ data }) => {
-  return (
-    <div className="qr-code-container">
-      <div className="qr-code-image" style={{
-        background: `url("https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data)}")`,
-        backgroundSize: '250px 250px',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-      }}></div>
-      <p className="qr-code-label">
-        Scan to view product
-      </p>
-    </div>
-  );
-};
-
-// Product Modal with QR Code
-const ProductModal = ({ product, onClose }) => {
-  const productData = JSON.stringify({
-    id: product.id,
-    name: product.product_name,
-    deviceType: product.type_name,
-    purchaseDate: product.purchase_date,
-    location: product.location_name,
-    status: product.status,
-    details: product.details,
-    qr_code: product.qr_code,
-    ...(product.status === 'borrowed' && product.current_borrower_name && {
-      borrower: product.current_borrower_name,
-      borrowDate: product.current_borrow_date,
-      estimatedReturn: product.estimated_return_date
-    })
-  });
-
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(productData)}`;
-    
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print QR Code - ${product.product_name}</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              padding: 40px;
-              margin: 0;
-            }
-            .print-container {
-              text-align: center;
-              max-width: 400px;
-            }
-            h1 {
-              font-size: 24px;
-              color: #1f2937;
-              margin-bottom: 8px;
-            }
-            .product-details {
-              color: #6b7280;
-              font-size: 14px;
-              margin-bottom: 24px;
-            }
-            .qr-code {
-              border: 2px solid #e5e7eb;
-              padding: 20px;
-              border-radius: 12px;
-              background: white;
-              margin-bottom: 16px;
-            }
-            .qr-code img {
-              width: 300px;
-              height: 300px;
-              display: block;
-            }
-            .instructions {
-              font-size: 12px;
-              color: #9ca3af;
-              margin-top: 16px;
-            }
-            .hash-code {
-              font-size: 10px;
-              color: #9ca3af;
-              margin-top: 8px;
-              word-break: break-all;
-            }
-            @media print {
-              body {
-                padding: 0;
-              }
-              .instructions {
-                display: none;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-container">
-            <h1>${product.product_name}</h1>
-            <div class="product-details">
-              <p><strong>Device Type:</strong> ${product.type_name || 'N/A'}</p>
-              <p><strong>Location:</strong> ${product.location_name || 'N/A'}</p>
-              <p><strong>Status:</strong> ${product.status}</p>
-            </div>
-            <div class="qr-code">
-              <img src="${qrUrl}" alt="QR Code for ${product.product_name}" />
-            </div>
-            ${product.qr_code ? `<p class="hash-code">Hash: ${product.qr_code}</p>` : ''}
-            <p class="instructions">Scan this QR code with the TAIN Scanner app</p>
-          </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
-
-  return (
-    <div className="product-modal-overlay">
-      <div className="product-modal">
-        <button onClick={onClose} className="product-modal-close">
-          ×
-        </button>
-
-        <h2 className="product-modal-title">
-          {product.product_name}
-        </h2>
-
-        <div className="product-modal-info">
-          <p className="product-info-item">
-            <strong>Device Type:</strong> {product.type_name || 'N/A'}
-          </p>
-          <p className="product-info-item">
-            <strong>Purchase Year:</strong> {product.purchase_date}
-          </p>
-          <p className="product-info-item">
-            <strong>Location:</strong> {product.location_name || 'N/A'}
-          </p>
-          <p className="product-info-item">
-            <strong>Status:</strong> {product.status}
-          </p>
-          {product.details && (
-            <p className="product-info-item">
-              <strong>Details:</strong> {product.details}
-            </p>
-          )}
-          {product.status === 'borrowed' && product.current_borrower_name && (
-            <>
-              <p className="product-info-item">
-                <strong>Borrowed by:</strong> {product.current_borrower_name}
-              </p>
-              {product.estimated_return_date && (
-                <p className="product-info-item">
-                  <strong>Expected return:</strong> {new Date(product.estimated_return_date).toLocaleDateString('fi-FI')}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="product-modal-qr">
-          <h3 className="qr-section-title">
-            Product QR Code
-          </h3>
-          <QRCodeDisplay data={productData} />
-        </div>
-
-        <div className="product-modal-actions">
-          <button onClick={handlePrint} className="product-modal-print-btn">
-            🖨️ Print QR Code
-          </button>
-          <button onClick={onClose} className="product-modal-close-btn">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
 export default function Products({ currentUser }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ 
@@ -307,6 +115,15 @@ export default function Products({ currentUser }) {
       alert(`Failed to add product: ${err.message}`);
     }
   };
+  const filteredProducts = products.filter(p => {
+    if (!query?.trim()) return true;
+    const q = query.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.status.toLowerCase().includes(q)
+    );
+  });
 
   const handleDelete = async (productId) => {
     if (currentUser?.role !== 'admin') return;
