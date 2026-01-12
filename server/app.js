@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import logger from "morgan";
 import cors from "cors";
-import { fileURLToPath } from 'url';
 import createError from "http-errors";
 
 // Import routes

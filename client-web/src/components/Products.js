@@ -3,6 +3,98 @@ import './Products.css';
 import ServerGrid from './ServerGrid';
 import QRCodeRenderer from './QRCodeRenderer';
 
+// ProductModal component for displaying QR code
+const ProductModal = ({ product, onClose }) => {
+  if (!product) return null;
+
+  const productData = JSON.stringify({
+    id: product.id,
+    name: product.product_name,
+    deviceType: product.type_name,
+    purchaseDate: product.purchase_date,
+    location: product.location_name,
+    status: product.status,
+    details: product.details,
+    qr_code: product.qr_code,
+  });
+
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(productData)}`;
+
+  const handleDownload = () => {
+    fetch(qrCodeUrl)
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${product.product_name}-qrcode.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      });
+  };
+
+  return (
+    <div className="product-modal-overlay" onClick={onClose}>
+      <div className="product-modal" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="product-modal-close" aria-label="Close">
+          ×
+        </button>
+        
+        <h2 className="product-modal-title">{product.product_name}</h2>
+        
+        <div className="product-modal-info">
+          {product.type_name && (
+            <div className="product-info-item">
+              <strong>Device Type:</strong> {product.type_name}
+            </div>
+          )}
+          {product.purchase_date && (
+            <div className="product-info-item">
+              <strong>Purchase Year:</strong> {product.purchase_date}
+            </div>
+          )}
+          {product.location_name && (
+            <div className="product-info-item">
+              <strong>Location:</strong> {product.location_name}
+            </div>
+          )}
+          {product.status && (
+            <div className="product-info-item">
+              <strong>Status:</strong> {product.status}
+            </div>
+          )}
+        </div>
+
+        <div className="product-modal-qr">
+          <div 
+            className="qr-code-image" 
+            style={{
+              background: `url("${qrCodeUrl}")`,
+              backgroundSize: '250px 250px',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              width: '250px',
+              height: '250px',
+            }}
+          />
+          <p className="qr-code-label">QR Code</p>
+        </div>
+
+        <div className="product-modal-actions">
+          <button onClick={handleDownload} className="product-modal-print-btn">
+            Download QR Code
+          </button>
+          <button onClick={onClose} className="product-modal-close-btn">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Generate a unique 45-character hash
 const generateHash = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -43,9 +135,18 @@ export default function Products({ currentUser }) {
     try {
       // Fetch products, device types, and locations in parallel
       const [productsRes, typesRes, locationsRes] = await Promise.all([
-        fetch('/products'),
-        fetch('/device-types'),
-        fetch('/locations')
+        fetch('/api/products?page=1', {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        }),
+        fetch('/api/device-types', {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        }),
+        fetch('/api/locations?page=1', {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        })
       ]);
 
       if (!productsRes.ok || !typesRes.ok || !locationsRes.ok) {
@@ -56,9 +157,10 @@ export default function Products({ currentUser }) {
       const typesData = await typesRes.json();
       const locationsData = await locationsRes.json();
 
-      setProducts(productsData.items || []);
-      setDeviceTypes(typesData.items || []);
-      setLocations(locationsData.items || []);
+      // Handle different response formats
+      setProducts(productsData.products || productsData.data || productsData.items || []);
+      setDeviceTypes(typesData.types || typesData.data || typesData.items || []);
+      setLocations(locationsData.locations || locationsData.data || locationsData.items || []);
     } catch (err) {
       console.error('Error loading data:', err);
       setError('Failed to connect to server.');
@@ -84,8 +186,9 @@ export default function Products({ currentUser }) {
         qr_code: generateHash() // Generate hash once and send to database
       };
 
-      const response = await fetch('/products', {
+      const response = await fetch('/api/products', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -115,15 +218,7 @@ export default function Products({ currentUser }) {
       alert(`Failed to add product: ${err.message}`);
     }
   };
-  const filteredProducts = products.filter(p => {
-    if (!query?.trim()) return true;
-    const q = query.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      p.status.toLowerCase().includes(q)
-    );
-  });
+  
 
   const handleDelete = async (productId) => {
     if (currentUser?.role !== 'admin') return;
@@ -134,8 +229,12 @@ export default function Products({ currentUser }) {
     }
 
     try {
-      const response = await fetch(`/products/${productId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
       if (!response.ok) {
