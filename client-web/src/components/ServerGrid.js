@@ -11,7 +11,6 @@ const formatColumnName = (columnName) => {
 
 export default function ServerGrid({
   columns,
-  columnRenderers,
   path,                 // API endpoint
   allowEditing = false,
   allowDelete = false,
@@ -35,11 +34,9 @@ export default function ServerGrid({
     try {
       // Build the full URL with page parameter
       let fullUrl = path;
-      // Ensure /api/ prefix if not present; avoid accidental double slashes
+      // Ensure /api/ prefix if not present
       if (!fullUrl.startsWith('/api/')) {
-        // Remove leading slash if present to avoid double slashes
-        const cleanPath = fullUrl.startsWith('/') ? fullUrl.slice(1) : fullUrl;
-        fullUrl = `/api/${cleanPath}`;
+        fullUrl = `/api/${fullUrl}`;
       }
       
       const separator = fullUrl.includes('?') ? '&' : '?';
@@ -111,11 +108,9 @@ export default function ServerGrid({
 
     try {
       let deleteUrl = `${path.split('?')[0]}/${row.id}`;
-      // Ensure /api/ prefix if not present; avoid accidental double slashes
+      // Ensure /api/ prefix if not present
       if (!deleteUrl.startsWith('/api/')) {
-        // Remove leading slash if present to avoid double slashes
-        const cleanPath = deleteUrl.startsWith('/') ? deleteUrl.slice(1) : deleteUrl;
-        deleteUrl = `/api/${cleanPath}`;
+        deleteUrl = `/api/${deleteUrl}`;
       }
 
       const res = await fetch(deleteUrl, {
@@ -180,8 +175,7 @@ export default function ServerGrid({
       )}
 
       <Grid
-        columns={columns}
-        columnRenderers={columnRenderers}
+        columns={columnConfig}
         data={data}
         allowEditing={allowEditing}
         allowDelete={allowDelete}

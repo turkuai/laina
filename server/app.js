@@ -4,17 +4,16 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import logger from "morgan";
-import cors from "cors";
 import createError from "http-errors";
-import borrowRouter from "./routes/borrow.js";
+import borrowRouter from "./routes/borrow.js"
 
 // Import routes
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
-import productsRouter from "./routes/products.js";
-import productTypesRouter from "./routes/product-types.js";
-import locationsRouter from "./routes/location.js";
+import locationRouter from "./routes/location.js";
 import borrowingHistoryRouter from "./routes/borrowing-history.js";
+import productsRouter from "./routes/products.js";
+import { error } from "console";
 
 dotenv.config();
 
@@ -22,27 +21,20 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'hbs');
-
 // Middleware
-app.use(cors()); // Enable CORS for React app
-app.use(logger('dev'));
+app.use(logger("dev"));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
 app.use("/", indexRouter);
 app.use("/api/users", usersRouter);
-app.use("/api/products", productsRouter);
-app.use("/api/device-types", productTypesRouter);
-app.use("/api/locations", locationsRouter);
-app.use("/locations", locationsRouter); // Keep legacy path used by client helpers
+app.use("/locations", locationRouter);
 app.use("/api/borrowing-history", borrowingHistoryRouter);
-app.use("/api/borrow", borrowRouter);
+app.use("/api/products", productsRouter);
+app.use('/api/borrow', borrowRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -51,8 +43,8 @@ app.get("/api/health", (req, res) => {
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  const err = createError(404);
-  next(err);
+  next(createError(404));
+  console.log(error)
 });
 
 // Error handler
