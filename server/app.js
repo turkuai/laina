@@ -37,6 +37,8 @@ app.use(express.static(path.join(__dirname, "public")));
 // Routes
 app.use("/", indexRouter);
 app.use("/api/users", usersRouter);
+app.use("/locations", locationRouter);
+app.use("/api/borrowing-history", borrowingHistoryRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/device-types", productTypesRouter);
 app.use("/api/locations", locationsRouter);
@@ -51,8 +53,8 @@ app.get("/api/health", (req, res) => {
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  const err = createError(404);
-  next(err);
+  next(createError(404));
+  console.log(error)
 });
 
 // Error handler
