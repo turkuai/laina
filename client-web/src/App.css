@@ -45,14 +45,14 @@ input {
 }
 
 input:focus {
-  border-color: #0077ff;
+  border-color: #ce1717;
   outline: none;
 }
 
 /* Button styles */
 button {
   padding: 12px;
-  background-color: #0077ff;
+  background-color: #ce1717;
   color: white;
   font-weight: bold;
   font-size: 16px;
@@ -63,7 +63,7 @@ button {
 }
 
 button:hover {
-  background-color: #005fcd;
+  background-color: #ce1717;
 }
 
 /* Admin page layout */
