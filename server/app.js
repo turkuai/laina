@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import logger from "morgan";
 import createError from "http-errors";
+import borrowRouter from "./routes/borrow.js"
 
 // Import routes
 import indexRouter from "./routes/index.js";
@@ -12,6 +13,7 @@ import usersRouter from "./routes/users.js";
 import locationRouter from "./routes/location.js";
 import borrowingHistoryRouter from "./routes/borrowing-history.js";
 import productsRouter from "./routes/products.js";
+import { error } from "console";
 
 dotenv.config();
 
@@ -28,10 +30,11 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
+app.use("/api/users", usersRouter);
 app.use("/locations", locationRouter);
 app.use("/api/borrowing-history", borrowingHistoryRouter);
 app.use("/api/products", productsRouter);
+app.use('/api/borrow', borrowRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -41,6 +44,7 @@ app.get("/api/health", (req, res) => {
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   next(createError(404));
+  console.log(error)
 });
 
 // Error handler
