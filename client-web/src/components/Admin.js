@@ -8,6 +8,9 @@ import './Admin.css';
 import BorrowPage from './BorrowPage';
 import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
+import StatusRenderer from './StatusRenderer';
+import QRCodeRenderer from './QRCodeRenderer';
+
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {
@@ -762,13 +765,17 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {activeTab === 'products' && (
-            <Products
-              currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
-              productsData={productsData}
-              query={userQuery}
-            />
+          {activeTab === 'products' && currentUser?.role === 'admin' && (
+            <div>
+              <ServerGrid
+                columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
+                columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
+                path="/products"
+                allowEditing={false}
+                allowDelete={true}
+                pageSize={10}
+              />
+            </div>
           )}
 
           {activeTab === 'history' && (
@@ -865,16 +872,19 @@ export default function Admin({ productsData }) {
       {isMobile && (
         <nav className="admin-mobile-nav" aria-label="Navigation">
 
-          {currentUser?.role === 'admin' && (
-            <button
-              type="button"
-              className="admin-mobile-nav__camera"
-              onClick={() => navigate('/borrow')}
-              aria-label="Open camera scanner"
-            >
-              <ScanQrCode className="admin-mobile-nav__camera-icon" />
-            </button>
-          )}
+        {currentUser?.role === 'admin' && (
+          <button
+            type="button"
+            className="admin-mobile-nav__camera"
+            onClick={() => {
+              setActiveTab('camera');
+              setShowCamera(true);
+            }}
+            aria-label="Open camera scanner"
+          >
+            <ScanQrCode className="admin-mobile-nav__camera-icon" />
+          </button>
+        )}
           {tabs.map(tab => (
             <button
               type="button"
