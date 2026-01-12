@@ -872,16 +872,19 @@ export default function Admin({ productsData }) {
       {isMobile && (
         <nav className="admin-mobile-nav" aria-label="Navigation">
 
-          {currentUser?.role === 'admin' && (
-            <button
-              type="button"
-              className="admin-mobile-nav__camera"
-              onClick={() => navigate('/borrow')}
-              aria-label="Open camera scanner"
-            >
-              <ScanQrCode className="admin-mobile-nav__camera-icon" />
-            </button>
-          )}
+        {currentUser?.role === 'admin' && (
+          <button
+            type="button"
+            className="admin-mobile-nav__camera"
+            onClick={() => {
+              setActiveTab('camera');
+              setShowCamera(true);
+            }}
+            aria-label="Open camera scanner"
+          >
+            <ScanQrCode className="admin-mobile-nav__camera-icon" />
+          </button>
+        )}
           {tabs.map(tab => (
             <button
               type="button"
