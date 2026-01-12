@@ -103,7 +103,9 @@ export default function Grid({
         editable: allowEditing,
         sortable: true,
         filter: 'agTextColumnFilter',
-        floatingFilter: !isMobile,
+
+        // Disable floating filters to remove the per-column search inputs
+        floatingFilter: false,
         resizable: true,
         flex: isMobile ? undefined : 1,
         width: width,
