@@ -10,6 +10,8 @@ import usersRouter from "./routes/users.js";
 import borrowingHistoryRouter from "./routes/borrowing-history.js";
 import productsRouter from "./routes/products.js";
 
+dotenv.config();
+
 const app = express();
 export default app;
 
@@ -26,14 +28,17 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/api/borrowing-history', borrowingHistoryRouter);
-app.use('/api/products', productsRouter);
+// Routes
+app.use("/", indexRouter);
+app.use("/users", usersRouter);
+app.use("/locations", locationRouter);
+app.use("/api/borrowing-history", borrowingHistoryRouter);
+app.use("/api/products", productsRouter);
 
 // 404 handler (must always be last before the error handler)
 app.use(function(req, res, next) {
   next(createError(404));
+  console.log(error);
 });
 
 // error handler

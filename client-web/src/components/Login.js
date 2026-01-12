@@ -57,9 +57,9 @@ export default function Login() {
             navigate("/admin", { replace: true });
         } else {
             setError(result.error);
-        }
+        }                                                                                                                  
     };
-
+                                             
     return (
         <div className="page-container login-container">
             <div className="login-card">
@@ -151,5 +151,5 @@ export default function Login() {
                 </div>
             </div>
         </div>
-    );
+    ); 
 }
