@@ -8,6 +8,9 @@ import './Admin.css';
 import BorrowPage from './BorrowPage';
 import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
+import StatusRenderer from './StatusRenderer';
+import QRCodeRenderer from './QRCodeRenderer';
+
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {
@@ -762,13 +765,17 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {activeTab === 'products' && (
-            <Products
-              currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
-              productsData={productsData}
-              query={userQuery}
-            />
+          {activeTab === 'products' && currentUser?.role === 'admin' && (
+            <div>
+              <ServerGrid
+                columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
+                columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
+                path="/products"
+                allowEditing={false}
+                allowDelete={true}
+                pageSize={10}
+              />
+            </div>
           )}
 
           {activeTab === 'history' && (
