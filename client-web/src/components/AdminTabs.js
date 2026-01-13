@@ -28,4 +28,4 @@ export default function AdminTabs({ tabs, activeTab, onTabClick, getTabLabel, re
       </div>
     </div>
   );
-}
+} // close it
