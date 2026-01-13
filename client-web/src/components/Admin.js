@@ -237,30 +237,6 @@ export default function Admin({ productsData }) {
     tabs.push('settings');
   }
 
-  const tabIconMap = {
-    camera: ScanQrCode,
-    users: Users,
-    products: Package,
-    history: History,
-    settings: Settings
-  };
-
-  const renderTabIcon = (tab) => {
-    const IconComponent = tabIconMap[tab];
-    if (!IconComponent) {
-      return null;
-    }
-    const isCamera = tab === 'camera';
-
-    return (
-      <IconComponent
-        size={isCamera ? 28 : 22}
-        strokeWidth={isCamera ? 2.6 : 2.2}
-        aria-hidden="true"
-      />
-    );
-  };
-
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
       case 'camera': return 'Camera';
@@ -801,36 +777,16 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Bottom Tab Bar */}
       {isMobile && (
-        <nav className="admin-mobile-nav" aria-label="Navigation">
-
-        {currentUser?.role === 'admin' && (
-          <button
-            type="button"
-            className="admin-mobile-nav__camera"
-            onClick={() => {
-              setActiveTab('camera');
-              setShowCamera(true);
-            }}
-            aria-label="Open camera scanner"
-          >
-            <ScanQrCode className="admin-mobile-nav__camera-icon" />
-          </button>
-        )}
-          {tabs.map(tab => (
-            <button
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={[
-                'admin-mobile-nav__cell',
-                activeTab === tab ? 'is-active' : ''
-              ].join(' ').trim()}
-              aria-label={tab}
-              key={tab}
-            >
-              {renderTabIcon(tab)}
-            </button>))
-          }
-        </nav>
+        <AdminMobileNav
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabClick={setActiveTab}
+          onCameraClick={() => {
+            setActiveTab('camera');
+            setShowCamera(true);
+          }}
+          currentUser={currentUser}
+        />
       )}
 
     </div >
