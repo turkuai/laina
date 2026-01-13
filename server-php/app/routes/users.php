@@ -191,7 +191,17 @@ function update_user(PDO $pdo, string $id): void
     $role        = $role        ?? $user['role'];
     $phoneNumber = $phoneNumber ?? $user['phone_number'];
 
+    // If password is being changed, verify current password first
     if ($password) {
+        $currentPassword = $input['current_password'] ?? null;
+        if (!$currentPassword) {
+            json_response(['error' => 'Current password is required to change password'], 400);
+            return;
+        }
+        if (!password_verify($currentPassword, $user['password'])) {
+            json_response(['error' => 'Current password is incorrect'], 400);
+            return;
+        }
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
     } else {
         $hashedPassword = $user['password'];

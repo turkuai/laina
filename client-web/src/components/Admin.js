@@ -11,6 +11,14 @@ import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
 import { formatDate, getCurrentDate } from '../utils/dateUtils';
+import MobileProductBox from './MobileProductBox';
+import CameraView from './CameraView';
+import SearchBox from './SearchBox';
+import SettingsTab from './SettingsTab';
+import AdminHeader from './AdminHeader';
+import ProductModals from './ProductModals';
+import AdminTabs from './AdminTabs';
+import AdminMobileNav from './AdminMobileNav';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -123,9 +131,11 @@ export default function Admin({ productsData }) {
           setActiveTab('camera');
         }
         // When switching TO desktop from mobile  
+        // Preserve settings tab, only change camera tab
         else if (!mobile && wasMobile && activeTab === 'camera') {
           setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
         }
+        // Settings tab is preserved on both mobile and desktop
       }
     };
     handleResize();
@@ -133,11 +143,8 @@ export default function Admin({ productsData }) {
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobile, activeTab, currentUser]);
 
-  useEffect(() => {
-    if (!isMobile && activeTab === 'settings') {
-      setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
-    }
-  }, [isMobile, activeTab, currentUser]);
+  // Removed useEffect that was removing settings tab on desktop
+  // Settings is now available on both mobile and desktop
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
@@ -233,9 +240,8 @@ export default function Admin({ productsData }) {
   if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
     tabs.push('users');
   }
-  if (isMobile) {
-    tabs.push('settings');
-  }
+  // Add settings tab for both mobile and desktop
+  tabs.push('settings');
 
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
@@ -248,6 +254,20 @@ export default function Admin({ productsData }) {
     }
   };
 
+  // Render tab icon function
+  const renderTabIcon = (tab) => {
+    const iconMap = {
+      camera: ScanQrCode,
+      users: Users,
+      products: Package,
+      history: History,
+      settings: Settings
+    };
+    const IconComponent = iconMap[tab];
+    if (!IconComponent) return null;
+    return <IconComponent size={18} strokeWidth={2} aria-hidden="true" />;
+  };
+
   // Tab click handler
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -258,7 +278,7 @@ export default function Admin({ productsData }) {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handlePasswordSubmit = (event) => {
+  const handlePasswordSubmit = async (event) => {
     event.preventDefault();
 
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
@@ -276,12 +296,35 @@ export default function Admin({ productsData }) {
       return;
     }
 
-    setPasswordStatus({ type: 'success', message: 'Password change request submitted. (Demo only)' });
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+    try {
+      // Call API to change password
+      const response = await fetch(`/api/users/${currentUser?.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: passwordForm.newPassword,
+          current_password: passwordForm.currentPassword
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to change password');
+      }
+
+      setPasswordStatus({ type: 'success', message: 'Password changed successfully!' });
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Password change error:', error);
+      setPasswordStatus({ type: 'error', message: error.message || 'Failed to change password. Please try again.' });
+    }
   };
 
   // Render camera view content
