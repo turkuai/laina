@@ -10,6 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import PasswordForm from './PasswordForm';
 
 
 // Helper function to format date as DD.MM.YYYY
@@ -532,51 +533,12 @@ export default function Admin({ productsData }) {
                 </div>
               </div>
 
-              <div className="admin-settings-section">
-                <h3>Change Password</h3>
-                <form className="password-form" onSubmit={handlePasswordSubmit}>
-                  <label className="password-form-field">
-                    <span>Current password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.currentPassword}
-                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                      placeholder="Enter current password"
-                    />
-                  </label>
-                  <label className="password-form-field">
-                    <span>New password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                      placeholder="Enter new password"
-                    />
-                  </label>
-                  <label className="password-form-field">
-                    <span>Confirm new password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                      placeholder="Re-enter new password"
-                    />
-                  </label>
-
-                  {passwordStatus && (
-                    <div
-                      className={`password-status ${passwordStatus.type === 'error' ? 'error' : 'success'}`}
-                      role="alert"
-                    >
-                      {passwordStatus.message}
-                    </div>
-                  )}
-
-                  <button type="submit" className="password-submit-btn">
-                    Update Password
-                  </button>
-                </form>
-              </div>
+              <PasswordForm
+                form={passwordForm}
+                status={passwordStatus}
+                onInputChange={handlePasswordInputChange}
+                onSubmit={handlePasswordSubmit}
+              />
 
               <div className="admin-settings-section">
                 <h3>Account</h3>
@@ -811,51 +773,12 @@ export default function Admin({ productsData }) {
                 </div>
               </div>
 
-              <div className="admin-settings-section">
-                <h3>Change Password</h3>
-                <form className="password-form" onSubmit={handlePasswordSubmit}>
-                  <label className="password-form-field">
-                    <span>Current password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.currentPassword}
-                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                      placeholder="Enter current password"
-                    />
-                  </label>
-                  <label className="password-form-field">
-                    <span>New password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                      placeholder="Enter new password"
-                    />
-                  </label>
-                  <label className="password-form-field">
-                    <span>Confirm new password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                      placeholder="Re-enter new password"
-                    />
-                  </label>
-
-                  {passwordStatus && (
-                    <div
-                      className={`password-status ${passwordStatus.type === 'error' ? 'error' : 'success'}`}
-                      role="alert"
-                    >
-                      {passwordStatus.message}
-                    </div>
-                  )}
-
-                  <button type="submit" className="password-submit-btn">
-                    Update Password
-                  </button>
-                </form>
-              </div>
+              <PasswordForm
+                form={passwordForm}
+                status={passwordStatus}
+                onInputChange={handlePasswordInputChange}
+                onSubmit={handlePasswordSubmit}
+              />
 
               <div className="admin-settings-section">
                 <h3>Account</h3>
