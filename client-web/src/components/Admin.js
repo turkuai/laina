@@ -10,6 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import UsersTab from './UsersTab';
 
 
 // Helper function to format date as DD.MM.YYYY
@@ -424,33 +425,15 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-
-            {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
-            <h2>Users Management</h2>
-
-            <div style={{ height: '500px', width: '100%' }}>
-              <Grid
-                columns={['name', 'email', 'role']}
-                data={getFilteredUsers()}
-                allowEditing={true}
-                allowDelete={true}
-                onDeleteRow={handleDeleteUser}
-                onDataChange={handleDataChange}
-                pageSize={10}
-                height="500px"
-              />
-            </div>
-          </div>
-        </div>
+        <UsersTab
+          currentUser={currentUser}
+          users={getUserData()}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+          onDeleteUser={handleDeleteUser}
+          onDataChange={handleDataChange}
+          isMobile={true}
+        />
       );
     }
 
@@ -751,18 +734,15 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <div>
-              <h2>Users Management</h2>
-              <ServerGrid
-                columns={['first_name', 'last_name', 'email', 'role']}
-                path="users"
-                allowEditing={true}
-                allowDelete={true}
-                onDeleteRow={handleDeleteUser}
-                onDataChange={handleDataChange}
-                pageSize={10}
-              />
-            </div>
+            <UsersTab
+              currentUser={currentUser}
+              users={users}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+              onDeleteUser={handleDeleteUser}
+              onDataChange={handleDataChange}
+              isMobile={false}
+            />
           )}
 
           {activeTab === 'products' && currentUser?.role === 'admin' && (
