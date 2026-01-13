@@ -316,7 +316,16 @@ export default function Admin({ productsData }) {
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
-      return renderCameraView();
+      return (
+        <CameraView
+          currentUser={currentUser}
+          onScanClick={() => setShowCamera(true)}
+          scannedProduct={scannedProduct}
+          productStatus={productStatus}
+          onReturn={handleReturn}
+          onBorrow={handleBorrow}
+        />
+      );
     }
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
