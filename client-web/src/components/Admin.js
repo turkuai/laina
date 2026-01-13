@@ -10,6 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import CameraView from './CameraView';
 
 
 // Helper function to format date as DD.MM.YYYY
@@ -324,102 +325,19 @@ export default function Admin({ productsData }) {
   // Check if user is admin or teacher
   const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
 
-  // Render camera view content
-  const renderCameraView = () => (
-    <div className="borrow-content">
-      {currentUser?.role !== 'student' && (
-        <button
-          onClick={() => setShowCamera(true)}
-          className="scan-button"
-        >
-          SCAN QR CODE
-        </button>
-      )}
-
-      {currentUser?.role !== 'student' && (
-        <p className="help-text">
-          Press the button to scan a product QR code
-        </p>
-      )}
-
-      {/* Mobile Product Info Box */}
-      {scannedProduct && (
-        <div className="mobile-product-box">
-          <h3 className="mobile-product-title">{scannedProduct.name}</h3>
-          <div className="mobile-product-status">
-            {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
-          </div>
-
-          {productStatus === 'borrowed' ? (
-            <>
-              <div className="mobile-info-section">
-                <p className="mobile-label">Lainaataan:</p>
-                <p className="mobile-value">Nimi: {scannedProduct.borrower}</p>
-                <p className="mobile-value">Pvm: {scannedProduct.borrowDate}</p>
-              </div>
-              <div className="mobile-info-section">
-                <p className="mobile-label">Viimeinen palautuspäivä:</p>
-                <p className="mobile-value">{scannedProduct.returnDate}</p>
-              </div>
-            </>
-          ) : (
-            <div className="mobile-info-section">
-              <p className="mobile-label">Lainaataan:</p>
-              <input
-                type="text"
-                placeholder="Nimi:"
-                className="mobile-input"
-                id="mobile-borrower-name"
-              />
-              <input
-                type="tel"
-                placeholder="Pvm:"
-                className="mobile-input"
-                id="mobile-borrower-phone"
-              />
-              <p className="mobile-label">Viimeinen palautuspäivä:</p>
-              <input
-                type="text"
-                placeholder="dd.mm.yyyy"
-                className="mobile-input"
-                id="mobile-return-date"
-              />
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              if (productStatus === 'borrowed') {
-                handleReturn();
-              } else {
-                const name = document.getElementById('mobile-borrower-name').value;
-                const phone = document.getElementById('mobile-borrower-phone').value;
-                const returnDate = document.getElementById('mobile-return-date').value;
-                if (!name || !phone || !returnDate) {
-                  alert('Fill in all fields!');
-                  return;
-                }
-                handleBorrow({
-                  borrowerName: name,
-                  borrowerPhone: phone,
-                  returnDate: returnDate,
-                  borrowDate: getCurrentDate()
-                });
-              }
-            }}
-            className="mobile-action-button"
-          >
-            {productStatus === 'borrowed' ? 'Palauta' : 'Lainaa'}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
-      return renderCameraView();
+      return (
+        <CameraView
+          currentUser={currentUser}
+          onScanClick={() => setShowCamera(true)}
+          scannedProduct={scannedProduct}
+          productStatus={productStatus}
+          onReturn={handleReturn}
+          onBorrow={handleBorrow}
+        />
+      );
     }
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
