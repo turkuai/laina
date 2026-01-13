@@ -316,7 +316,16 @@ export default function Admin({ productsData }) {
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
-      return renderCameraView();
+      return (
+        <CameraView
+          currentUser={currentUser}
+          onScanClick={() => setShowCamera(true)}
+          scannedProduct={scannedProduct}
+          productStatus={productStatus}
+          onReturn={handleReturn}
+          onBorrow={handleBorrow}
+        />
+      );
     }
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
@@ -403,37 +412,14 @@ export default function Admin({ productsData }) {
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <div className="admin-settings">
-              <div className="admin-settings-section">
-                <h3>User Details</h3>
-                <div className="settings-field">
-                  <span className="settings-label">Name</span>
-                  <span className="settings-value">{currentUser?.name || '-'}</span>
-                </div>
-                <div className="settings-field">
-                  <span className="settings-label">Username</span>
-                  <span className="settings-value">{currentUser?.username || '-'}</span>
-                </div>
-                <div className="settings-field">
-                  <span className="settings-label">Role</span>
-                  <span className="settings-value">{currentUser?.role || '-'}</span>
-                </div>
-              </div>
-
-              <PasswordForm
-                form={passwordForm}
-                status={passwordStatus}
-                onInputChange={handlePasswordInputChange}
-                onSubmit={handlePasswordSubmit}
-              />
-
-              <div className="admin-settings-section">
-                <h3>Account</h3>
-                <button type="button" className="settings-logout-btn" onClick={handleLogout}>
-                  Logout
-                </button>
-              </div>
-            </div>
+            <SettingsTab
+              currentUser={currentUser}
+              passwordForm={passwordForm}
+              passwordStatus={passwordStatus}
+              onPasswordInputChange={handlePasswordInputChange}
+              onPasswordSubmit={handlePasswordSubmit}
+              onLogout={handleLogout}
+            />
           </div>
         </div>
       );
@@ -467,70 +453,17 @@ export default function Admin({ productsData }) {
       )}
 
       {/* Product Modals - Desktop Only */}
-      <div className="hide-on-mobile">
-        {scannedProduct && productStatus === 'borrowed' && (
-          <div className="modal-overlay">
-            <div className="modal-container">
-              <button onClick={() => { setScannedProduct(null); setProductStatus(null); }} className="modal-close">×</button>
-              <h2 className="modal-title">{scannedProduct.name}</h2>
-              <div className="modal-status"><h3 className="status-borrowed">Borrowed</h3></div>
-              <div className="modal-content">
-                <p className="info-label">Borrowed by:</p>
-                <p className="info-value">{scannedProduct.borrower}</p>
-                <p className="info-value">{scannedProduct.borrowDate}</p>
-                <p className="info-label">Return deadline:</p>
-                <p className="info-value">{scannedProduct.returnDate}</p>
-                <p className="info-label">Return date:</p>
-                <div className="return-date-display">{getCurrentDate()}</div>
-              </div>
-              <button onClick={handleReturn} className="modal-action-btn">Return</button>
-            </div>
-          </div>
-        )}
-
-        {scannedProduct && productStatus === 'available' && (
-          <div className="modal-overlay">
-            <div className="modal-container">
-              <button onClick={() => { setScannedProduct(null); setProductStatus(null); }} className="modal-close">×</button>
-              <h2 className="modal-title">{scannedProduct.name}</h2>
-              <div className="modal-status"><h3 className="status-available">Available</h3></div>
-              <div className="modal-content">
-                <div className="info-input-wrapper">
-                  <label className="info-label">Borrowing to:</label>
-                  <input type="text" placeholder="Name:" className="info-input" id="desktop-borrower-name" />
-                </div>
-                <div className="info-input-wrapper">
-                  <input type="tel" placeholder="Phone:" className="info-input" id="desktop-borrower-phone" />
-                </div>
-                <div className="info-input-wrapper">
-                  <label className="info-label">Return deadline:</label>
-                  <input type="text" placeholder="dd.mm.yyyy" className="info-input" id="desktop-return-date" />
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  const borrowerName = document.getElementById('desktop-borrower-name').value;
-                  const borrowerPhone = document.getElementById('desktop-borrower-phone').value;
-                  const returnDate = document.getElementById('desktop-return-date').value;
-                  if (!borrowerName || !borrowerPhone || !returnDate) {
-                    alert('Fill in all fields!');
-                    return;
-                  }
-                  handleBorrow({
-                    borrowerName,
-                    borrowerPhone,
-                    returnDate,
-                    borrowDate: getCurrentDate()
-                  });
-                }}
-                className="modal-action-btn"
-              >
-                Borrow
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <ProductModals
+        scannedProduct={scannedProduct}
+        productStatus={productStatus}
+        onClose={() => {
+          setScannedProduct(null);
+          setProductStatus(null);
+        }}
+        onReturn={handleReturn}
+        onBorrow={handleBorrow}
+        getCurrentDate={getCurrentDate}
+      />
 
       {/* Tabs - Desktop */}
       {!isMobile && (
@@ -599,37 +532,14 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'settings' && (
-            <div className="admin-settings">
-              <div className="admin-settings-section">
-                <h3>User Details</h3>
-                <div className="settings-field">
-                  <span className="settings-label">Name</span>
-                  <span className="settings-value">{currentUser?.name || '-'}</span>
-                </div>
-                <div className="settings-field">
-                  <span className="settings-label">Username</span>
-                  <span className="settings-value">{currentUser?.username || '-'}</span>
-                </div>
-                <div className="settings-field">
-                  <span className="settings-label">Role</span>
-                  <span className="settings-value">{currentUser?.role || '-'}</span>
-                </div>
-              </div>
-
-              <PasswordForm
-                form={passwordForm}
-                status={passwordStatus}
-                onInputChange={handlePasswordInputChange}
-                onSubmit={handlePasswordSubmit}
-              />
-
-              <div className="admin-settings-section">
-                <h3>Account</h3>
-                <button type="button" className="settings-logout-btn" onClick={handleLogout}>
-                  Logout
-                </button>
-              </div>
-            </div>
+            <SettingsTab
+              currentUser={currentUser}
+              passwordForm={passwordForm}
+              passwordStatus={passwordStatus}
+              onPasswordInputChange={handlePasswordInputChange}
+              onPasswordSubmit={handlePasswordSubmit}
+              onLogout={handleLogout}
+            />
           )}
         </div>
       </div>
