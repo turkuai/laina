@@ -10,6 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import ProductsTab from './ProductsTab';
 
 
 // Helper function to format date as DD.MM.YYYY
@@ -456,25 +457,13 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'products') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-            {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
-
-            <Products
-              currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
-              productsData={productsData}
-              query={userQuery}
-            />
-          </div>
-        </div>
+        <ProductsTab
+          currentUser={currentUser}
+          productsData={productsData}
+          borrowingHistory={borrowingHistory}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+        />
       );
     }
 
@@ -766,16 +755,13 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'products' && currentUser?.role === 'admin' && (
-            <div>
-              <ServerGrid
-                columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
-                columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
-                path="/products"
-                allowEditing={false}
-                allowDelete={true}
-                pageSize={10}
-              />
-            </div>
+            <ProductsTab
+              currentUser={currentUser}
+              productsData={productsData}
+              borrowingHistory={borrowingHistory}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
           )}
 
           {activeTab === 'history' && (
