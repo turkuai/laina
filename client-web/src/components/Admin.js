@@ -10,21 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
-import SearchBox from './SearchBox';
-
-
-// Helper function to format date as DD.MM.YYYY
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
-};
-
-// Helper function to get current date formatted
-const getCurrentDate = () => {
-  return formatDate(new Date());
-};
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
