@@ -303,76 +303,13 @@ export default function Admin({ productsData }) {
       )}
 
       {/* Mobile Product Info Box */}
-      {scannedProduct && (
-        <div className="mobile-product-box">
-          <h3 className="mobile-product-title">{scannedProduct.name}</h3>
-          <div className="mobile-product-status">
-            {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
-          </div>
-
-          {productStatus === 'borrowed' ? (
-            <>
-              <div className="mobile-info-section">
-                <p className="mobile-label">Lainaataan:</p>
-                <p className="mobile-value">Nimi: {scannedProduct.borrower}</p>
-                <p className="mobile-value">Pvm: {scannedProduct.borrowDate}</p>
-              </div>
-              <div className="mobile-info-section">
-                <p className="mobile-label">Viimeinen palautuspäivä:</p>
-                <p className="mobile-value">{scannedProduct.returnDate}</p>
-              </div>
-            </>
-          ) : (
-            <div className="mobile-info-section">
-              <p className="mobile-label">Lainaataan:</p>
-              <input
-                type="text"
-                placeholder="Nimi:"
-                className="mobile-input"
-                id="mobile-borrower-name"
-              />
-              <input
-                type="tel"
-                placeholder="Pvm:"
-                className="mobile-input"
-                id="mobile-borrower-phone"
-              />
-              <p className="mobile-label">Viimeinen palautuspäivä:</p>
-              <input
-                type="text"
-                placeholder="dd.mm.yyyy"
-                className="mobile-input"
-                id="mobile-return-date"
-              />
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              if (productStatus === 'borrowed') {
-                handleReturn();
-              } else {
-                const name = document.getElementById('mobile-borrower-name').value;
-                const phone = document.getElementById('mobile-borrower-phone').value;
-                const returnDate = document.getElementById('mobile-return-date').value;
-                if (!name || !phone || !returnDate) {
-                  alert('Fill in all fields!');
-                  return;
-                }
-                handleBorrow({
-                  borrowerName: name,
-                  borrowerPhone: phone,
-                  returnDate: returnDate,
-                  borrowDate: getCurrentDate()
-                });
-              }
-            }}
-            className="mobile-action-button"
-          >
-            {productStatus === 'borrowed' ? 'Palauta' : 'Lainaa'}
-          </button>
-        </div>
-      )}
+      <MobileProductBox
+        product={scannedProduct}
+        status={productStatus}
+        onReturn={handleReturn}
+        onBorrow={handleBorrow}
+        getCurrentDate={getCurrentDate}
+      />
     </div>
   );
 
