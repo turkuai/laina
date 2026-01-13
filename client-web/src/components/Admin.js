@@ -10,6 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import SearchBox from './SearchBox';
 
 
 // Helper function to format date as DD.MM.YYYY
@@ -428,13 +429,10 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
 
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
             <h2>Users Management</h2>
 
             <div style={{ height: '500px', width: '100%' }}>
@@ -459,13 +457,10 @@ export default function Admin({ productsData }) {
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
 
             <Products
               currentUser={currentUser}
@@ -484,13 +479,10 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
 
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
 
             <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
 
@@ -741,13 +733,10 @@ export default function Admin({ productsData }) {
 
           {/* Search Box for Users */}
           {activeTab !== 'settings' && (
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
           )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
