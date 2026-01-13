@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ScanQrCode, History, Package, QrCode, Settings, Users } from 'lucide-react';
+import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -10,21 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
-import AdminMobileNav from './AdminMobileNav';
-
-
-// Helper function to format date as DD.MM.YYYY
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
-};
-
-// Helper function to get current date formatted
-const getCurrentDate = () => {
-  return formatDate(new Date());
-};
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -298,9 +284,6 @@ export default function Admin({ productsData }) {
     });
   };
 
-  // Check if user is admin or teacher
-  const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
-
   // Render camera view content
   const renderCameraView = () => (
     <div className="borrow-content">
@@ -405,13 +388,10 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
 
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
             <h2>Users Management</h2>
 
             <div style={{ height: '500px', width: '100%' }}>
@@ -436,13 +416,10 @@ export default function Admin({ productsData }) {
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
 
             <Products
               currentUser={currentUser}
@@ -461,13 +438,10 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
 
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
 
             <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
 
@@ -574,36 +548,11 @@ export default function Admin({ productsData }) {
     <div className="admin-page">
 
       {/* Header */}
-      <div className="admin-header">
-        <h1 className="admin-logo-text">
-          Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : <span className="hide-on-mobile"> - Admin Panel</span>}
-        </h1>
-
-        <div className="admin-header-actions">
-
-          <span className="user-info mobile-header-user">
-            Welcome, <strong>{currentUser?.username}</strong>
-            <span className="admin-badge">({currentUser?.role})</span>
-            <button
-              onClick={handleLogout}
-              className="logout-button"
-            >
-              Logout
-            </button>
-          </span>
-
-          {canAccessBorrow && (
-            <button
-              onClick={() => setShowCamera(true)}
-              className="borrow-button hide-on-mobile"
-            >
-              <QrCode size={18} />
-              Borrow/Return
-            </button>
-          )}
-
-        </div>
-      </div>
+      <AdminHeader
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onBorrowClick={() => setShowCamera(true)}
+      />
 
       {/* Mobile Content - Render based on active tab */}
       {isMobile && (
@@ -687,29 +636,13 @@ export default function Admin({ productsData }) {
 
       {/* Tabs - Desktop */}
       {!isMobile && (
-        <div className="admin-tabs" role="tablist">
-          <div className="admin-tab-list">
-            {tabs.map(tab => {
-              const isActive = activeTab === tab;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => handleTabClick(tab)}
-                  className={[
-                    'admin-tab-button',
-                    isActive ? 'active' : ''
-                  ].join(' ').trim()}
-                  role="tab"
-                  aria-selected={isActive}
-                >
-                  {getTabLabel(tab)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <AdminTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabClick={handleTabClick}
+          getTabLabel={getTabLabel}
+          renderTabIcon={renderTabIcon}
+        />
       )}
 
       {/* Desktop Content Area */}
@@ -718,13 +651,10 @@ export default function Admin({ productsData }) {
 
           {/* Search Box for Users */}
           {activeTab !== 'settings' && (
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
           )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
