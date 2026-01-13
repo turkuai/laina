@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ScanQrCode, History, Package, QrCode, Settings, Users } from 'lucide-react';
+import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -10,21 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
-import SettingsTab from './SettingsTab';
-
-
-// Helper function to format date as DD.MM.YYYY
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
-};
-
-// Helper function to get current date formatted
-const getCurrentDate = () => {
-  return formatDate(new Date());
-};
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -251,30 +237,6 @@ export default function Admin({ productsData }) {
     tabs.push('settings');
   }
 
-  const tabIconMap = {
-    camera: ScanQrCode,
-    users: Users,
-    products: Package,
-    history: History,
-    settings: Settings
-  };
-
-  const renderTabIcon = (tab) => {
-    const IconComponent = tabIconMap[tab];
-    if (!IconComponent) {
-      return null;
-    }
-    const isCamera = tab === 'camera';
-
-    return (
-      <IconComponent
-        size={isCamera ? 28 : 22}
-        strokeWidth={isCamera ? 2.6 : 2.2}
-        aria-hidden="true"
-      />
-    );
-  };
-
   const getTabLabel = (tab, forMobile = false) => {
     switch (tab) {
       case 'camera': return 'Camera';
@@ -322,9 +284,6 @@ export default function Admin({ productsData }) {
     });
   };
 
-  // Check if user is admin or teacher
-  const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
-
   // Render camera view content
   const renderCameraView = () => (
     <div className="borrow-content">
@@ -344,83 +303,29 @@ export default function Admin({ productsData }) {
       )}
 
       {/* Mobile Product Info Box */}
-      {scannedProduct && (
-        <div className="mobile-product-box">
-          <h3 className="mobile-product-title">{scannedProduct.name}</h3>
-          <div className="mobile-product-status">
-            {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
-          </div>
-
-          {productStatus === 'borrowed' ? (
-            <>
-              <div className="mobile-info-section">
-                <p className="mobile-label">Lainaataan:</p>
-                <p className="mobile-value">Nimi: {scannedProduct.borrower}</p>
-                <p className="mobile-value">Pvm: {scannedProduct.borrowDate}</p>
-              </div>
-              <div className="mobile-info-section">
-                <p className="mobile-label">Viimeinen palautuspäivä:</p>
-                <p className="mobile-value">{scannedProduct.returnDate}</p>
-              </div>
-            </>
-          ) : (
-            <div className="mobile-info-section">
-              <p className="mobile-label">Lainaataan:</p>
-              <input
-                type="text"
-                placeholder="Nimi:"
-                className="mobile-input"
-                id="mobile-borrower-name"
-              />
-              <input
-                type="tel"
-                placeholder="Pvm:"
-                className="mobile-input"
-                id="mobile-borrower-phone"
-              />
-              <p className="mobile-label">Viimeinen palautuspäivä:</p>
-              <input
-                type="text"
-                placeholder="dd.mm.yyyy"
-                className="mobile-input"
-                id="mobile-return-date"
-              />
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              if (productStatus === 'borrowed') {
-                handleReturn();
-              } else {
-                const name = document.getElementById('mobile-borrower-name').value;
-                const phone = document.getElementById('mobile-borrower-phone').value;
-                const returnDate = document.getElementById('mobile-return-date').value;
-                if (!name || !phone || !returnDate) {
-                  alert('Fill in all fields!');
-                  return;
-                }
-                handleBorrow({
-                  borrowerName: name,
-                  borrowerPhone: phone,
-                  returnDate: returnDate,
-                  borrowDate: getCurrentDate()
-                });
-              }
-            }}
-            className="mobile-action-button"
-          >
-            {productStatus === 'borrowed' ? 'Palauta' : 'Lainaa'}
-          </button>
-        </div>
-      )}
+      <MobileProductBox
+        product={scannedProduct}
+        status={productStatus}
+        onReturn={handleReturn}
+        onBorrow={handleBorrow}
+        getCurrentDate={getCurrentDate}
+      />
     </div>
   );
 
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
-      return renderCameraView();
+      return (
+        <CameraView
+          currentUser={currentUser}
+          onScanClick={() => setShowCamera(true)}
+          scannedProduct={scannedProduct}
+          productStatus={productStatus}
+          onReturn={handleReturn}
+          onBorrow={handleBorrow}
+        />
+      );
     }
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
@@ -429,13 +334,10 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
 
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
             <h2>Users Management</h2>
 
             <div style={{ height: '500px', width: '100%' }}>
@@ -460,13 +362,10 @@ export default function Admin({ productsData }) {
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
 
             <Products
               currentUser={currentUser}
@@ -485,13 +384,10 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
 
             {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
 
             <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
 
@@ -536,36 +432,11 @@ export default function Admin({ productsData }) {
     <div className="admin-page">
 
       {/* Header */}
-      <div className="admin-header">
-        <h1 className="admin-logo-text">
-          Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : <span className="hide-on-mobile"> - Admin Panel</span>}
-        </h1>
-
-        <div className="admin-header-actions">
-
-          <span className="user-info mobile-header-user">
-            Welcome, <strong>{currentUser?.username}</strong>
-            <span className="admin-badge">({currentUser?.role})</span>
-            <button
-              onClick={handleLogout}
-              className="logout-button"
-            >
-              Logout
-            </button>
-          </span>
-
-          {canAccessBorrow && (
-            <button
-              onClick={() => setShowCamera(true)}
-              className="borrow-button hide-on-mobile"
-            >
-              <QrCode size={18} />
-              Borrow/Return
-            </button>
-          )}
-
-        </div>
-      </div>
+      <AdminHeader
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onBorrowClick={() => setShowCamera(true)}
+      />
 
       {/* Mobile Content - Render based on active tab */}
       {isMobile && (
@@ -649,29 +520,13 @@ export default function Admin({ productsData }) {
 
       {/* Tabs - Desktop */}
       {!isMobile && (
-        <div className="admin-tabs" role="tablist">
-          <div className="admin-tab-list">
-            {tabs.map(tab => {
-              const isActive = activeTab === tab;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => handleTabClick(tab)}
-                  className={[
-                    'admin-tab-button',
-                    isActive ? 'active' : ''
-                  ].join(' ').trim()}
-                  role="tab"
-                  aria-selected={isActive}
-                >
-                  {getTabLabel(tab)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <AdminTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabClick={handleTabClick}
+          getTabLabel={getTabLabel}
+          renderTabIcon={renderTabIcon}
+        />
       )}
 
       {/* Desktop Content Area */}
@@ -680,13 +535,10 @@ export default function Admin({ productsData }) {
 
           {/* Search Box for Users */}
           {activeTab !== 'settings' && (
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
+            <SearchBox
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
           )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
@@ -747,36 +599,16 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Bottom Tab Bar */}
       {isMobile && (
-        <nav className="admin-mobile-nav" aria-label="Navigation">
-
-        {currentUser?.role === 'admin' && (
-          <button
-            type="button"
-            className="admin-mobile-nav__camera"
-            onClick={() => {
-              setActiveTab('camera');
-              setShowCamera(true);
-            }}
-            aria-label="Open camera scanner"
-          >
-            <ScanQrCode className="admin-mobile-nav__camera-icon" />
-          </button>
-        )}
-          {tabs.map(tab => (
-            <button
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={[
-                'admin-mobile-nav__cell',
-                activeTab === tab ? 'is-active' : ''
-              ].join(' ').trim()}
-              aria-label={tab}
-              key={tab}
-            >
-              {renderTabIcon(tab)}
-            </button>))
-          }
-        </nav>
+        <AdminMobileNav
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabClick={setActiveTab}
+          onCameraClick={() => {
+            setActiveTab('camera');
+            setShowCamera(true);
+          }}
+          currentUser={currentUser}
+        />
       )}
 
     </div >
