@@ -660,29 +660,13 @@ export default function Admin({ productsData }) {
 
       {/* Tabs - Desktop */}
       {!isMobile && (
-        <div className="admin-tabs" role="tablist">
-          <div className="admin-tab-list">
-            {tabs.map(tab => {
-              const isActive = activeTab === tab;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => handleTabClick(tab)}
-                  className={[
-                    'admin-tab-button',
-                    isActive ? 'active' : ''
-                  ].join(' ').trim()}
-                  role="tab"
-                  aria-selected={isActive}
-                >
-                  {getTabLabel(tab)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <AdminTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabClick={handleTabClick}
+          getTabLabel={getTabLabel}
+          renderTabIcon={renderTabIcon}
+        />
       )}
 
       {/* Desktop Content Area */}
