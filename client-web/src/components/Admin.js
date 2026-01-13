@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ScanQrCode, History, Package, QrCode, Settings, Users } from 'lucide-react';
+import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -308,9 +308,6 @@ export default function Admin({ productsData }) {
     });
   };
 
-  // Check if user is admin or teacher
-  const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
-
   // Render camera view content
   const renderCameraView = () => (
     <div className="borrow-content">
@@ -575,36 +572,11 @@ export default function Admin({ productsData }) {
     <div className="admin-page">
 
       {/* Header */}
-      <div className="admin-header">
-        <h1 className="admin-logo-text">
-          Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : <span className="hide-on-mobile"> - Admin Panel</span>}
-        </h1>
-
-        <div className="admin-header-actions">
-
-          <span className="user-info mobile-header-user">
-            Welcome, <strong>{currentUser?.username}</strong>
-            <span className="admin-badge">({currentUser?.role})</span>
-            <button
-              onClick={handleLogout}
-              className="logout-button"
-            >
-              Logout
-            </button>
-          </span>
-
-          {canAccessBorrow && (
-            <button
-              onClick={() => setShowCamera(true)}
-              className="borrow-button hide-on-mobile"
-            >
-              <QrCode size={18} />
-              Borrow/Return
-            </button>
-          )}
-
-        </div>
-      </div>
+      <AdminHeader
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onBorrowClick={() => setShowCamera(true)}
+      />
 
       {/* Mobile Content - Render based on active tab */}
       {isMobile && (
