@@ -18,6 +18,7 @@ import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
 import { useUserFilter } from '../hooks/useUserFilter';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
+import { useQRScanner } from '../hooks/useQRScanner';
 import ProductsTab from './ProductsTab';
 import { TabConfig } from '../utils/tabConfig';
 
@@ -27,10 +28,17 @@ export default function Admin({ productsData }) {
 
   const [userQuery, setUserQuery] = useState('');
 
-  // QR Scanner states
-  const [showCamera, setShowCamera] = useState(false);
-  const [scannedProduct, setScannedProduct] = useState(null);
-  const [productStatus, setProductStatus] = useState(null);
+  // QR Scanner hook
+  const {
+    showCamera,
+    setShowCamera,
+    scannedProduct,
+    productStatus,
+    handleQRScan,
+    handleReturn,
+    handleBorrow,
+    handleClose
+  } = useQRScanner();
 
   // Password form states
   const [passwordForm, setPasswordForm] = useState({
@@ -136,61 +144,6 @@ export default function Admin({ productsData }) {
       setUsers(users.filter(u => u.id !== row.id));
       alert(`User "${row.name}" deleted.`);
     }
-  };
-
-  // QR Scanner handlers
-  const handleQRScan = (qrData) => {
-    console.log('QR Code scanned:', qrData);
-    setShowCamera(false);
-
-    let parsed;
-    try {
-      parsed = JSON.parse(qrData);
-    } catch (e) {
-      alert('Invalid QR code format. Please use a JSON-based QR sticker.');
-      console.error('QR parse error:', e);
-      return;
-    }
-
-    if (!parsed.name || !parsed.status) {
-      alert('QR code missing required fields (name/status).');
-      return;
-    }
-
-    if (parsed.status.toLowerCase() === 'borrowed') {
-      setProductStatus('borrowed');
-      setScannedProduct({
-        name: parsed.name,
-        borrower: parsed.borrower || 'Unknown',
-        borrowDate: parsed.borrowDate || 'Unknown',
-        returnDate: parsed.returnDate || 'Unknown',
-        qrCode: qrData
-      });
-    } else if (parsed.status.toLowerCase() === 'available') {
-      setProductStatus('available');
-      setScannedProduct({
-        name: parsed.name,
-        qrCode: qrData
-      });
-    } else {
-      alert(`Unknown product status: ${parsed.status}`);
-    }
-  };
-
-  const handleReturn = () => {
-    const currentDate = getCurrentDate();
-    console.log('Returning product:', scannedProduct, 'on', currentDate);
-    alert(`Product returned successfully!\nReturn date: ${currentDate}`);
-    setScannedProduct(null);
-    setProductStatus(null);
-  };
-
-  const handleBorrow = (borrowData) => {
-    console.log('Borrowing product:', scannedProduct);
-    console.log('Borrow data:', borrowData);
-    alert(`Product borrowed successfully!\nBorrower: ${borrowData.borrowerName}\nBorrow date: ${borrowData.borrowDate}\nReturn by: ${borrowData.returnDate}`);
-    setScannedProduct(null);
-    setProductStatus(null);
   };
 
   // Tab configuration - using utility module
@@ -377,10 +330,7 @@ export default function Admin({ productsData }) {
       <ProductModals
         scannedProduct={scannedProduct}
         productStatus={productStatus}
-        onClose={() => {
-          setScannedProduct(null);
-          setProductStatus(null);
-        }}
+        onClose={handleClose}
         onReturn={handleReturn}
         onBorrow={handleBorrow}
         getCurrentDate={getCurrentDate}
