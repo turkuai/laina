@@ -5,13 +5,11 @@ import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
-import BorrowPage from './BorrowPage';
 import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
-import { formatDate, getCurrentDate } from '../utils/dateUtils';
-import MobileProductBox from './MobileProductBox';
+import { getCurrentDate } from '../utils/dateUtils';
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
@@ -19,6 +17,8 @@ import AdminHeader from './AdminHeader';
 import ProductModals from './ProductModals';
 import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
+import { useUserFilter } from '../hooks/useUserFilter';
+import { useHistoryFilter } from '../hooks/useHistoryFilter';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -72,50 +72,11 @@ export default function Admin({ productsData }) {
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
   ]);
 
-  // Construct the API path with borrower filter for students
-  const getHistoryPath = () => {
-    if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
-      return 'borrowing-history';
-    } else {
-      // Filter by current user's ID for students
-      return `borrowing-history?borrower_id=${currentUser?.id}`;
-    }
-  };
 
-  const getUserData = () => {
-    if (currentUser?.role === 'admin') return users;
-    return users.filter(u => u.id === currentUser?.id);
-  };
 
-  const getBorrowingHistory = () => {
-    if (currentUser?.role === 'admin') return borrowingHistory;
-    return borrowingHistory.filter(r => r.userId === currentUser?.id);
-  };
-
-  // Filter functions for search
-  const getFilteredUsers = () => {
-    const data = getUserData();
-    if (!userQuery.trim()) return data;
-
-    const query = userQuery.toLowerCase();
-    return data.filter(user =>
-      user.name?.toLowerCase().includes(query) ||
-      user.email?.toLowerCase().includes(query) ||
-      user.role?.toLowerCase().includes(query)
-    );
-  };
-
-  const getFilteredHistory = () => {
-    const data = getBorrowingHistory();
-    if (!userQuery.trim()) return data;
-
-    const query = userQuery.toLowerCase();
-    return data.filter(record =>
-      record.userName?.toLowerCase().includes(query) ||
-      record.productName?.toLowerCase().includes(query) ||
-      record.status?.toLowerCase().includes(query)
-    );
-  };
+  // Custom hooks for data filtering
+  const { filteredUsers } = useUserFilter(users, currentUser, userQuery);
+  const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -163,9 +124,7 @@ export default function Admin({ productsData }) {
     else if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
-  const handleEditRow = (row) => {
-    console.log('Edited row:', row);
-  };
+
 
   const handleDeleteUser = (row) => {
     if (row.name === currentUser?.name) {
@@ -305,34 +264,7 @@ export default function Admin({ productsData }) {
   };
 
   // Render camera view content
-  const renderCameraView = () => (
-    <div className="borrow-content">
-      {currentUser?.role !== 'student' && (
-        <button
-          onClick={() => setShowCamera(true)}
-          className="scan-button"
-        >
-          SCAN QR CODE
-        </button>
-      )}
-
-      {currentUser?.role !== 'student' && (
-        <p className="help-text">
-          Press the button to scan a product QR code
-        </p>
-      )}
-
-      {/* Mobile Product Info Box */}
-      <MobileProductBox
-        product={scannedProduct}
-        status={productStatus}
-        onReturn={handleReturn}
-        onBorrow={handleBorrow}
-        getCurrentDate={getCurrentDate}
-      />
-    </div>
-  );
-
+  
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
@@ -363,7 +295,7 @@ export default function Admin({ productsData }) {
             <div style={{ height: '500px', width: '100%' }}>
               <Grid
                 columns={['name', 'email', 'role']}
-                data={getFilteredUsers()}
+                data={filteredUsers}
                 allowEditing={true}
                 allowDelete={true}
                 onDeleteRow={handleDeleteUser}
@@ -416,7 +348,7 @@ export default function Admin({ productsData }) {
                 columns={currentUser?.role === 'admin'
                   ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
                   : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getFilteredHistory()}
+                data={filteredHistory}
                 allowEditing={false}
                 allowDelete={false}
                 pageSize={10}
@@ -543,7 +475,7 @@ export default function Admin({ productsData }) {
                 columns={currentUser?.role === 'admin'
                   ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
                   : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getFilteredHistory()}
+                data={filteredHistory}
                 allowEditing={false}
                 allowDelete={false}
                 pageSize={10}
