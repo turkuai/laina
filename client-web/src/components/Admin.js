@@ -19,6 +19,7 @@ import AdminHeader from './AdminHeader';
 import ProductModals from './ProductModals';
 import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
+import ProductsTab from './ProductsTab';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
