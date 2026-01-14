@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
@@ -20,6 +19,7 @@ import AdminMobileNav from './AdminMobileNav';
 import { useUserFilter } from '../hooks/useUserFilter';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import ProductsTab from './ProductsTab';
+import { TabConfig } from '../utils/tabConfig';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -193,40 +193,8 @@ export default function Admin({ productsData }) {
     setProductStatus(null);
   };
 
-  // Tab configuration
-  // Admin & teacher → kamera on lisätty palautettuun JSX:iin
-  // Student → EI kamera-tabia
-  const tabs = ['history', 'products'];
-
-  if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
-    tabs.push('users');
-  }
-  if (isMobile) {
-    tabs.push('settings');
-  }
-
-  const getTabLabel = (tab, forMobile = false) => {
-    switch (tab) {
-      case 'camera': return 'Camera';
-      case 'users': return 'Users';
-      case 'products': return 'Products';
-      case 'history': return forMobile ? 'History' : 'Borrowing History';
-      case 'settings': return 'Settings';
-      default: return tab;
-    }
-  };
-
-  // Render tab icon
-  const renderTabIcon = (tab) => {
-    switch (tab) {
-      case 'camera': return <ScanQrCode size={18} />;
-      case 'users': return <Users size={18} />;
-      case 'products': return <Package size={18} />;
-      case 'history': return <History size={18} />;
-      case 'settings': return <Settings size={18} />;
-      default: return null;
-    }
-  };
+  // Tab configuration - using utility module
+  const tabs = TabConfig.getTabs(currentUser, isMobile);
 
   // Tab click handler
   const handleTabClick = (tab) => {
@@ -424,8 +392,8 @@ export default function Admin({ productsData }) {
           tabs={tabs}
           activeTab={activeTab}
           onTabClick={handleTabClick}
-          getTabLabel={getTabLabel}
-          renderTabIcon={renderTabIcon}
+          getTabLabel={TabConfig.getTabLabel}
+          renderTabIcon={TabConfig.renderTabIcon}
         />
       )}
 
