@@ -3,29 +3,31 @@ import Grid from './Grid';
 import ServerGrid from './ServerGrid';
 import './Admin.css';
 
-export default function UsersTab({ 
-  currentUser, 
-  users, 
-  query, 
-  onQueryChange, 
-  onDeleteUser, 
+/**
+ * UsersTab component
+ * 
+ * Extracted from Admin.js - handles both mobile and desktop user management views
+ * 
+ * Props:
+ * - currentUser: Current logged in user object
+ * - users: Array of user objects to display
+ * - query: Search query string
+ * - onQueryChange: Callback function for search query changes
+ * - onDeleteUser: Callback function for deleting a user
+ * - onDataChange: Callback function for data updates
+ * - isMobile: Boolean indicating if mobile view should be rendered
+ */
+export default function UsersTab({
+  currentUser,
+  users,
+  query,
+  onQueryChange,
+  onDeleteUser,
   onDataChange,
-  isMobile = false 
+  isMobile = false
 }) {
-  // Filter users for mobile view based on query
-  const getFilteredUsers = () => {
-    if (!query || !query.trim()) return users;
-    
-    const searchQuery = query.toLowerCase();
-    return users.filter(user =>
-      user.name?.toLowerCase().includes(searchQuery) ||
-      user.email?.toLowerCase().includes(searchQuery) ||
-      user.role?.toLowerCase().includes(searchQuery)
-    );
-  };
-
+  // Mobile view (originally lines 425-454)
   if (isMobile) {
-    // Mobile view 
     return (
       <div className="mobile-tab-content">
         <div className="mobile-content-section">
@@ -42,7 +44,7 @@ export default function UsersTab({
           <div style={{ height: '500px', width: '100%' }}>
             <Grid
               columns={['name', 'email', 'role']}
-              data={getFilteredUsers()}
+              data={users}
               allowEditing={true}
               allowDelete={true}
               onDeleteRow={onDeleteUser}
@@ -56,7 +58,7 @@ export default function UsersTab({
     );
   }
 
-  // Deskto view
+  // Desktop view (originally lines 753-766)
   return (
     <div>
       <h2>Users Management</h2>
