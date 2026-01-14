@@ -11,6 +11,14 @@ import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
 import { formatDate, getCurrentDate } from '../utils/dateUtils';
+import MobileProductBox from './MobileProductBox';
+import CameraView from './CameraView';
+import SearchBox from './SearchBox';
+import SettingsTab from './SettingsTab';
+import AdminHeader from './AdminHeader';
+import ProductModals from './ProductModals';
+import AdminTabs from './AdminTabs';
+import AdminMobileNav from './AdminMobileNav';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -245,6 +253,18 @@ export default function Admin({ productsData }) {
       case 'history': return forMobile ? 'History' : 'Borrowing History';
       case 'settings': return 'Settings';
       default: return tab;
+    }
+  };
+
+  // Render tab icon
+  const renderTabIcon = (tab) => {
+    switch (tab) {
+      case 'camera': return <ScanQrCode size={18} />;
+      case 'users': return <Users size={18} />;
+      case 'products': return <Package size={18} />;
+      case 'history': return <History size={18} />;
+      case 'settings': return <Settings size={18} />;
+      default: return null;
     }
   };
 
