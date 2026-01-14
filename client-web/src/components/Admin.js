@@ -10,6 +10,7 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import HistoryTab from './HistoryTab';
 
 
 // Helper function to format date as DD.MM.YYYY
@@ -480,34 +481,12 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'history') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-
-            {/* Search Box */}
-            <div className="user-search">
-              <input
-                placeholder="Search ..."
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-              />
-            </div>
-
-            <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-
-            <div style={{ height: '500px', width: '100%' }}>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getFilteredHistory()}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-                height="500px"
-              />
-            </div>
-          </div>
-        </div>
+        <HistoryTab
+          currentUser={currentUser}
+          history={getFilteredHistory()}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+        />
       );
     }
 
@@ -779,18 +758,12 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'history' && (
-            <div>
-              <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getFilteredHistory()}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-              />
-            </div>
+            <HistoryTab
+              currentUser={currentUser}
+              history={getFilteredHistory()}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
           )}
 
           {activeTab === 'settings' && (
