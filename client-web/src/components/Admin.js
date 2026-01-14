@@ -19,6 +19,7 @@ import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
 import { useUserFilter } from '../hooks/useUserFilter';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
+import ProductsTab from './ProductsTab';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -456,16 +457,13 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'products' && currentUser?.role === 'admin' && (
-            <div>
-              <ServerGrid
-                columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
-                columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
-                path="/products"
-                allowEditing={false}
-                allowDelete={true}
-                pageSize={10}
-              />
-            </div>
+            <ProductsTab
+              currentUser={currentUser}
+              productsData={productsData}
+              borrowingHistory={borrowingHistory}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
           )}
 
           {activeTab === 'history' && (
