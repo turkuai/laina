@@ -483,7 +483,6 @@ export default function Admin({ productsData }) {
       return (
         <HistoryTab
           currentUser={currentUser}
-          history={getFilteredHistory()}
           query={userQuery}
           onQueryChange={setUserQuery}
         />
