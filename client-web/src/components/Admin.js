@@ -18,6 +18,7 @@ import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
+import { usePasswordForm } from '../hooks/usePasswordForm';
 import ProductsTab from './ProductsTab';
 import UsersTab from './UsersTab';
 import { TabConfig } from '../utils/tabConfig';
@@ -40,13 +41,12 @@ export default function Admin({ productsData }) {
     handleClose
   } = useQRScanner();
 
-  // Password form states
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [passwordStatus, setPasswordStatus] = useState(null);
+  // Password form hook
+  const {
+    passwordForm,
+    passwordStatus,
+    handlers: { handlePasswordInputChange, handlePasswordSubmit, clearPasswordStatus }
+  } = usePasswordForm();
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640;
@@ -111,9 +111,9 @@ export default function Admin({ productsData }) {
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
-      setPasswordStatus(null);
+      clearPasswordStatus();
     }
-  }, [activeTab, passwordStatus]);
+  }, [activeTab, passwordStatus, clearPasswordStatus]);
 
   const handleLogout = () => {
     logout();
@@ -152,37 +152,6 @@ export default function Admin({ productsData }) {
   // Tab click handler
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-  };
-
-  // Password handlers
-  const handlePasswordInputChange = (field, value) => {
-    setPasswordForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handlePasswordSubmit = (event) => {
-    event.preventDefault();
-
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'Please fill in all fields before submitting.' });
-      return;
-    }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'New password and confirmation do not match.' });
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters long.' });
-      return;
-    }
-
-    setPasswordStatus({ type: 'success', message: 'Password change request submitted. (Demo only)' });
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
   };
 
   // Render camera view content
