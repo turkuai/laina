@@ -16,9 +16,9 @@ import AdminHeader from './AdminHeader';
 import ProductModals from './ProductModals';
 import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
-import { useUserFilter } from '../hooks/useUserFilter';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import ProductsTab from './ProductsTab';
+import UsersTab from './UsersTab';
 import { TabConfig } from '../utils/tabConfig';
 
 export default function Admin({ productsData }) {
@@ -59,13 +59,6 @@ export default function Admin({ productsData }) {
     return currentUser?.role === "admin" ? "users" : "history";
   });
 
-  const [users, setUsers] = useState([
-    { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
-    { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
-    { id: 5, name: 'Aino', email: 'aino@example.com', role: 'student' },
-    { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-  ]);
-
   const [borrowingHistory, setBorrowingHistory] = useState([
     { id: 1, userName: 'Mikko', productName: 'Laptop Dell XPS', borrowedAt: '2024-01-15', returnedAt: '2024-01-20', status: 'Returned', userId: 2 },
     { id: 2, userName: 'Ville', productName: 'Monitor Samsung', borrowedAt: '2024-01-18', returnedAt: null, status: 'On Loan', userId: 3 },
@@ -76,7 +69,6 @@ export default function Admin({ productsData }) {
 
 
   // Custom hooks for data filtering
-  const { filteredUsers } = useUserFilter(users, currentUser, userQuery);
   const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
   useEffect(() => {
@@ -121,20 +113,28 @@ export default function Admin({ productsData }) {
   };
 
   const handleDataChange = (updatedData) => {
-    if (activeTab === 'users') setUsers(updatedData);
-    else if (activeTab === 'history') setBorrowingHistory(updatedData);
+    if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
 
 
   const handleDeleteUser = (row) => {
-    if (row.name === currentUser?.name) {
+    if (row.first_name && row.last_name) {
+      const fullName = `${row.first_name} ${row.last_name}`;
+      if (fullName === currentUser?.name || `${row.first_name}${row.last_name}` === currentUser?.name) {
+        alert("You cannot delete your own account!");
+        return;
+      }
+      if (window.confirm(`Are you sure you want to delete user "${fullName}"?`)) {
+        // ServerGrid handles the actual deletion via API
+        alert(`User "${fullName}" deleted.`);
+      }
+    } else if (row.name === currentUser?.name) {
       alert("You cannot delete your own account!");
       return;
-    }
-    if (window.confirm(`Are you sure you want to delete user "${row.name}"?`)) {
-      setUsers(users.filter(u => u.id !== row.id));
-      alert(`User "${row.name}" deleted.`);
+    } else if (window.confirm(`Are you sure you want to delete user "${row.name || row.email}"?`)) {
+      // ServerGrid handles the actual deletion via API
+      alert(`User "${row.name || row.email}" deleted.`);
     }
   };
 
@@ -251,30 +251,13 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-
-            {/* Search Box */}
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-            <h2>Users Management</h2>
-
-            <div style={{ height: '500px', width: '100%' }}>
-              <Grid
-                columns={['name', 'email', 'role']}
-                data={filteredUsers}
-                allowEditing={true}
-                allowDelete={true}
-                onDeleteRow={handleDeleteUser}
-                onDataChange={handleDataChange}
-                pageSize={10}
-                height="500px"
-              />
-            </div>
-          </div>
-        </div>
+        <UsersTab
+          currentUser={currentUser}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+          onDeleteUser={handleDeleteUser}
+          onDataChange={handleDataChange}
+        />
       );
     }
 
@@ -412,12 +395,10 @@ export default function Admin({ productsData }) {
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <UsersTab
               currentUser={currentUser}
-              users={users}
               query={userQuery}
               onQueryChange={setUserQuery}
               onDeleteUser={handleDeleteUser}
               onDataChange={handleDataChange}
-              isMobile={false}
             />
           )}
 
