@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Grid from './Grid';
@@ -19,6 +19,7 @@ import AdminMobileNav from './AdminMobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
 import { usePasswordForm } from '../hooks/usePasswordForm';
+import { useResponsive } from '../hooks/useResponsive';
 import ProductsTab from './ProductsTab';
 import UsersTab from './UsersTab';
 import { TabConfig } from '../utils/tabConfig';
@@ -47,10 +48,9 @@ export default function Admin({ productsData }) {
     passwordStatus,
     handlers: { handlePasswordInputChange, handlePasswordSubmit, clearPasswordStatus }
   } = usePasswordForm();
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < 640;
-  });
+
+  // Responsive hook
+  const { isMobile, setIsMobile } = useResponsive();
 
   // Set default tab to 'camera' on mobile, otherwise based on role
   const [activeTab, setActiveTab] = useState(() => {
@@ -79,28 +79,28 @@ export default function Admin({ productsData }) {
   // Custom hooks for data filtering
   const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handleResize = () => {
-      const mobile = window.innerWidth < 640;
-      const wasMobile = isMobile;
-      setIsMobile(mobile);
+  // Track previous isMobile value to detect transitions
+  const prevIsMobileRef = useRef(isMobile);
 
-      // Only change tab when transitioning between mobile/desktop
-      if (mobile !== wasMobile) {
-        // When switching TO mobile from desktop
-        if (mobile && !wasMobile && activeTab !== 'camera' && activeTab !== 'settings') {
-          setActiveTab('camera');
-        }
-        // When switching TO desktop from mobile  
-        else if (!mobile && wasMobile && activeTab === 'camera') {
-          setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
-        }
+  // Effect to handle tab switching when transitioning between mobile/desktop
+  useEffect(() => {
+    const wasMobile = prevIsMobileRef.current;
+    const isNowMobile = isMobile;
+
+    // Only change tab when transitioning between mobile/desktop
+    if (isNowMobile !== wasMobile) {
+      // When switching TO mobile from desktop
+      if (isNowMobile && !wasMobile && activeTab !== 'camera' && activeTab !== 'settings') {
+        setActiveTab('camera');
       }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+      // When switching TO desktop from mobile  
+      else if (!isNowMobile && wasMobile && activeTab === 'camera') {
+        setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+      }
+    }
+
+    // Update ref for next comparison
+    prevIsMobileRef.current = isNowMobile;
   }, [isMobile, activeTab, currentUser]);
 
   useEffect(() => {
