@@ -19,6 +19,7 @@ import AdminMobileNav from './AdminMobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
 import { usePasswordForm } from '../hooks/usePasswordForm';
+import { useUserManagement } from '../hooks/useUserManagement';
 import { useResponsive } from '../hooks/useResponsive';
 import ProductsTab from './ProductsTab';
 import UsersTab from './UsersTab';
@@ -48,6 +49,11 @@ export default function Admin({ productsData }) {
     passwordStatus,
     handlers: { handlePasswordInputChange, handlePasswordSubmit, clearPasswordStatus }
   } = usePasswordForm();
+
+  // User management hook
+  const {
+    handlers: { handleDeleteUser }
+  } = useUserManagement();
 
   // Responsive hook
   const { isMobile, setIsMobile } = useResponsive();
@@ -122,28 +128,6 @@ export default function Admin({ productsData }) {
 
   const handleDataChange = (updatedData) => {
     if (activeTab === 'history') setBorrowingHistory(updatedData);
-  };
-
-
-
-  const handleDeleteUser = (row) => {
-    if (row.first_name && row.last_name) {
-      const fullName = `${row.first_name} ${row.last_name}`;
-      if (fullName === currentUser?.name || `${row.first_name}${row.last_name}` === currentUser?.name) {
-        alert("You cannot delete your own account!");
-        return;
-      }
-      if (window.confirm(`Are you sure you want to delete user "${fullName}"?`)) {
-        // ServerGrid handles the actual deletion via API
-        alert(`User "${fullName}" deleted.`);
-      }
-    } else if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
-      return;
-    } else if (window.confirm(`Are you sure you want to delete user "${row.name || row.email}"?`)) {
-      // ServerGrid handles the actual deletion via API
-      alert(`User "${row.name || row.email}" deleted.`);
-    }
   };
 
   // Tab configuration - using utility module
