@@ -109,6 +109,14 @@ export default function ServerGrid({
       return;
     }
 
+    // Check with parent callback first - if it returns false, don't delete
+    if (typeof onDeleteRow === 'function') {
+      const shouldDelete = await onDeleteRow(row);
+      if (shouldDelete === false) {
+        return; // Parent prevented deletion
+      }
+    }
+
     try {
       let deleteUrl = `${path.split('?')[0]}/${row.id}`;
       // Ensure /api/ prefix if not present; avoid accidental double slashes
@@ -126,16 +134,38 @@ export default function ServerGrid({
         },
       });
 
-      if (!res.ok) {
-        throw new Error(`Delete failed with status ${res.status}`);
+      // Try to parse response as JSON, but handle HTML/plain text errors
+      let responseData = {};
+      const contentType = res.headers.get('content-type') || '';
+      
+      if (contentType.includes('application/json')) {
+        try {
+          responseData = await res.json();
+        } catch (e) {
+          // If JSON parse fails, use empty object
+        }
       }
 
-      // Remove from local data
-      setData(data.filter(item => item.id !== row.id));
-      
-      if (typeof onDeleteRow === 'function') {
-        onDeleteRow(row);
+      if (!res.ok) {
+        // Check for database constraint errors
+        const errorMessage = responseData.error || responseData.message || `Delete failed with status ${res.status}`;
+        
+        // Check if it's a foreign key constraint error
+        const errorStr = String(errorMessage).toLowerCase();
+        if (errorStr.includes('foreign key constraint') || 
+            errorStr.includes('borrow_history') || 
+            errorStr.includes('cannot delete') ||
+            errorStr.includes('1451')) {
+          alert('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
+          throw new Error('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
+        }
+        
+        alert(errorMessage);
+        throw new Error(errorMessage);
       }
+
+      // Refresh data after successful deletion
+      await fetchData();
     } catch (err) {
       console.error('Delete error:', err);
       setError(`Failed to delete item: ${err.message}`);
