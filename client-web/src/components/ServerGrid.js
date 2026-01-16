@@ -19,6 +19,8 @@ export default function ServerGrid({
   onDataChange,
   onEditRow,
   onDeleteRow,
+  onAdd,                // Callback for add button click
+  showAddButton = true, // Show add button by default (except history tab which doesn't use ServerGrid)
   ...rest               // anything else you want to pass to Grid
 }) {
   const [data, setData] = useState([]);
@@ -160,6 +162,15 @@ export default function ServerGrid({
     }
   };
 
+  const handleAdd = () => {
+    if (typeof onAdd === 'function') {
+      onAdd();
+    } else {
+      // Default behavior: refresh data or show alert
+      console.log('Add button clicked - no handler provided');
+    }
+  };
+
   // Create column configuration with display names
   const columnConfig = columns.map(col => ({
     field: col,
@@ -176,6 +187,41 @@ export default function ServerGrid({
       {error && (
         <div className="grid-error-message">
           {error}
+        </div>
+      )}
+
+      {/* Add Button */}
+      {showAddButton && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: '1rem'
+        }}>
+          <button
+            onClick={handleAdd}
+            className="server-grid-add-button"
+            type="button"
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              fontWeight: '500',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              whiteSpace: 'nowrap'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
+          >
+            <span style={{ fontSize: '1.25rem', lineHeight: '1' }}>+</span>
+            <span>Add</span>
+          </button>
         </div>
       )}
 
