@@ -31,13 +31,6 @@ export default function Admin({ productsData }) {
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
 
-  // Password form states
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [passwordStatus, setPasswordStatus] = useState(null);
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640;
@@ -142,15 +135,6 @@ export default function Admin({ productsData }) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobile, activeTab, currentUser]);
-
-  // Removed useEffect that was removing settings tab on desktop
-  // Settings is now available on both mobile and desktop
-
-  useEffect(() => {
-    if (activeTab !== 'settings' && passwordStatus) {
-      setPasswordStatus(null);
-    }
-  }, [activeTab, passwordStatus]);
 
   const handleLogout = () => {
     logout();
@@ -271,60 +255,6 @@ export default function Admin({ productsData }) {
   // Tab click handler
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-  };
-
-  // Password handlers
-  const handlePasswordInputChange = (field, value) => {
-    setPasswordForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handlePasswordSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'Please fill in all fields before submitting.' });
-      return;
-    }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'New password and confirmation do not match.' });
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters long.' });
-      return;
-    }
-
-    try {
-      // Call API to change password
-      const response = await fetch(`/api/users/${currentUser?.id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          password: passwordForm.newPassword,
-          current_password: passwordForm.currentPassword
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to change password');
-      }
-
-      setPasswordStatus({ type: 'success', message: 'Password changed successfully!' });
-      setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-    } catch (error) {
-      console.error('Password change error:', error);
-      setPasswordStatus({ type: 'error', message: error.message || 'Failed to change password. Please try again.' });
-    }
   };
 
   // Render camera view content
@@ -455,14 +385,7 @@ export default function Admin({ productsData }) {
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           </div>
         </div>
       );
@@ -534,15 +457,17 @@ export default function Admin({ productsData }) {
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <div>
               <h2>Users Management</h2>
-              <ServerGrid
-                columns={['first_name', 'last_name', 'email', 'role']}
-                path="users"
-                allowEditing={true}
-                allowDelete={true}
-                onDeleteRow={handleDeleteUser}
-                onDataChange={handleDataChange}
-                pageSize={10}
-              />
+              <div style={{ height: '500px', width: '100%' }}>
+                <Grid
+                  columns={['name', 'email', 'role']}
+                  data={getFilteredUsers()}
+                  allowEditing={true}
+                  allowDelete={true}
+                  onDeleteRow={handleDeleteUser}
+                  onDataChange={handleDataChange}
+                  pageSize={10}
+                />
+              </div>
             </div>
           )}
 
@@ -575,14 +500,7 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           )}
         </div>
       </div>
