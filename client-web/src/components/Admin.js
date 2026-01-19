@@ -8,7 +8,9 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
-import { getCurrentDate } from '../utils/dateUtils';
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
+import MobileProductBox from './MobileProductBox';
+
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
@@ -19,9 +21,11 @@ import AdminMobileNav from './AdminMobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
 import { usePasswordForm } from '../hooks/usePasswordForm';
+import { useUserManagement } from '../hooks/useUserManagement';
 import { useResponsive } from '../hooks/useResponsive';
 import ProductsTab from './ProductsTab';
 import UsersTab from './UsersTab';
+import HistoryTab from './HistoryTab';
 import { TabConfig } from '../utils/tabConfig';
 
 export default function Admin({ productsData }) {
@@ -29,6 +33,7 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
+
 
   // QR Scanner hook
   const {
@@ -49,8 +54,14 @@ export default function Admin({ productsData }) {
     handlers: { handlePasswordInputChange, handlePasswordSubmit, clearPasswordStatus }
   } = usePasswordForm();
 
+  // User management hook
+  const {
+    handlers: { handleDeleteUser }
+  } = useUserManagement();
+
   // Responsive hook
   const { isMobile, setIsMobile } = useResponsive();
+
 
   // Set default tab to 'camera' on mobile, otherwise based on role
   const [activeTab, setActiveTab] = useState(() => {
@@ -84,6 +95,8 @@ export default function Admin({ productsData }) {
 
   // Effect to handle tab switching when transitioning between mobile/desktop
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const wasMobile = prevIsMobileRef.current;
     const isNowMobile = isMobile;
 
@@ -103,11 +116,7 @@ export default function Admin({ productsData }) {
     prevIsMobileRef.current = isNowMobile;
   }, [isMobile, activeTab, currentUser]);
 
-  useEffect(() => {
-    if (!isMobile && activeTab === 'settings') {
-      setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
-    }
-  }, [isMobile, activeTab, currentUser]);
+
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
@@ -126,35 +135,14 @@ export default function Admin({ productsData }) {
 
 
 
-  const handleDeleteUser = (row) => {
-    // Prevent user from deleting their own account
-    if (row.first_name && row.last_name) {
-      const fullName = `${row.first_name} ${row.last_name}`;
-      if (fullName === currentUser?.name || `${row.first_name}${row.last_name}` === currentUser?.name) {
-        alert("You cannot delete your own account!");
-        return false; // cancel deletion
-      }
-      return window.confirm(`Are you sure you want to delete user "${fullName}"?`);
-    }
-
-    if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
-      return false;
-    }
-
-    return window.confirm(`Are you sure you want to delete user "${row.name || row.email}"?`);
-  };
 
   // Tab configuration - using utility module
   const tabs = TabConfig.getTabs(currentUser, isMobile);
 
-  // Tab click handler
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-  };
+
 
   // Render camera view content
-  
+
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
@@ -205,31 +193,11 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'history') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-
-            {/* Search Box */}
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-
-            <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-
-            <div style={{ height: '500px', width: '100%' }}>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={filteredHistory}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-                height="500px"
-              />
-            </div>
-          </div>
-        </div>
+        <HistoryTab
+          currentUser={currentUser}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+        />
       );
     }
 
@@ -237,14 +205,7 @@ export default function Admin({ productsData }) {
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           </div>
         </div>
       );
@@ -292,7 +253,7 @@ export default function Admin({ productsData }) {
         <AdminTabs
           tabs={tabs}
           activeTab={activeTab}
-          onTabClick={handleTabClick}
+          onTabClick={setActiveTab}
           getTabLabel={TabConfig.getTabLabel}
           renderTabIcon={TabConfig.renderTabIcon}
         />
@@ -331,29 +292,15 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'history' && (
-            <div>
-              <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={filteredHistory}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-              />
-            </div>
+            <HistoryTab
+              currentUser={currentUser}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           )}
         </div>
       </div>

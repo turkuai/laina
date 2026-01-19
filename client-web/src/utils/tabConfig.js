@@ -38,10 +38,8 @@ export const TabConfig = {
       tabs.push('users');
     }
 
-    // Settings tab only available on mobile
-    if (isMobile) {
-      tabs.push('settings');
-    }
+    // Settings tab available on both mobile and desktop
+    tabs.push('settings');
 
     return tabs;
   },

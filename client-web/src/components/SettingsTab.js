@@ -1,24 +1,75 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Admin.css';
 
 /**
  * SettingsTab component - User settings including user details, password change, and logout
  * @param {Object} currentUser - Current authenticated user object
- * @param {Object} passwordForm - Password form state with currentPassword, newPassword, confirmPassword
- * @param {Object} passwordStatus - Password form status with type and message
- * @param {Function} onPasswordInputChange - Handler for password input changes
- * @param {Function} onPasswordSubmit - Handler for password form submission
  * @param {Function} onLogout - Handler for logout button click
  */
 const SettingsTab = ({
   currentUser,
-  passwordForm,
-  
-  passwordStatus,
-  onPasswordInputChange,
-  onPasswordSubmit,
   onLogout
 }) => {
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  const [passwordStatus, setPasswordStatus] = useState(null);
+
+  const handlePasswordInputChange = (field, value) => {
+    setPasswordForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordStatus({ type: 'error', message: 'Please fill in all fields before submitting.' });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordStatus({ type: 'error', message: 'New password and confirmation do not match.' });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${currentUser?.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: passwordForm.newPassword,
+          current_password: passwordForm.currentPassword
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to change password');
+      }
+
+      setPasswordStatus({ type: 'success', message: 'Password changed successfully!' });
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Password change error:', error);
+      setPasswordStatus({ type: 'error', message: error.message || 'Failed to change password. Please try again.' });
+    }
+  };
+
   return (
     <div className="admin-settings">
       <div className="admin-settings-section">
@@ -39,13 +90,13 @@ const SettingsTab = ({
 
       <div className="admin-settings-section">
         <h3>Change Password</h3>
-        <form className="password-form" onSubmit={onPasswordSubmit}>
+        <form className="password-form" onSubmit={handlePasswordSubmit}>
           <label className="password-form-field">
             <span>Current password</span>
             <input
               type="password"
               value={passwordForm.currentPassword}
-              onChange={(e) => onPasswordInputChange('currentPassword', e.target.value)}
+              onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
               placeholder="Enter current password"
             />
           </label>
@@ -54,7 +105,7 @@ const SettingsTab = ({
             <input
               type="password"
               value={passwordForm.newPassword}
-              onChange={(e) => onPasswordInputChange('newPassword', e.target.value)}
+              onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
               placeholder="Enter new password"
             />
           </label>
@@ -63,7 +114,7 @@ const SettingsTab = ({
             <input
               type="password"
               value={passwordForm.confirmPassword}
-              onChange={(e) => onPasswordInputChange('confirmPassword', e.target.value)}
+              onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
               placeholder="Re-enter new password"
             />
           </label>
