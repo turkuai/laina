@@ -192,31 +192,11 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'history') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-
-            {/* Search Box */}
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-
-            <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-
-            <div style={{ height: '500px', width: '100%' }}>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={filteredHistory}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-                height="500px"
-              />
-            </div>
-          </div>
-        </div>
+        <HistoryTab
+          currentUser={currentUser}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+        />
       );
     }
 
@@ -311,18 +291,12 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'history' && (
-            <div>
-              <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-              <Grid
-                columns={currentUser?.role === 'admin'
-                  ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
-                  : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={filteredHistory}
-                allowEditing={false}
-                allowDelete={false}
-                pageSize={10}
-              />
-            </div>
+            <HistoryTab
+              currentUser={currentUser}
+              history={getFilteredHistory()}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
           )}
 
           {activeTab === 'settings' && (
