@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
-import BorrowPage from './BorrowPage';
 import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
 import { formatDate, getCurrentDate } from '../utils/dateUtils';
 import MobileProductBox from './MobileProductBox';
+import { getCurrentDate } from '../utils/dateUtils';
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
@@ -19,6 +18,14 @@ import AdminHeader from './AdminHeader';
 import ProductModals from './ProductModals';
 import AdminTabs from './AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
+import { useHistoryFilter } from '../hooks/useHistoryFilter';
+import { useQRScanner } from '../hooks/useQRScanner';
+import { usePasswordForm } from '../hooks/usePasswordForm';
+import { useUserManagement } from '../hooks/useUserManagement';
+import { useResponsive } from '../hooks/useResponsive';
+import ProductsTab from './ProductsTab';
+import UsersTab from './UsersTab';
+import { TabConfig } from '../utils/tabConfig';
 
 export default function Admin({ productsData }) {
   const { currentUser, logout } = useAuth();
@@ -35,6 +42,32 @@ export default function Admin({ productsData }) {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640;
   });
+  // QR Scanner hook
+  const {
+    showCamera,
+    setShowCamera,
+    scannedProduct,
+    productStatus,
+    handleQRScan,
+    handleReturn,
+    handleBorrow,
+    handleClose
+  } = useQRScanner();
+
+  // Password form hook
+  const {
+    passwordForm,
+    passwordStatus,
+    handlers: { handlePasswordInputChange, handlePasswordSubmit, clearPasswordStatus }
+  } = usePasswordForm();
+
+  // User management hook
+  const {
+    handlers: { handleDeleteUser }
+  } = useUserManagement();
+
+  // Responsive hook
+  const { isMobile, setIsMobile } = useResponsive();
 
   // Set default tab to 'camera' on mobile, otherwise based on role
   const [activeTab, setActiveTab] = useState(() => {
@@ -51,13 +84,6 @@ export default function Admin({ productsData }) {
     return currentUser?.role === "admin" ? "users" : "history";
   });
 
-  const [users, setUsers] = useState([
-    { id: 2, name: 'Mikko', email: 'mikko@example.com', role: 'student' },
-    { id: 3, name: 'Ville', email: 'ville@example.com', role: 'student' },
-    { id: 5, name: 'Aino', email: 'aino@example.com', role: 'student' },
-    { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-  ]);
-
   const [borrowingHistory, setBorrowingHistory] = useState([
     { id: 1, userName: 'Mikko', productName: 'Laptop Dell XPS', borrowedAt: '2024-01-15', returnedAt: '2024-01-20', status: 'Returned', userId: 2 },
     { id: 2, userName: 'Ville', productName: 'Monitor Samsung', borrowedAt: '2024-01-18', returnedAt: null, status: 'On Loan', userId: 3 },
@@ -65,51 +91,15 @@ export default function Admin({ productsData }) {
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
   ]);
 
-  // Construct the API path with borrower filter for students
-  const getHistoryPath = () => {
-    if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
-      return 'borrowing-history';
-    } else {
-      // Filter by current user's ID for students
-      return `borrowing-history?borrower_id=${currentUser?.id}`;
-    }
-  };
 
-  const getUserData = () => {
-    if (currentUser?.role === 'admin') return users;
-    return users.filter(u => u.id === currentUser?.id);
-  };
 
-  const getBorrowingHistory = () => {
-    if (currentUser?.role === 'admin') return borrowingHistory;
-    return borrowingHistory.filter(r => r.userId === currentUser?.id);
-  };
+  // Custom hooks for data filtering
+  const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
-  // Filter functions for search
-  const getFilteredUsers = () => {
-    const data = getUserData();
-    if (!userQuery.trim()) return data;
+  // Track previous isMobile value to detect transitions
+  const prevIsMobileRef = useRef(isMobile);
 
-    const query = userQuery.toLowerCase();
-    return data.filter(user =>
-      user.name?.toLowerCase().includes(query) ||
-      user.email?.toLowerCase().includes(query) ||
-      user.role?.toLowerCase().includes(query)
-    );
-  };
-
-  const getFilteredHistory = () => {
-    const data = getBorrowingHistory();
-    if (!userQuery.trim()) return data;
-
-    const query = userQuery.toLowerCase();
-    return data.filter(record =>
-      record.userName?.toLowerCase().includes(query) ||
-      record.productName?.toLowerCase().includes(query) ||
-      record.status?.toLowerCase().includes(query)
-    );
-  };
-
+  // Effect to handle tab switching when transitioning between mobile/desktop
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => {
@@ -129,12 +119,36 @@ export default function Admin({ productsData }) {
           setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
         }
         // Settings tab is preserved on both mobile and desktop
+    const wasMobile = prevIsMobileRef.current;
+    const isNowMobile = isMobile;
+
+    // Only change tab when transitioning between mobile/desktop
+    if (isNowMobile !== wasMobile) {
+      // When switching TO mobile from desktop
+      if (isNowMobile && !wasMobile && activeTab !== 'camera' && activeTab !== 'settings') {
+        setActiveTab('camera');
       }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+      // When switching TO desktop from mobile  
+      else if (!isNowMobile && wasMobile && activeTab === 'camera') {
+        setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+      }
+    }
+
+    // Update ref for next comparison
+    prevIsMobileRef.current = isNowMobile;
   }, [isMobile, activeTab, currentUser]);
+
+  useEffect(() => {
+    if (!isMobile && activeTab === 'settings') {
+      setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+    }
+  }, [isMobile, activeTab, currentUser]);
+
+  useEffect(() => {
+    if (activeTab !== 'settings' && passwordStatus) {
+      clearPasswordStatus();
+    }
+  }, [activeTab, passwordStatus, clearPasswordStatus]);
 
   const handleLogout = () => {
     logout();
@@ -142,62 +156,7 @@ export default function Admin({ productsData }) {
   };
 
   const handleDataChange = (updatedData) => {
-    if (activeTab === 'users') setUsers(updatedData);
-    else if (activeTab === 'history') setBorrowingHistory(updatedData);
-  };
-
-  const handleEditRow = (row) => {
-    console.log('Edited row:', row);
-  };
-
-  const handleDeleteUser = (row) => {
-    if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
-      return;
-    }
-    if (window.confirm(`Are you sure you want to delete user "${row.name}"?`)) {
-      setUsers(users.filter(u => u.id !== row.id));
-      alert(`User "${row.name}" deleted.`);
-    }
-  };
-
-  // QR Scanner handlers
-  const handleQRScan = (qrData) => {
-    console.log('QR Code scanned:', qrData);
-    setShowCamera(false);
-
-    let parsed;
-    try {
-      parsed = JSON.parse(qrData);
-    } catch (e) {
-      alert('Invalid QR code format. Please use a JSON-based QR sticker.');
-      console.error('QR parse error:', e);
-      return;
-    }
-
-    if (!parsed.name || !parsed.status) {
-      alert('QR code missing required fields (name/status).');
-      return;
-    }
-
-    if (parsed.status.toLowerCase() === 'borrowed') {
-      setProductStatus('borrowed');
-      setScannedProduct({
-        name: parsed.name,
-        borrower: parsed.borrower || 'Unknown',
-        borrowDate: parsed.borrowDate || 'Unknown',
-        returnDate: parsed.returnDate || 'Unknown',
-        qrCode: qrData
-      });
-    } else if (parsed.status.toLowerCase() === 'available') {
-      setProductStatus('available');
-      setScannedProduct({
-        name: parsed.name,
-        qrCode: qrData
-      });
-    } else {
-      alert(`Unknown product status: ${parsed.status}`);
-    }
+    if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
   const handleReturn = () => {
@@ -237,6 +196,8 @@ export default function Admin({ productsData }) {
       default: return tab;
     }
   };
+  // Tab configuration - using utility module
+  const tabs = TabConfig.getTabs(currentUser, isMobile);
 
   // Render tab icon function
   const renderTabIcon = (tab) => {
@@ -258,34 +219,7 @@ export default function Admin({ productsData }) {
   };
 
   // Render camera view content
-  const renderCameraView = () => (
-    <div className="borrow-content">
-      {currentUser?.role !== 'student' && (
-        <button
-          onClick={() => setShowCamera(true)}
-          className="scan-button"
-        >
-          SCAN QR CODE
-        </button>
-      )}
-
-      {currentUser?.role !== 'student' && (
-        <p className="help-text">
-          Press the button to scan a product QR code
-        </p>
-      )}
-
-      {/* Mobile Product Info Box */}
-      <MobileProductBox
-        product={scannedProduct}
-        status={productStatus}
-        onReturn={handleReturn}
-        onBorrow={handleBorrow}
-        getCurrentDate={getCurrentDate}
-      />
-    </div>
-  );
-
+  
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
@@ -303,30 +237,13 @@ export default function Admin({ productsData }) {
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
       return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-
-            {/* Search Box */}
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-            <h2>Users Management</h2>
-
-            <div style={{ height: '500px', width: '100%' }}>
-              <Grid
-                columns={['name', 'email', 'role']}
-                data={getFilteredUsers()}
-                allowEditing={true}
-                allowDelete={true}
-                onDeleteRow={handleDeleteUser}
-                onDataChange={handleDataChange}
-                pageSize={10}
-                height="500px"
-              />
-            </div>
-          </div>
-        </div>
+        <UsersTab
+          currentUser={currentUser}
+          query={userQuery}
+          onQueryChange={setUserQuery}
+          onDeleteUser={handleDeleteUser}
+          onDataChange={handleDataChange}
+        />
       );
     }
 
@@ -369,7 +286,7 @@ export default function Admin({ productsData }) {
                 columns={currentUser?.role === 'admin'
                   ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
                   : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getFilteredHistory()}
+                data={filteredHistory}
                 allowEditing={false}
                 allowDelete={false}
                 pageSize={10}
@@ -422,10 +339,7 @@ export default function Admin({ productsData }) {
       <ProductModals
         scannedProduct={scannedProduct}
         productStatus={productStatus}
-        onClose={() => {
-          setScannedProduct(null);
-          setProductStatus(null);
-        }}
+        onClose={handleClose}
         onReturn={handleReturn}
         onBorrow={handleBorrow}
         getCurrentDate={getCurrentDate}
@@ -437,8 +351,8 @@ export default function Admin({ productsData }) {
           tabs={tabs}
           activeTab={activeTab}
           onTabClick={handleTabClick}
-          getTabLabel={getTabLabel}
-          renderTabIcon={renderTabIcon}
+          getTabLabel={TabConfig.getTabLabel}
+          renderTabIcon={TabConfig.renderTabIcon}
         />
       )}
 
@@ -469,19 +383,23 @@ export default function Admin({ productsData }) {
                 />
               </div>
             </div>
+            <UsersTab
+              currentUser={currentUser}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+              onDeleteUser={handleDeleteUser}
+              onDataChange={handleDataChange}
+            />
           )}
 
           {activeTab === 'products' && currentUser?.role === 'admin' && (
-            <div>
-              <ServerGrid
-                columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
-                columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
-                path="/products"
-                allowEditing={false}
-                allowDelete={true}
-                pageSize={10}
-              />
-            </div>
+            <ProductsTab
+              currentUser={currentUser}
+              productsData={productsData}
+              borrowingHistory={borrowingHistory}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
           )}
 
           {activeTab === 'history' && (
@@ -491,7 +409,7 @@ export default function Admin({ productsData }) {
                 columns={currentUser?.role === 'admin'
                   ? ['userName', 'productName', 'borrowedAt', 'returnedAt', 'status']
                   : ['productName', 'borrowedAt', 'returnedAt', 'status']}
-                data={getFilteredHistory()}
+                data={filteredHistory}
                 allowEditing={false}
                 allowDelete={false}
                 pageSize={10}
