@@ -127,23 +127,22 @@ export default function Admin({ productsData }) {
 
 
   const handleDeleteUser = (row) => {
+    // Prevent user from deleting their own account
     if (row.first_name && row.last_name) {
       const fullName = `${row.first_name} ${row.last_name}`;
       if (fullName === currentUser?.name || `${row.first_name}${row.last_name}` === currentUser?.name) {
         alert("You cannot delete your own account!");
-        return;
+        return false; // cancel deletion
       }
-      if (window.confirm(`Are you sure you want to delete user "${fullName}"?`)) {
-        // ServerGrid handles the actual deletion via API
-        alert(`User "${fullName}" deleted.`);
-      }
-    } else if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
-      return;
-    } else if (window.confirm(`Are you sure you want to delete user "${row.name || row.email}"?`)) {
-      // ServerGrid handles the actual deletion via API
-      alert(`User "${row.name || row.email}" deleted.`);
+      return window.confirm(`Are you sure you want to delete user "${fullName}"?`);
     }
+
+    if (row.name === currentUser?.name) {
+      alert("You cannot delete your own account!");
+      return false;
+    }
+
+    return window.confirm(`Are you sure you want to delete user "${row.name || row.email}"?`);
   };
 
   // Tab configuration - using utility module

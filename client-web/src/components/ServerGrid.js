@@ -109,6 +109,25 @@ export default function ServerGrid({
       return;
     }
 
+    // If parent provided a delete handler, let it decide (and usually confirm)
+    if (typeof onDeleteRow === 'function') {
+      const shouldDelete = await onDeleteRow(row);
+      if (shouldDelete === false) {
+        return; // parent cancelled deletion
+      }
+    } else {
+      // Default confirmation for grids that don't have a custom handler
+      const label =
+        row.product_name ||
+        (row.first_name && row.last_name && `${row.first_name} ${row.last_name}`) ||
+        row.email ||
+        row.name ||
+        'this item';
+
+      const ok = window.confirm(`Are you sure you want to delete ${label}?`);
+      if (!ok) return;
+    }
+
     try {
       let deleteUrl = `${path.split('?')[0]}/${row.id}`;
       // Ensure /api/ prefix if not present; avoid accidental double slashes
@@ -130,21 +149,55 @@ export default function ServerGrid({
         throw new Error(`Delete failed with status ${res.status}`);
       }
 
-      // Remove from local data
+      // Remove from local data so UI updates immediately
       setData(data.filter(item => item.id !== row.id));
-      
-      if (typeof onDeleteRow === 'function') {
-        onDeleteRow(row);
-      }
     } catch (err) {
       console.error('Delete error:', err);
       setError(`Failed to delete item: ${err.message}`);
     }
   };
 
-  const handleEdit = (row) => {
-    if (typeof onEditRow === 'function') {
-      onEditRow(row);
+  const handleEdit = async (row) => {
+    if (!row.id) {
+      console.error('Row has no ID');
+      return;
+    }
+
+    try {
+      let updateUrl = `${path.split('?')[0]}/${row.id}`;
+      if (!updateUrl.startsWith('/api/')) {
+        const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
+        updateUrl = `/api/${cleanPath}`;
+      }
+
+      // Clone row and drop non-updatable fields; backend will decide what to use
+      const payload = { ...row };
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+
+      const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Update failed with status ${res.status}`);
+      }
+
+      // Refresh from server so grid matches DB
+      await fetchData();
+
+      if (typeof onEditRow === 'function') {
+        onEditRow(row);
+      }
+    } catch (err) {
+      console.error('Edit error:', err);
+      setError(`Failed to update item: ${err.message}`);
     }
   };
 

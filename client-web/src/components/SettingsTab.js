@@ -13,6 +13,7 @@ import './Admin.css';
 const SettingsTab = ({
   currentUser,
   passwordForm,
+  
   passwordStatus,
   onPasswordInputChange,
   onPasswordSubmit,
