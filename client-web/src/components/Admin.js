@@ -8,6 +8,8 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
+import MobileProductBox from './MobileProductBox';
 import { getCurrentDate } from '../utils/dateUtils';
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
@@ -31,6 +33,15 @@ export default function Admin({ productsData }) {
 
   const [userQuery, setUserQuery] = useState('');
 
+  // QR Scanner states
+  const [showCamera, setShowCamera] = useState(false);
+  const [scannedProduct, setScannedProduct] = useState(null);
+  const [productStatus, setProductStatus] = useState(null);
+
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 640;
+  });
   // QR Scanner hook
   const {
     showCamera,
@@ -90,6 +101,24 @@ export default function Admin({ productsData }) {
 
   // Effect to handle tab switching when transitioning between mobile/desktop
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      const mobile = window.innerWidth < 640;
+      const wasMobile = isMobile;
+      setIsMobile(mobile);
+
+      // Only change tab when transitioning between mobile/desktop
+      if (mobile !== wasMobile) {
+        // When switching TO mobile from desktop
+        if (mobile && !wasMobile && activeTab !== 'camera' && activeTab !== 'settings') {
+          setActiveTab('camera');
+        }
+        // When switching TO desktop from mobile  
+        // Preserve settings tab, only change camera tab
+        else if (!mobile && wasMobile && activeTab === 'camera') {
+          setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
+        }
+        // Settings tab is preserved on both mobile and desktop
     const wasMobile = prevIsMobileRef.current;
     const isNowMobile = isMobile;
 
@@ -130,8 +159,59 @@ export default function Admin({ productsData }) {
     if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
+  const handleReturn = () => {
+    const currentDate = getCurrentDate();
+    console.log('Returning product:', scannedProduct, 'on', currentDate);
+    alert(`Product returned successfully!\nReturn date: ${currentDate}`);
+    setScannedProduct(null);
+    setProductStatus(null);
+  };
+
+  const handleBorrow = (borrowData) => {
+    console.log('Borrowing product:', scannedProduct);
+    console.log('Borrow data:', borrowData);
+    alert(`Product borrowed successfully!\nBorrower: ${borrowData.borrowerName}\nBorrow date: ${borrowData.borrowDate}\nReturn by: ${borrowData.returnDate}`);
+    setScannedProduct(null);
+    setProductStatus(null);
+  };
+
+  // Tab configuration
+  // Admin & teacher → kamera on lisätty palautettuun JSX:iin
+  // Student → EI kamera-tabia
+  const tabs = ['history', 'products'];
+
+  if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
+    tabs.push('users');
+  }
+  // Add settings tab for both mobile and desktop
+  tabs.push('settings');
+
+  const getTabLabel = (tab, forMobile = false) => {
+    switch (tab) {
+      case 'camera': return 'Camera';
+      case 'users': return 'Users';
+      case 'products': return 'Products';
+      case 'history': return forMobile ? 'History' : 'Borrowing History';
+      case 'settings': return 'Settings';
+      default: return tab;
+    }
+  };
   // Tab configuration - using utility module
   const tabs = TabConfig.getTabs(currentUser, isMobile);
+
+  // Render tab icon function
+  const renderTabIcon = (tab) => {
+    const iconMap = {
+      camera: ScanQrCode,
+      users: Users,
+      products: Package,
+      history: History,
+      settings: Settings
+    };
+    const IconComponent = iconMap[tab];
+    if (!IconComponent) return null;
+    return <IconComponent size={18} strokeWidth={2} aria-hidden="true" />;
+  };
 
   // Tab click handler
   const handleTabClick = (tab) => {
@@ -222,14 +302,7 @@ export default function Admin({ productsData }) {
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           </div>
         </div>
       );
@@ -296,6 +369,20 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'users' && currentUser?.role === 'admin' && (
+            <div>
+              <h2>Users Management</h2>
+              <div style={{ height: '500px', width: '100%' }}>
+                <Grid
+                  columns={['name', 'email', 'role']}
+                  data={getFilteredUsers()}
+                  allowEditing={true}
+                  allowDelete={true}
+                  onDeleteRow={handleDeleteUser}
+                  onDataChange={handleDataChange}
+                  pageSize={10}
+                />
+              </div>
+            </div>
             <UsersTab
               currentUser={currentUser}
               query={userQuery}
@@ -331,14 +418,7 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           )}
         </div>
       </div>
