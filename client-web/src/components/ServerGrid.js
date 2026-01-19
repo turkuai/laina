@@ -174,9 +174,47 @@ export default function ServerGrid({
     }
   };
 
-  const handleEdit = (row) => {
-    if (typeof onEditRow === 'function') {
-      onEditRow(row);
+  const handleEdit = async (row) => {
+    if (!row.id) {
+      console.error('Row has no ID');
+      return;
+    }
+
+    try {
+      let updateUrl = `${path.split('?')[0]}/${row.id}`;
+      if (!updateUrl.startsWith('/api/')) {
+        const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
+        updateUrl = `/api/${cleanPath}`;
+      }
+
+      // Clone row and drop non-updatable fields; backend will decide what to use
+      const payload = { ...row };
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+
+      const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Update failed with status ${res.status}`);
+      }
+
+      // Refresh from server so grid matches DB
+      await fetchData();
+
+      if (typeof onEditRow === 'function') {
+        onEditRow(row);
+      }
+    } catch (err) {
+      console.error('Edit error:', err);
+      setError(`Failed to update item: ${err.message}`);
     }
   };
 

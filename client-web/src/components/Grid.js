@@ -101,7 +101,7 @@ export default function Grid({
       return {
         headerName: displayName,
         field: fieldName,
-        editable: allowEditing,
+        editable: false, // prevent inline editing; use modal instead
         sortable: true,
         filter: 'agTextColumnFilter',
 
@@ -223,13 +223,85 @@ export default function Grid({
           pagination={true}
           paginationPageSize={pageSize}
           rowSelection={allowSelection ? 'multiple' : 'none'}
-          suppressClickEdit={!allowEditing}
+          suppressClickEdit={true} // disable double-click inline edit; editing via modal only
           onCellValueChanged={allowEditing ? handleCellValueChanged : undefined}
           suppressHorizontalScroll={false}
           enableCellTextSelection={true}
           ensureDomOrder={true}
         />
       </div>
+
+      {/* Generic edit popup for rows */}
+      {allowEditing && editingRow && (
+        <div className="product-modal-overlay" onClick={closeEditModal}>
+          <div
+            className="product-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '520px' }}
+          >
+            <button
+              onClick={closeEditModal}
+              className="product-modal-close"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <h2 className="product-modal-title">Edit</h2>
+
+            <div className="add-product-form-grid">
+              {effectiveColumns
+                .map(getColumnField)
+                .filter((field) =>
+                  // exclude technical fields from generic editor
+                  !['id', 'password', 'qr_code', 'created_at', 'updated_at'].includes(field)
+                )
+                .map((field) => (
+                  <div key={field}>
+                    <label className="form-label">{formatColumnName(field)}</label>
+                    {field === 'role' ? (
+                      <select
+                        className="form-select"
+                        value={editValues[field] ?? ''}
+                        onChange={(e) => handleEditChange(field, e.target.value)}
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editValues[field] ?? ''}
+                        onChange={(e) => handleEditChange(field, e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                className="product-modal-close-btn"
+                style={{ backgroundColor: '#ef4444' }}
+                onClick={closeEditModal}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="product-modal-print-btn"
+                style={{ backgroundColor: '#22c55e' }}
+                onClick={saveEdit}
+              >
+                Save changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
