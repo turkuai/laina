@@ -8,7 +8,9 @@ import QRScannerCamera from './QRScannerCamera';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
-import { getCurrentDate } from '../utils/dateUtils';
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
+import MobileProductBox from './MobileProductBox';
+
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
@@ -30,6 +32,7 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
+
 
   // QR Scanner hook
   const {
@@ -57,6 +60,7 @@ export default function Admin({ productsData }) {
 
   // Responsive hook
   const { isMobile, setIsMobile } = useResponsive();
+
 
   // Set default tab to 'camera' on mobile, otherwise based on role
   const [activeTab, setActiveTab] = useState(() => {
@@ -90,6 +94,8 @@ export default function Admin({ productsData }) {
 
   // Effect to handle tab switching when transitioning between mobile/desktop
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const wasMobile = prevIsMobileRef.current;
     const isNowMobile = isMobile;
 
@@ -109,11 +115,7 @@ export default function Admin({ productsData }) {
     prevIsMobileRef.current = isNowMobile;
   }, [isMobile, activeTab, currentUser]);
 
-  useEffect(() => {
-    if (!isMobile && activeTab === 'settings') {
-      setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
-    }
-  }, [isMobile, activeTab, currentUser]);
+
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
@@ -130,16 +132,16 @@ export default function Admin({ productsData }) {
     if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
+
+
+
   // Tab configuration - using utility module
   const tabs = TabConfig.getTabs(currentUser, isMobile);
 
-  // Tab click handler
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-  };
+
 
   // Render camera view content
-  
+
   // Render mobile content for each tab
   const renderMobileContent = () => {
     if (activeTab === 'camera') {
@@ -222,14 +224,7 @@ export default function Admin({ productsData }) {
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           </div>
         </div>
       );
@@ -277,7 +272,7 @@ export default function Admin({ productsData }) {
         <AdminTabs
           tabs={tabs}
           activeTab={activeTab}
-          onTabClick={handleTabClick}
+          onTabClick={setActiveTab}
           getTabLabel={TabConfig.getTabLabel}
           renderTabIcon={TabConfig.renderTabIcon}
         />
@@ -331,14 +326,7 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab
-              currentUser={currentUser}
-              passwordForm={passwordForm}
-              passwordStatus={passwordStatus}
-              onPasswordInputChange={handlePasswordInputChange}
-              onPasswordSubmit={handlePasswordSubmit}
-              onLogout={handleLogout}
-            />
+            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
           )}
         </div>
       </div>
