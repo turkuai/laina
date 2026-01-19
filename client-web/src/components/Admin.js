@@ -25,6 +25,7 @@ import { useUserManagement } from '../hooks/useUserManagement';
 import { useResponsive } from '../hooks/useResponsive';
 import ProductsTab from './ProductsTab';
 import UsersTab from './UsersTab';
+import HistoryTab from './HistoryTab';
 import { TabConfig } from '../utils/tabConfig';
 
 export default function Admin({ productsData }) {
@@ -293,7 +294,6 @@ export default function Admin({ productsData }) {
           {activeTab === 'history' && (
             <HistoryTab
               currentUser={currentUser}
-              history={getFilteredHistory()}
               query={userQuery}
               onQueryChange={setUserQuery}
             />
