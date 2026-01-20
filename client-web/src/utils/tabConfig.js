@@ -31,7 +31,15 @@ export const TabConfig = {
    * @returns {Array<string>} - Array of tab identifiers
    */
   getTabs(currentUser, isMobile) {
-    const tabs = ['history', 'products', 'users'];
+    const tabs = ['history', 'products'];
+
+    // Admin & teacher can access users tab
+    if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
+      tabs.push('users');
+    }
+
+    // Settings tab available on both mobile and desktop
+    tabs.push('settings');
 
     return tabs;
   },
