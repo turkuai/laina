@@ -216,6 +216,7 @@
 
 .admin-tab-button:hover {
   color: #dc2626;
+  background-color: #fef2f2;
 }
 
 .admin-tab-button.active {
