@@ -18,8 +18,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
   const adminColumns = ['borrower_name', 'product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   const adminColumnsMobile = ['borrower_name', 'product_name', 'borrow_date', 'status'];
   const studentColumns = ['product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
-  // Mobile students: compact, fixed grid (no status, just product + borrow + planned return)
-  const studentColumnsMobile = ['product_name', 'borrow_date', 'estimated_return_date'];
+  const studentColumnsMobile = ['product_name', 'borrow_date', 'status'];
   
   const desktopColumns = currentUser?.role === 'admin' ? adminColumns : studentColumns;
   const mobileColumns = currentUser?.role === 'admin' ? adminColumnsMobile : studentColumnsMobile;
@@ -47,7 +46,6 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
               allowEditing={false}
               allowDelete={false}
               pageSize={10}
-              showAddButton={false}
             />
           </div>
         </div>
@@ -62,7 +60,6 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
           allowEditing={false}
           allowDelete={false}
           pageSize={10}
-          showAddButton={false}
         />
       </div>
     </>

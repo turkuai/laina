@@ -74,9 +74,29 @@ export default function Grid({
       const fieldName = getColumnField(col);
       const displayName = getColumnDisplay(col);
       
-      // Base widths; mobile will just flex to screen
+      // Adjust column widths for mobile
       let width = undefined;
-      let minWidth = isMobile ? 80 : 100;
+      let minWidth = 100;
+
+      if (isMobile) {
+        // Set specific widths for mobile
+        if (fieldName === 'name' || fieldName === 'first_name' || fieldName === 'last_name') {
+          minWidth = 120;
+          width = 140;
+        } else if (fieldName === 'email') {
+          minWidth = 150;
+          width = 180;
+        } else if (fieldName === 'role') {
+          minWidth = 100;
+          width = 110;
+        } else if (fieldName === 'description') {
+          minWidth = 150;
+          width = 180;
+        } else if (fieldName.toLowerCase().includes('qty') || fieldName === 'available' || fieldName === 'onLoan') {
+          minWidth = 80;
+          width = 90;
+        }
+      }
 
       return {
         headerName: displayName,
@@ -88,8 +108,7 @@ export default function Grid({
         // Disable floating filters to remove the per-column search inputs
         floatingFilter: false,
         resizable: true,
-        suppressMovable: true, // prevent dragging/reordering columns
-        flex: 1,
+        flex: isMobile ? undefined : 1,
         width: width,
         minWidth: minWidth,
         wrapText: isMobile,
@@ -140,9 +159,6 @@ export default function Grid({
       suppressMovable: true,
     };
 
-    // Only show the Actions column when editing or deleting is enabled
-    if (!allowEditing && !allowDelete) return baseCols;
-
     return [...baseCols, actionCol];
   }, [effectiveColumns, allowEditing, allowDelete, onDeleteRow, isMobile]);
 
@@ -150,7 +166,6 @@ export default function Grid({
     sortable: true,
     filter: true,
     resizable: true,
-    suppressMovable: true, // prevent dragging/reordering columns
   }), []);
 
   const getRowId = useCallback(
@@ -211,7 +226,6 @@ export default function Grid({
           suppressClickEdit={true} // disable double-click inline edit; editing via modal only
           onCellValueChanged={allowEditing ? handleCellValueChanged : undefined}
           suppressHorizontalScroll={false}
-          suppressMovableColumns={true}
           enableCellTextSelection={true}
           ensureDomOrder={true}
         />
