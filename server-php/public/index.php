@@ -68,6 +68,11 @@ if ($apiIndex !== false) {
             handle_product_types_route($method, $id, $pdo);
             break;
 
+        case 'device-types':
+            require __DIR__ . '/../app/routes/device-types.php';
+            handle_device_types_route($method, $id, $pdo);
+            break;
+
         default:
             not_found();
     }
