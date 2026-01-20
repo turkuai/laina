@@ -38,7 +38,7 @@ function handle_borrowing_history_route(string $method, ?string $id, PDO $pdo): 
 
 function list_borrowing_history(PDO $pdo): void
 {
-    // Optional filter for a specific borrower (used by students)
+    // Optional filter for a specific borrower (used by students)d
     $borrowerId = $_GET['borrower_id'] ?? null;
 
     $sql = "
