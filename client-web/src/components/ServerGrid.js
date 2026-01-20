@@ -89,7 +89,6 @@ export default function ServerGrid({
     } catch (err) {
       console.error('ServerGrid fetch error:', err);
       setError(err.message || 'Failed to load data from server.');
-      console.error('ServerGrid response error details:', err?.stack || err);
     } finally {
       setLoading(false);
     }

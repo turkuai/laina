@@ -158,17 +158,9 @@ export default function Products({ currentUser }) {
       const locationsData = await locationsRes.json();
 
       // Handle different response formats
-      const normalizeList = (data, keys) => {
-        if (Array.isArray(data)) return data;
-        for (const key of keys) {
-          if (Array.isArray(data?.[key])) return data[key];
-        }
-        return [];
-      };
-
-      setProducts(normalizeList(productsData, ['products', 'data', 'items']));
-      setDeviceTypes(normalizeList(typesData, ['device_types', 'types', 'data', 'items']));
-      setLocations(normalizeList(locationsData, ['locations', 'data', 'items']));
+      setProducts(productsData.products || productsData.data || productsData.items || []);
+      setDeviceTypes(typesData.types || typesData.data || typesData.items || []);
+      setLocations(locationsData.locations || locationsData.data || locationsData.items || []);
     } catch (err) {
       console.error('Error loading data:', err);
       setError('Failed to connect to server.');
@@ -344,9 +336,7 @@ export default function Products({ currentUser }) {
               >
                 <option value="">Select type...</option>
                 {deviceTypes.map(type => (
-                  <option key={type.id} value={type.id}>
-                    {type.type_name || type.name}
-                  </option>
+                  <option key={type.id} value={type.id}>{type.type_name}</option>
                 ))}
               </select>
             </div>
