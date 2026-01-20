@@ -40,7 +40,7 @@ const AdminHeader = ({ currentUser, onLogout, onBorrowClick, onSettingsClick }) 
   return (
     <div className="admin-header">
       <h1 className="admin-logo-text">
-        Borrowing System {currentUser?.role === 'student' ? '- My Dashboard' : <span className="hide-on-mobile"> - Admin Panel</span>}
+        Borrowing System{currentUser?.role === 'student' ? ' - My Dashboard' : ''}
       </h1>
 
       <div className="admin-header-actions">
