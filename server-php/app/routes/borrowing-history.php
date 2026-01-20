@@ -38,7 +38,45 @@ function handle_borrowing_history_route(string $method, ?string $id, PDO $pdo): 
 
 function list_borrowing_history(PDO $pdo): void
 {
-    $stmt = $pdo->query('SELECT * FROM borrowing_history ORDER BY id DESC');
+    // Optional filter for a specific borrower (used by students)
+    $borrowerId = $_GET['borrower_id'] ?? null;
+
+    $sql = "
+        SELECT 
+            bh.id,
+            bh.product_id,
+            bh.borrower_id,
+            bh.lender_id,
+            bh.borrow_date,
+            bh.estimated_return_date,
+            bh.actual_return_date,
+            bh.return_processed_by,
+            bh.notes,
+            -- Friendly fields expected by the frontend grid
+            COALESCE(
+                NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+                u.username,
+                CONCAT('User ', bh.borrower_id)
+            ) AS borrower_name,
+            p.product_name,
+            p.status,
+            CASE 
+                WHEN bh.actual_return_date IS NULL THEN 'borrowed'
+                ELSE 'returned'
+            END AS status_label
+        FROM borrow_history bh
+        LEFT JOIN users u ON u.id = bh.borrower_id
+        LEFT JOIN products p ON p.id = bh.product_id
+        WHERE 1 = 1
+            " . ($borrowerId ? "AND bh.borrower_id = :borrower_id" : "") . "
+        ORDER BY bh.id DESC
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    if ($borrowerId) {
+        $stmt->bindValue(':borrower_id', $borrowerId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
     $rows = $stmt->fetchAll();
     json_response($rows);
 }
