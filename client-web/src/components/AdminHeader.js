@@ -1,5 +1,5 @@
-import React from 'react';
-import { QrCode } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { QrCode, ChevronDown, Settings, LogOut } from 'lucide-react';
 import './Admin.css';
 
 /**
@@ -7,9 +7,35 @@ import './Admin.css';
  * @param {Object} currentUser - Current authenticated user object
  * @param {Function} onLogout - Handler for logout button click
  * @param {Function} onBorrowClick - Handler for borrow/return button click
+ * @param {Function} onSettingsClick - Handler for settings menu click
  */
-const AdminHeader = ({ currentUser, onLogout, onBorrowClick }) => {
+const AdminHeader = ({ currentUser, onLogout, onBorrowClick, onSettingsClick }) => {
   const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSettingsClick = () => {
+    setIsDropdownOpen(false);
+    if (onSettingsClick) {
+      onSettingsClick();
+    }
+  };
+
+  const handleLogoutClick = () => {
+    setIsDropdownOpen(false);
+    onLogout();
+  };
 
   return (
     <div className="admin-header">
@@ -18,17 +44,6 @@ const AdminHeader = ({ currentUser, onLogout, onBorrowClick }) => {
       </h1>
 
       <div className="admin-header-actions">
-        <span className="user-info mobile-header-user">
-          Welcome, <strong>{currentUser?.username}</strong>
-          <span className="admin-badge">({currentUser?.role})</span>
-          <button
-            onClick={onLogout}
-            className="logout-button"
-          >
-            Logout
-          </button>
-        </span>
-
         {canAccessBorrow && (
           <button
             onClick={onBorrowClick}
@@ -38,6 +53,31 @@ const AdminHeader = ({ currentUser, onLogout, onBorrowClick }) => {
             Borrow/Return
           </button>
         )}
+
+        <div className="user-dropdown-container" ref={dropdownRef}>
+          <button
+            className="user-dropdown-trigger"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            <span className="user-info-text">
+              Welcome, <strong>{currentUser?.username}</strong>
+            </span>
+            <ChevronDown size={16} className={`dropdown-icon ${isDropdownOpen ? 'open' : ''}`} />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="user-dropdown-menu">
+              <button className="dropdown-menu-item" onClick={handleSettingsClick}>
+                <Settings size={16} />
+                Settings
+              </button>
+              <button className="dropdown-menu-item logout-item" onClick={handleLogoutClick}>
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -222,6 +222,7 @@ export default function Admin({ productsData }) {
         currentUser={currentUser}
         onLogout={handleLogout}
         onBorrowClick={() => setShowCamera(true)}
+        onSettingsClick={() => setActiveTab('settings')}
       />
 
       {/* Mobile Content - Render based on active tab */}
