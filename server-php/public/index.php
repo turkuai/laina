@@ -63,6 +63,11 @@ if ($apiIndex !== false) {
             handle_borrowing_history_route($method, $id, $pdo);
             break;
 
+        case 'device-types':
+            require __DIR__ . '/../app/routes/device-types.php';
+            handle_device_types_route($method, $id, $pdo);
+            break;
+
         case 'product-types':
             require __DIR__ . '/../app/routes/product-types.php';
             handle_product_types_route($method, $id, $pdo);
