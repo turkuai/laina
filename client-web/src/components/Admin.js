@@ -302,8 +302,8 @@ export default function Admin({ productsData }) {
         </div>
       </div>
 
-      {/* Mobile Bottom Tab Bar */}
-      {isMobile && (
+      {/* Mobile Bottom Tab Bar (hidden while QR scanner is open) */}
+      {isMobile && !showCamera && (
         <AdminMobileNav
           tabs={tabs}
           activeTab={activeTab}
