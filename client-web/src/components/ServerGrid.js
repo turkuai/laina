@@ -3,6 +3,7 @@ import Grid from './Grid';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
+  if (typeof columnName !== 'string') return '';
   return columnName
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -240,10 +241,15 @@ export default function ServerGrid({
   };
 
   // Create column configuration with display names
-  const columnConfig = columns.map(col => ({
-    field: col,
-    displayName: formatColumnName(col)
-  }));
+  const columnConfig = columns.map(col => {
+    if (typeof col === 'object') {
+      return col;
+    }
+    return {
+      field: col,
+      displayName: formatColumnName(col)
+    };
+  });
 
   return (
     <div style={{ position: 'relative' }}>
