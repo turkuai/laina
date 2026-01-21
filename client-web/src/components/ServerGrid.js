@@ -277,21 +277,21 @@ export default function ServerGrid({
             type="button"
             style={{
               padding: '0.5rem 1rem',
-              backgroundColor: '#10b981',
+              backgroundColor: '#22c55e',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '0.875rem',
               cursor: 'pointer',
               fontWeight: '500',
-              transition: 'background-color 0.2s',
+              transition: 'opacity 0.2s',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
               whiteSpace: 'nowrap'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
+            onMouseOver={(e) => e.target.style.opacity = '0.85'}
+            onMouseOut={(e) => e.target.style.opacity = '1'}
           >
             <span style={{ fontSize: '1.25rem', lineHeight: '1' }}>+</span>
             <span>Add</span>
