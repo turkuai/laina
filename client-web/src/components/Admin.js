@@ -174,12 +174,7 @@ export default function Admin({ productsData }) {
       return (
         <div className="mobile-tab-content">
           <div className="mobile-content-section">
-            {/* Search Box */}
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-
+            {/* Products component already includes its own search input */}
             <Products
               currentUser={currentUser}
               borrowingHistory={borrowingHistory}
@@ -265,8 +260,8 @@ export default function Admin({ productsData }) {
       <div className="admin-content hide-on-mobile">
         <div className="admin-content-card">
 
-          {/* Search Box for Users */}
-          {activeTab !== 'settings' && (
+          {/* Search Box for all tabs except settings and products (Products has its own search) */}
+          {activeTab !== 'settings' && activeTab !== 'products' && (
             <SearchBox
               value={userQuery}
               onChange={(e) => setUserQuery(e.target.value)}
