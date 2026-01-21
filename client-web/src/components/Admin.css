@@ -189,7 +189,7 @@
   border: 1px solid #e5e7eb;
   border-bottom: none;
   border-radius: 18px 18px 0 0;
-  margin: 0 1rem;
+  margin: 1rem 1rem 0 1rem;
   padding: 0 1.5rem;
   box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.04);
 }
@@ -307,14 +307,18 @@
 /* Content Area */
 .admin-content {
   display: block;
+  margin: 0 1rem;
+  margin-top: 0;
 }
 
 .admin-content-card {
   background-color: white;
-  border-radius: 8px;
+  border-radius: 0 0 8px 8px;
   padding: 1rem;
-  margin: 1rem;
+  margin: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  border-top: none;
 }
 
 .admin-content-card h2 {
@@ -890,7 +894,7 @@
   }
 
   .admin-tabs {
-    margin: 0 1.5rem;
+    margin: 1rem 1.5rem 0 1.5rem;
   }
 
   .admin-header h1 {
@@ -899,11 +903,13 @@
   }
 
   .admin-content {
-    padding: 1.5rem;
+    margin: 0 1.5rem;
+    padding: 0;
   }
 
   .admin-content-card {
     padding: 1.5rem;
+    margin: 0;
   }
 
   .admin-content-card h2 {
@@ -927,7 +933,7 @@
   }
 
   .admin-tabs {
-    margin: 0 2rem;
+    margin: 1rem 2rem 0 2rem;
     padding: 0 2rem;
   }
 
@@ -940,11 +946,13 @@
   }
 
   .admin-content {
-    padding: 1.5rem 2rem;
+    margin: 0 2rem;
+    padding: 0;
   }
 
   .admin-content-card {
     padding: 1.5rem 2rem;
+    margin: 0;
   }
 }
 
@@ -1107,12 +1115,12 @@
   }
 
   .admin-tabs {
-    margin: 0 1.5rem;
+    margin: 1rem 1.5rem 0 1.5rem;
   }
 
   .admin-content-card {
     padding: 1.5rem;
-    margin: 1.5rem;
+    margin: 0;
   }
 
   .admin-content-card h2 {
@@ -1148,12 +1156,12 @@
   }
 
   .admin-tabs {
-    margin: 0 2rem;
+    margin: 1rem 2rem 0 2rem;
     padding: 0 2rem;
   }
 
   .admin-content-card {
     padding: 1.5rem 2rem;
-    margin: 1.5rem 2rem;
+    margin: 0;
   }
 }
