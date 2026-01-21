@@ -11,6 +11,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Helper function to format column names
 const formatColumnName = (columnName) => {
+  if (typeof columnName !== 'string') return '';
   return columnName
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -78,7 +79,7 @@ export default function Grid({
       let width = undefined;
       let minWidth = isMobile ? 80 : 100;
 
-      return {
+      const colDef = {
         headerName: displayName,
         field: fieldName,
         editable: false, // prevent inline editing; use modal instead
@@ -96,6 +97,13 @@ export default function Grid({
         autoHeight: isMobile,
         cellRenderer: columnRenderers ? columnRenderers[fieldName] : undefined
       };
+
+      // Add valueGetter if provided in column config
+      if (typeof col === 'object' && col.valueGetter) {
+        colDef.valueGetter = (params) => col.valueGetter(params.data);
+      }
+
+      return colDef;
     });
 
     const actionCol = {
