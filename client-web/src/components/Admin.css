@@ -1058,6 +1058,12 @@
     display: flex;
   }
 
+  .admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
   .admin-header-actions {
     width: 100%;
     justify-content: space-between;
