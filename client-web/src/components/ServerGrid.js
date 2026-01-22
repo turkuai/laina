@@ -193,6 +193,7 @@ export default function ServerGrid({
       delete payload.id;
       delete payload.created_at;
       delete payload.updated_at;
+      delete payload.role; // Role cannot be changed after user creation
 
       const res = await fetch(updateUrl, {
         method: 'PATCH',
