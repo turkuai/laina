@@ -283,7 +283,7 @@ export default function Admin({ productsData }) {
             />
           )}
 
-          {activeTab === 'products' && currentUser?.role === 'admin' && (
+          {activeTab === 'products' && (
             <ProductsTab
               currentUser={currentUser}
               productsData={productsData}
