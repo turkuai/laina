@@ -11,7 +11,7 @@ export const formatDate = (date) => {
 };
 
 /**
- * Get the current date formatted as DD.MM.YYYY
+ *Get the current date formatted as DD.MM.YYYY
  * @returns {string} Current date formatted as DD.MM.YYYY
  */
 export const getCurrentDate = () => {
