@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { generateQRCodeWithInfo } from '../utils/qrCodeUtils';
 
 function QRCodePopup({ ref, product, onClose }) {
 
@@ -13,21 +14,23 @@ function QRCodePopup({ ref, product, onClose }) {
         qr_code: product.qr_code,
     });
 
-    const handleDownload = () => {
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(productData)}`;
+    const handleDownload = async () => {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(productData)}`;
         
-        fetch(qrUrl)
-            .then(response => response.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${product.product_name}-qrcode.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-        })
+        try {
+            const blob = await generateQRCodeWithInfo(qrUrl, product);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${product.product_name}-qrcode.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error generating QR code with info:', error);
+            alert('Failed to download QR code. Please try again.');
+        }
     };
 
     const dialog = React.useRef(null);
