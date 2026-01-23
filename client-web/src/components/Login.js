@@ -46,9 +46,13 @@ export default function Login() {
         <div className="page-container login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <h1 className="login-title">
-                        Borrowing System
-                    </h1>
+                    <div className="login-logo">
+                        <img
+                            src="/tai.png"
+                            alt="TAI logo"
+                            className="login-logo-image"
+                        />
+                    </div>
                     <p className="login-subtitle">Please login to continue</p>
                 </div>
 
