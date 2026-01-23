@@ -229,7 +229,7 @@ export default function Admin({ productsData }) {
         />
       )}
 
-      {/* Product Modals - Desktop Only */}
+      {/* Product Modals - Desktop and Mobile */}
       <ProductModals
         scannedProduct={scannedProduct}
         productStatus={productStatus}
