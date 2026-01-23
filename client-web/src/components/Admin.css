@@ -522,6 +522,164 @@
   background-color: #374151;
 }
 
+/* Mobile Product Modal */
+.mobile-product-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.mobile-product-modal {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-product-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.mobile-product-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.mobile-product-modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  padding-right: 2rem;
+}
+
+.mobile-product-modal-status {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  text-align: center;
+  color: #1f2937;
+}
+
+.mobile-product-modal-info-section {
+  margin: 1.5rem 0;
+}
+
+.mobile-product-modal-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0.75rem 0 0.5rem 0;
+}
+
+.mobile-product-modal-value {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0;
+  padding-left: 0.5rem;
+}
+
+.mobile-product-modal-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #d1d5db;
+  padding: 0.75rem 0.25rem;
+  font-size: 0.875rem;
+  outline: none;
+  margin: 0.5rem 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.mobile-product-modal-input:focus {
+  border-bottom-color: #dc2626;
+}
+
+.mobile-product-modal-input::placeholder {
+  color: #9ca3af;
+}
+
+.mobile-product-modal-action-button {
+  width: 100%;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: background-color 0.2s;
+}
+
+.mobile-product-modal-action-button:active {
+  background-color: #b91c1c;
+}
+
+/* Mobile Product Modal Dropdown */
+.mobile-product-modal-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 4px;
+}
+
+.mobile-product-modal-dropdown-item {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s;
+}
+
+.mobile-product-modal-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-product-modal-dropdown-item:active {
+  background-color: #f9fafb;
+}
+
 /* Settings Panel */
 .admin-settings {
   display: flex;

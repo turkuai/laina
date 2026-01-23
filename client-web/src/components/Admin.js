@@ -10,6 +10,7 @@ import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
 import { formatDate, getCurrentDate } from '../utils/dateUtils';
 import MobileProductBox from './MobileProductBox';
+import MobileProductModal from './MobileProductModal';
 
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
@@ -229,15 +230,29 @@ export default function Admin({ productsData }) {
         />
       )}
 
-      {/* Product Modals - Desktop and Mobile */}
-      <ProductModals
-        scannedProduct={scannedProduct}
-        productStatus={productStatus}
-        onClose={handleClose}
-        onReturn={handleReturn}
-        onBorrow={handleBorrow}
-        getCurrentDate={getCurrentDate}
-      />
+      {/* Product Modals - Desktop Only */}
+      {!isMobile && (
+        <ProductModals
+          scannedProduct={scannedProduct}
+          productStatus={productStatus}
+          onClose={handleClose}
+          onReturn={handleReturn}
+          onBorrow={handleBorrow}
+          getCurrentDate={getCurrentDate}
+        />
+      )}
+
+      {/* Mobile Product Modal - Mobile Only */}
+      {isMobile && (
+        <MobileProductModal
+          scannedProduct={scannedProduct}
+          productStatus={productStatus}
+          onClose={handleClose}
+          onReturn={handleReturn}
+          onBorrow={handleBorrow}
+          getCurrentDate={getCurrentDate}
+        />
+      )}
 
       {/* Tabs - Desktop */}
       {!isMobile && (
