@@ -316,7 +316,7 @@ export default function Products({ currentUser }) {
             onClick={() => setShowAddForm(!showAddForm)}
             className="btn btn-primary"
           >
-            {showAddForm ? '✕ Cancel' : '+ Add Product'}
+            {showAddForm ? '✕ Cancel' : '+ Add'}
           </button>
         )}
       </div>
