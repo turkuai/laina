@@ -158,6 +158,8 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
   }
 
   // Desktop version
+  const isAdmin = currentUser?.role === 'admin';
+  
   return (
     <div>
       <ServerGrid
@@ -166,9 +168,10 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
         columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
         path="/products"
         allowEditing={false}
-        allowDelete={true}
+        allowDelete={isAdmin}
         pageSize={10}
-        onAdd={handleOpenAddModal}
+        onAdd={isAdmin ? handleOpenAddModal : undefined}
+        showAddButton={isAdmin}
         onDataChange={setProductsFromDb}
       />
 
