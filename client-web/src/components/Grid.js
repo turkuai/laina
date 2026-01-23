@@ -258,6 +258,8 @@ export default function Grid({
                         className="form-select"
                         value={editValues[field] ?? ''}
                         onChange={(e) => handleEditChange(field, e.target.value)}
+                        disabled
+                        style={{ opacity: 0.6, cursor: 'not-allowed' }}
                       >
                         <option value="admin">Admin</option>
                         <option value="teacher">Teacher</option>
