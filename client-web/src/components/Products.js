@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Products.css';
 import ServerGrid from './ServerGrid';
 import QRCodeRenderer from './QRCodeRenderer';
+import { generateQRCodeWithInfo } from '../utils/qrCodeUtils';
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -18,21 +19,23 @@ const ProductModal = ({ product, onClose }) => {
     qr_code: product.qr_code,
   });
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(productData)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(productData)}`;
 
-  const handleDownload = () => {
-    fetch(qrCodeUrl)
-      .then(response => response.blob())
-      .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${product.product_name}-qrcode.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      });
+  const handleDownload = async () => {
+    try {
+      const blob = await generateQRCodeWithInfo(qrCodeUrl, product);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${product.product_name}-qrcode.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating QR code with info:', error);
+      alert('Failed to download QR code. Please try again.');
+    }
   };
 
   return (
