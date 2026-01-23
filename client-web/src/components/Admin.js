@@ -63,7 +63,7 @@ export default function Admin({ productsData }) {
   const { isMobile, setIsMobile } = useResponsive();
 
 
-  // Set default tab to 'camera' on mobile, otherwise based on role
+  // Set default tab based on role
   const [activeTab, setActiveTab] = useState(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
@@ -72,7 +72,7 @@ export default function Admin({ productsData }) {
     }
 
     if (isMobile) {
-      return "camera";
+      return "history"; // Default to history on mobile (camera is now a modal)
     }
 
     return currentUser?.role === "admin" ? "users" : "history";
@@ -103,8 +103,8 @@ export default function Admin({ productsData }) {
     // Only change tab when transitioning between mobile/desktop
     if (isNowMobile !== wasMobile) {
       // When switching TO mobile from desktop
-      if (isNowMobile && !wasMobile && activeTab !== 'camera' && activeTab !== 'settings') {
-        setActiveTab('camera');
+      if (isNowMobile && !wasMobile && activeTab !== 'settings') {
+        setActiveTab('history'); // Default to history on mobile (camera is now a modal)
       }
       // When switching TO desktop from mobile  
       else if (!isNowMobile && wasMobile && activeTab === 'camera') {
@@ -145,17 +145,9 @@ export default function Admin({ productsData }) {
 
   // Render mobile content for each tab
   const renderMobileContent = () => {
+    // Camera tab removed - camera opens as modal instead
     if (activeTab === 'camera') {
-      return (
-        <CameraView
-          currentUser={currentUser}
-          onScanClick={() => setShowCamera(true)}
-          scannedProduct={scannedProduct}
-          productStatus={productStatus}
-          onReturn={handleReturn}
-          onBorrow={handleBorrow}
-        />
-      );
+      return null;
     }
 
     if (activeTab === 'users' && currentUser?.role === 'admin') {
@@ -212,14 +204,16 @@ export default function Admin({ productsData }) {
   return (
     <div className="admin-page">
 
-      {/* Header */}
-      <AdminHeader
-        currentUser={currentUser}
-        onLogout={handleLogout}
-        onBorrowClick={() => setShowCamera(true)}
-        onSettingsClick={() => setActiveTab('settings')}
-        isMobile={isMobile}
-      />
+      {/* Header - Hidden when scanning */}
+      {!showCamera && (
+        <AdminHeader
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          onBorrowClick={() => setShowCamera(true)}
+          onSettingsClick={() => setActiveTab('settings')}
+          isMobile={isMobile}
+        />
+      )}
 
       {/* Mobile Content - Render based on active tab */}
       {isMobile && (
@@ -309,7 +303,7 @@ export default function Admin({ productsData }) {
           activeTab={activeTab}
           onTabClick={setActiveTab}
           onCameraClick={() => {
-            setActiveTab('camera');
+            // Open camera as modal without changing active tab
             setShowCamera(true);
           }}
           currentUser={currentUser}
