@@ -98,7 +98,7 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
   };
 
   return (
-    <div className="hide-on-mobile">
+    <>
       {productStatus === 'borrowed' && (
         <div className="modal-overlay">
           <div className="modal-container">
@@ -203,7 +203,7 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
