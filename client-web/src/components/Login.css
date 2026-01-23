@@ -24,6 +24,19 @@
     margin-bottom: 2rem;
 }
 
+.login-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.login-logo-image {
+    max-width: 180px;
+    height: auto;
+    display: block;
+}
+
 .login-title {
     font-size: 2rem;
     font-weight: bold;

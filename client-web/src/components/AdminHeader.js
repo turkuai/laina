@@ -40,8 +40,15 @@ const AdminHeader = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, is
 
   return (
     <div className="admin-header">
-      <h1 className="admin-logo-text">
-        Borrowing System{currentUser?.role === 'student' ? ' - My Dashboard' : ''}
+      <h1 className="admin-logo">
+        <img
+          src="/tai.png"
+          alt="TAI logo"
+          className="admin-logo-image"
+        />
+        {currentUser?.role === 'student' && (
+          <span className="admin-logo-subtitle">My Dashboard</span>
+        )}
       </h1>
 
       <div className="admin-header-actions">
