@@ -3,16 +3,40 @@ import { getCurrentDate } from '../utils/dateUtils';
 
 /**
  * Custom hook for managing QR scanner state and handlers
+ * @param {Function} onProductsRefresh - Callback to refresh products list after borrow/return
+ * @param {Object} currentUser - Current authenticated user object
  * @returns {Object} Object containing camera state, scanned product state, and handler functions
  */
-export const useQRScanner = () => {
+export const useQRScanner = (onProductsRefresh, currentUser) => {
   // QR Scanner states
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
 
-  // QR Scanner handler - processes scanned QR code data
-  const handleQRScan = (qrData) => {
+  // Fetch product from database by QR code
+  const fetchProductByQR = async (qrCode) => {
+    try {
+      const res = await fetch('/api/products?page=1', {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!res.ok) throw new Error('Failed to fetch products');
+      
+      const data = await res.json();
+      const products = Array.isArray(data) ? data : (data.products || data.data || []);
+      
+      // Find product by qr_code
+      const product = products.find(p => p.qr_code === qrCode);
+      return product;
+    } catch (err) {
+      console.error('Error fetching product:', err);
+      return null;
+    }
+  };
+
+  // QR Scanner handler - processes scanned QR code data and fetches status from database
+  const handleQRScan = async (qrData) => {
     console.log('QR Code scanned:', qrData);
     setShowCamera(false);
 
@@ -25,47 +49,166 @@ export const useQRScanner = () => {
       return;
     }
 
-    if (!parsed.name || !parsed.status) {
-      alert('QR code missing required fields (name/status).');
+    if (!parsed.qr_code && !parsed.name) {
+      alert('QR code missing required fields (qr_code or name).');
       return;
     }
 
-    if (parsed.status.toLowerCase() === 'borrowed') {
-      setProductStatus('borrowed');
-      setScannedProduct({
-        name: parsed.name,
-        borrower: parsed.borrower || 'Unknown',
-        borrowDate: parsed.borrowDate || 'Unknown',
-        returnDate: parsed.returnDate || 'Unknown',
-        qrCode: qrData
-      });
-    } else if (parsed.status.toLowerCase() === 'available') {
-      setProductStatus('available');
-      setScannedProduct({
-        name: parsed.name,
-        qrCode: qrData
-      });
+    // Fetch product from database using QR code
+    const product = await fetchProductByQR(parsed.qr_code);
+    
+    if (!product) {
+      alert('Product not found in database. Please check the QR code.');
+      return;
+    }
+
+    // Use database status instead of QR code status
+    const dbStatus = product.status || 'available';
+    setProductStatus(dbStatus);
+
+    // Fetch borrowing history to get borrower info if borrowed
+    if (dbStatus === 'borrowed') {
+      try {
+        const historyRes = await fetch('/api/borrowing-history?page=1', {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (historyRes.ok) {
+          const historyData = await historyRes.json();
+          const history = Array.isArray(historyData) ? historyData : (historyData.history || historyData.data || []);
+          const activeBorrow = history.find(h => 
+            h.product_id === product.id && 
+            (!h.actual_return_date || h.actual_return_date === null)
+          );
+          
+          setScannedProduct({
+            id: product.id,
+            name: product.product_name,
+            borrower: activeBorrow?.borrower_name || 'Unknown',
+            borrowDate: activeBorrow?.borrow_date || 'Unknown',
+            returnDate: activeBorrow?.estimated_return_date || 'Unknown',
+            qrCode: parsed.qr_code,
+            borrowId: activeBorrow?.id
+          });
+        } else {
+          setScannedProduct({
+            id: product.id,
+            name: product.product_name,
+            borrower: 'Unknown',
+            borrowDate: 'Unknown',
+            returnDate: 'Unknown',
+            qrCode: parsed.qr_code
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching borrowing history:', err);
+        setScannedProduct({
+          id: product.id,
+          name: product.product_name,
+          borrower: 'Unknown',
+          borrowDate: 'Unknown',
+          returnDate: 'Unknown',
+          qrCode: parsed.qr_code
+        });
+      }
     } else {
-      alert(`Unknown product status: ${parsed.status}`);
+      setScannedProduct({
+        id: product.id,
+        name: product.product_name,
+        qrCode: parsed.qr_code
+      });
     }
   };
 
-  // Handler for returning a product
-  const handleReturn = () => {
-    const currentDate = getCurrentDate();
-    console.log('Returning product:', scannedProduct, 'on', currentDate);
-    alert(`Product returned successfully!\nReturn date: ${currentDate}`);
-    setScannedProduct(null);
-    setProductStatus(null);
+  // Handler for returning a product - updates database
+  const handleReturn = async () => {
+    if (!scannedProduct?.id || !scannedProduct?.borrowId) {
+      alert('Cannot return: Missing product or borrow record information.');
+      return;
+    }
+
+    try {
+      // Update borrowing record to mark as returned
+      const res = await fetch(`/api/borrowing-history/${scannedProduct.borrowId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          actual_return_date: new Date().toISOString(),
+          return_processed_by: currentUser?.id || null
+        })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to return product');
+      }
+
+      alert(`Product "${scannedProduct.name}" returned successfully!`);
+      
+      // Refresh products list to show updated status
+      if (typeof onProductsRefresh === 'function') {
+        onProductsRefresh();
+      }
+      
+      setScannedProduct(null);
+      setProductStatus(null);
+    } catch (err) {
+      console.error('Return error:', err);
+      alert(`Failed to return product: ${err.message}`);
+    }
   };
 
-  // Handler for borrowing a product
-  const handleBorrow = (borrowData) => {
-    console.log('Borrowing product:', scannedProduct);
-    console.log('Borrow data:', borrowData);
-    alert(`Product borrowed successfully!\nBorrower: ${borrowData.borrowerName}\nBorrow date: ${borrowData.borrowDate}\nReturn by: ${borrowData.returnDate}`);
-    setScannedProduct(null);
-    setProductStatus(null);
+  // Handler for borrowing a product - creates database record
+  const handleBorrow = async (borrowData) => {
+    if (!scannedProduct?.id) {
+      alert('Cannot borrow: Missing product information.');
+      return;
+    }
+
+    if (!borrowData.selectedUser?.id) {
+      alert('Please select a user to borrow the product.');
+      return;
+    }
+
+    try {
+      // Parse return date (assuming format dd.mm.yyyy)
+      const [day, month, year] = borrowData.returnDate.split('.');
+      const estimatedReturnDate = `${year}-${month}-${day}`;
+
+      // Create borrowing record
+      const res = await fetch('/api/borrowing-history', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: scannedProduct.id,
+          borrower_id: borrowData.selectedUser.id,
+          lender_id: currentUser?.id || null,
+          estimated_return_date: estimatedReturnDate,
+          notes: borrowData.notes || null
+        })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to borrow product');
+      }
+
+      alert(`Product "${scannedProduct.name}" borrowed successfully!`);
+      
+      // Refresh products list to show updated status
+      if (typeof onProductsRefresh === 'function') {
+        onProductsRefresh();
+      }
+      
+      setScannedProduct(null);
+      setProductStatus(null);
+    } catch (err) {
+      console.error('Borrow error:', err);
+      alert(`Failed to borrow product: ${err.message}`);
+    }
   };
 
   // Handler for closing/resetting the scanned product modal

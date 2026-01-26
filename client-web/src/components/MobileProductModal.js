@@ -90,6 +90,7 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
       return;
     }
     onBorrow({
+      selectedUser: selectedUser, // Pass full user object with id
       borrowerName: `${selectedUser.first_name} ${selectedUser.last_name}`,
       borrowerEmail: selectedUser.email,
       returnDate,

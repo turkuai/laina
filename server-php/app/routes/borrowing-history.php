@@ -83,7 +83,7 @@ function list_borrowing_history(PDO $pdo): void
 
 function get_borrowing_record(PDO $pdo, string $id): void
 {
-    $stmt = $pdo->prepare('SELECT * FROM borrowing_history WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT * FROM borrow_history WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $row = $stmt->fetch();
 
@@ -102,22 +102,27 @@ function create_borrowing_record(PDO $pdo): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    $userId    = $input['user_id']    ?? null;
+    // Support both user_id and borrower_id for compatibility
+    $borrowerId = $input['borrower_id'] ?? $input['user_id'] ?? null;
     $productId = $input['product_id'] ?? null;
-    $borrowedAt = $input['borrowed_at'] ?? null; // ISO string or date
+    $lenderId = $input['lender_id'] ?? null;
+    $estimatedReturnDate = $input['estimated_return_date'] ?? null;
+    $notes = $input['notes'] ?? null;
 
-    if (!$userId || !$productId) {
-        json_response(['error' => 'Missing user_id or product_id'], 400);
+    if (!$borrowerId || !$productId) {
+        json_response(['error' => 'Missing borrower_id (or user_id) or product_id'], 400);
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO borrowing_history (user_id, product_id, borrowed_at)
-         VALUES (:user_id, :product_id, COALESCE(:borrowed_at, NOW()))'
+        'INSERT INTO borrow_history (borrower_id, product_id, lender_id, estimated_return_date, notes, borrow_date)
+         VALUES (:borrower_id, :product_id, :lender_id, :estimated_return_date, :notes, NOW())'
     );
     $stmt->execute([
-        ':user_id'    => $userId,
+        ':borrower_id' => $borrowerId,
         ':product_id' => $productId,
-        ':borrowed_at'=> $borrowedAt,
+        ':lender_id' => $lenderId,
+        ':estimated_return_date' => $estimatedReturnDate,
+        ':notes' => $notes,
     ]);
 
     $id = $pdo->lastInsertId();
@@ -132,7 +137,7 @@ function update_borrowing_record(PDO $pdo, string $id): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM borrowing_history WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT * FROM borrow_history WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $record = $stmt->fetch();
 
@@ -140,24 +145,28 @@ function update_borrowing_record(PDO $pdo, string $id): void
         json_response(['error' => 'Borrowing record not found'], 404);
     }
 
-    $returnedAt = $input['returned_at'] ?? $record['returned_at'];
+    // Support both returned_at and actual_return_date
+    $returnedAt = $input['actual_return_date'] ?? $input['returned_at'] ?? null;
+    $returnProcessedBy = $input['return_processed_by'] ?? null;
 
     $stmt = $pdo->prepare(
-        'UPDATE borrowing_history
-         SET returned_at = :returned_at
+        'UPDATE borrow_history
+         SET actual_return_date = COALESCE(:actual_return_date, NOW()),
+             return_processed_by = COALESCE(:return_processed_by, return_processed_by)
          WHERE id = :id'
     );
     $stmt->execute([
-        ':returned_at' => $returnedAt,
-        ':id'          => $id,
+        ':actual_return_date' => $returnedAt ? date('Y-m-d H:i:s', strtotime($returnedAt)) : date('Y-m-d H:i:s'),
+        ':return_processed_by' => $returnProcessedBy,
+        ':id' => $id,
     ]);
 
-    json_response(['id' => (int)$id, 'returned_at' => $returnedAt]);
+    json_response(['id' => (int)$id, 'actual_return_date' => $returnedAt]);
 }
 
 function delete_borrowing_record(PDO $pdo, string $id): void
 {
-    $stmt = $pdo->prepare('DELETE FROM borrowing_history WHERE id = :id');
+    $stmt = $pdo->prepare('DELETE FROM borrow_history WHERE id = :id');
     $stmt->execute([':id' => $id]);
 
     if ($stmt->rowCount() === 0) {
