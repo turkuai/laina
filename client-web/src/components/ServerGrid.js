@@ -120,6 +120,19 @@ export default function ServerGrid({
       }
     }
 
+    // Default confirmation (prevents accidental deletes, e.g. products)
+    // If a parent handler exists, we assume it handles confirmation itself.
+    if (typeof onDeleteRow !== 'function') {
+      const label =
+        row.product_name ||
+        row.username ||
+        row.name ||
+        row.email ||
+        `ID ${row.id}`;
+      const ok = window.confirm(`Delete "${label}"?`);
+      if (!ok) return;
+    }
+
     try {
       let deleteUrl = `${path.split('?')[0]}/${row.id}`;
       // Ensure /api/ prefix if not present; avoid accidental double slashes
