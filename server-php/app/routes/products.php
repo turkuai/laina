@@ -186,11 +186,50 @@ function update_product(PDO $pdo, string $id): void
 
 function delete_product(PDO $pdo, string $id): void
 {
-    $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
+    // Ensure product exists + get current status
+    $stmt = $pdo->prepare('SELECT id, status FROM products WHERE id = :id');
     $stmt->execute([':id' => $id]);
+    $product = $stmt->fetch();
 
-    if ($stmt->rowCount() === 0) {
+    if (!$product) {
         json_response(['error' => 'Product not found'], 404);
+    }
+
+    // Block deletion if the product is currently borrowed (active borrow record)
+    // We check both the status column and borrow_history to be safe.
+    if (($product['status'] ?? null) === 'borrowed') {
+        json_response([
+            'error' => 'Cannot delete product because it is currently borrowed. Return it first.'
+        ], 409);
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT 1
+         FROM borrow_history
+         WHERE product_id = :id AND actual_return_date IS NULL
+         LIMIT 1'
+    );
+    $stmt->execute([':id' => $id]);
+    $hasActiveBorrow = (bool)$stmt->fetchColumn();
+
+    if ($hasActiveBorrow) {
+        json_response([
+            'error' => 'Cannot delete product because it is currently borrowed. Return it first.'
+        ], 409);
+    }
+
+    // Attempt deletion (may still fail if there is borrowing history due to FK constraints)
+    try {
+        $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+    } catch (PDOException $e) {
+        // 23000 = integrity constraint violation (e.g. foreign key constraint)
+        if ($e->getCode() === '23000') {
+            json_response([
+                'error' => 'Cannot delete product because it has borrowing history. Consider retiring it instead.'
+            ], 409);
+        }
+        json_response(['error' => 'Failed to delete product'], 500);
     }
 
     json_response(['success' => true]);
