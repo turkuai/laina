@@ -974,6 +974,10 @@
   z-index: 70;
 }
 
+.admin-mobile-nav--no-camera {
+  padding-left: 0;
+}
+
 .admin-mobile-nav__camera {
   position: absolute;
   bottom: 0;

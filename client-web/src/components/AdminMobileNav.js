@@ -36,7 +36,10 @@ const AdminMobileNav = ({ tabs, activeTab, onTabClick, onCameraClick, currentUse
   };
 
   return (
-    <nav className="admin-mobile-nav" aria-label="Navigation">
+    <nav 
+      className={`admin-mobile-nav ${currentUser?.role !== 'admin' ? 'admin-mobile-nav--no-camera' : ''}`} 
+      aria-label="Navigation"
+    >
       {currentUser?.role === 'admin' && (
         <button
           type="button"
