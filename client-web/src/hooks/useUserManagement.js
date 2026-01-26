@@ -29,10 +29,10 @@ export const useUserManagement = () => {
       }
 
       const data = await res.json();
-      const history = data.history || [];
-      
-      // Check if user has any borrowing records
-      return history.length > 0;
+      const history = Array.isArray(data) ? data : (data.history || data.data || []);
+
+      // Check if user has any borrowing records (or currently borrowed items)
+      return Array.isArray(history) && history.length > 0;
     } catch (err) {
       console.error('Error checking borrowing history:', err);
       return false; // If check fails, allow deletion attempt
@@ -49,10 +49,10 @@ export const useUserManagement = () => {
         return false; // Prevent deletion
       }
       
-      // Check if user has borrowing history
+      // Check if user has borrowing history / borrowed items
       const hasBorrowingHistory = await checkBorrowingHistory(row.id);
       if (hasBorrowingHistory) {
-        alert(`Cannot delete user "${fullName}" because they have borrowing history. Please return all borrowed items first.`);
+        alert(`Cannot delete user "${fullName}" because they have borrowed items / borrowing history. Please return the items first.`);
         return false; // Prevent deletion
       }
       
@@ -64,10 +64,10 @@ export const useUserManagement = () => {
       alert("You cannot delete your own account!");
       return false; // Prevent deletion
     } else {
-      // Check if user has borrowing history
+      // Check if user has borrowing history / borrowed items
       const hasBorrowingHistory = await checkBorrowingHistory(row.id);
       if (hasBorrowingHistory) {
-        alert(`Cannot delete user "${row.name || row.email}" because they have borrowing history. Please return all borrowed items first.`);
+        alert(`Cannot delete user "${row.name || row.email}" because they have borrowed items / borrowing history. Please return the items first.`);
         return false; // Prevent deletion
       }
       
