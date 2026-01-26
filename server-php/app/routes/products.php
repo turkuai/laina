@@ -103,24 +103,38 @@ function create_product(PDO $pdo): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    $name        = $input['name']        ?? null;
-    $description = $input['description'] ?? null;
-    $typeId      = $input['type_id']     ?? null;
-    $locationId  = $input['location_id'] ?? null;
+    $productName    = $input['product_name']   ?? null;
+    $deviceTypeId   = $input['device_type_id'] ?? null;
+    $purchaseDate   = $input['purchase_date']  ?? null;
+    $locationId     = $input['location_id']    ?? null;
+    $status         = $input['status']         ?? 'available';
+    $details        = $input['details']        ?? null;
+    $qrCode         = $input['qr_code']        ?? null;
 
-    if (!$name) {
+    if (!$productName) {
         json_response(['error' => 'Missing product name'], 400);
     }
 
+    if (!$deviceTypeId) {
+        json_response(['error' => 'Missing device type'], 400);
+    }
+
+    if (!$purchaseDate) {
+        json_response(['error' => 'Missing purchase date'], 400);
+    }
+
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, description, type_id, location_id, created_at)
-         VALUES (:name, :description, :type_id, :location_id, NOW())'
+        'INSERT INTO products (device_type_id, product_name, purchase_date, location_id, status, details, qr_code, created_at)
+         VALUES (:device_type_id, :product_name, :purchase_date, :location_id, :status, :details, :qr_code, NOW())'
     );
     $stmt->execute([
-        ':name'        => $name,
-        ':description' => $description,
-        ':type_id'     => $typeId,
-        ':location_id' => $locationId,
+        ':device_type_id' => $deviceTypeId,
+        ':product_name'   => $productName,
+        ':purchase_date'  => $purchaseDate,
+        ':location_id'    => $locationId,
+        ':status'         => $status,
+        ':details'        => $details,
+        ':qr_code'        => $qrCode,
     ]);
 
     $id = $pdo->lastInsertId();
