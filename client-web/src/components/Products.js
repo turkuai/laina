@@ -256,7 +256,14 @@ export default function Products({ currentUser }) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete product');
+        let msg = `Failed to delete product (status ${response.status})`;
+        try {
+          const data = await response.json();
+          msg = data.error || data.message || msg;
+        } catch (_) {
+          // ignore json parse error
+        }
+        throw new Error(msg);
       }
 
       // Reload products from database
@@ -264,7 +271,7 @@ export default function Products({ currentUser }) {
       alert(`Product "${product.product_name}" deleted from database.`);
     } catch (err) {
       console.error('Error deleting product:', err);
-      alert('Failed to delete product. Please make sure the server is running.');
+      alert(err.message || 'Failed to delete product. Please make sure the server is running.');
     }
   };
 

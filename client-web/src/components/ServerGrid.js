@@ -163,17 +163,30 @@ export default function ServerGrid({
       }
 
       if (!res.ok) {
-        // Check for database constraint errors
-        const errorMessage = responseData.error || responseData.message || `Delete failed with status ${res.status}`;
+        // Check for database constraint / domain errors
+        const errorMessage =
+          responseData.error ||
+          responseData.message ||
+          `Delete failed with status ${res.status}`;
         
-        // Check if it's a foreign key constraint error
+        // Specific domain error: product is borrowed (blocked by API with 409)
+        if (res.status === 409) {
+          alert(errorMessage);
+          throw new Error(errorMessage);
+        }
+
+        // Check if it's a foreign key constraint error (fallback heuristics)
         const errorStr = String(errorMessage).toLowerCase();
         if (errorStr.includes('foreign key constraint') || 
             errorStr.includes('borrow_history') || 
             errorStr.includes('cannot delete') ||
             errorStr.includes('1451')) {
-          alert('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
-          throw new Error('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
+          const friendly =
+            path?.includes('products')
+              ? 'Cannot delete product because it has borrowing history (or is currently borrowed).'
+              : 'Cannot delete user because they have borrowing history. Please return all borrowed items first.';
+          alert(friendly);
+          throw new Error(friendly);
         }
         
         alert(errorMessage);
