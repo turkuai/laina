@@ -126,9 +126,16 @@ export default function Products({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all data on component mount
+  // Fetch all data on component mount and when refresh event is triggered
   useEffect(() => {
     loadAllData();
+    
+    const handleRefresh = () => {
+      loadAllData();
+    };
+    
+    window.addEventListener('products-refresh', handleRefresh);
+    return () => window.removeEventListener('products-refresh', handleRefresh);
   }, []);
 
   const loadAllData = async () => {

@@ -36,6 +36,16 @@ export default function Admin({ productsData }) {
   const [userQuery, setUserQuery] = useState('');
 
 
+  // State to force refresh of products
+  const [productsRefreshKey, setProductsRefreshKey] = useState(0);
+
+  // Callback to refresh products after borrow/return
+  const refreshProducts = () => {
+    setProductsRefreshKey(prev => prev + 1);
+    // Also trigger window event for Products component to refresh
+    window.dispatchEvent(new Event('products-refresh'));
+  };
+
   // QR Scanner hook
   const {
     showCamera,
@@ -46,7 +56,7 @@ export default function Admin({ productsData }) {
     handleReturn,
     handleBorrow,
     handleClose
-  } = useQRScanner();
+  } = useQRScanner(refreshProducts, currentUser);
 
   // Password form hook
   const {
@@ -169,6 +179,7 @@ export default function Admin({ productsData }) {
           <div className="mobile-content-section">
             {/* Products component already includes its own search input */}
             <Products
+              key={productsRefreshKey}
               currentUser={currentUser}
               borrowingHistory={borrowingHistory}
               productsData={productsData}
@@ -288,13 +299,14 @@ export default function Admin({ productsData }) {
           )}
 
           {activeTab === 'products' && (
-            <ProductsTab
-              currentUser={currentUser}
-              productsData={productsData}
-              borrowingHistory={borrowingHistory}
-              query={userQuery}
-              onQueryChange={setUserQuery}
-            />
+          <ProductsTab
+            key={productsRefreshKey}
+            currentUser={currentUser}
+            productsData={productsData}
+            borrowingHistory={borrowingHistory}
+            query={userQuery}
+            onQueryChange={setUserQuery}
+          />
           )}
 
           {activeTab === 'history' && (
