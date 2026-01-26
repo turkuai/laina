@@ -34,7 +34,7 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
     details: '',
   });
   const [productsFromDb, setProductsFromDb] = useState([]);
-  const [isLoadingMeta] = useState(false);
+  const [isLoadingMeta, setIsLoadingMeta] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -46,24 +46,43 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Fetch device types and locations from API
+  const fetchMetadata = async () => {
+    setIsLoadingMeta(true);
+    try {
+      const [typesRes, locationsRes] = await Promise.all([
+        fetch('/api/device-types', { credentials: 'include' }),
+        fetch('/api/locations', { credentials: 'include' })
+      ]);
+
+      if (typesRes.ok) {
+        const typesData = await typesRes.json();
+        setDeviceTypes(typesData.map(t => ({
+          id: t.id,
+          type_name: t.type_name
+        })));
+      }
+
+      if (locationsRes.ok) {
+        const locationsData = await locationsRes.json();
+        setLocations(locationsData.map(loc => ({
+          id: loc.id,
+          location_name: loc.location_name || loc.name
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch metadata:', error);
+    } finally {
+      setIsLoadingMeta(false);
+    }
+  };
+
   // Build unique device types and locations from products already loaded from the database
   const ensureMetaLoaded = () => {
     if (deviceTypes.length && locations.length) return;
 
-    const typeMap = new Map();
-    const locationMap = new Map();
-
-    productsFromDb.forEach((p) => {
-      if (p.device_type_id && (p.type_name || p.name)) {
-        typeMap.set(p.device_type_id, p.type_name || p.name);
-      }
-      if (p.location_id && p.location_name) {
-        locationMap.set(p.location_id, p.location_name);
-      }
-    });
-
-    setDeviceTypes(Array.from(typeMap, ([id, type_name]) => ({ id, type_name })));
-    setLocations(Array.from(locationMap, ([id, location_name]) => ({ id, location_name })));
+    // Try to fetch from API
+    fetchMetadata();
   };
 
   const handleOpenAddModal = () => {
