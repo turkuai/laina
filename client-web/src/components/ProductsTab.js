@@ -279,16 +279,14 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
 
                 <div>
                   <label className="form-label">Status</label>
-                  <select
-                    className="form-select"
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, status: e.target.value }))
-                    }
-                  >
-                    <option value="available">Available</option>
-                    <option value="borrowed">Borrowed</option>
-                  </select>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value="Available"
+                    readOnly
+                    disabled
+                    style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                  />
                 </div>
 
                 <div>

@@ -400,14 +400,14 @@ export default function Products({ currentUser }) {
               <label className="form-label">
                 Status
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="form-select"
-              >
-                <option value="available">Available</option>
-                <option value="borrowed">Borrowed</option>
-              </select>
+              <input
+                type="text"
+                value="Available"
+                readOnly
+                disabled
+                className="form-input"
+                style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+              />
             </div>
             <div>
               <label className="form-label">
