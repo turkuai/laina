@@ -192,7 +192,11 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
               </div>
               <div className="info-input-wrapper">
                 <label className="info-label">Return deadline:</label>
-                <input type="text" placeholder="dd.mm.yyyy" className="info-input" id="desktop-return-date" />
+                <input
+                  type="date"
+                  className="info-input"
+                  id="desktop-return-date"
+                />
               </div>
             </div>
             <button
