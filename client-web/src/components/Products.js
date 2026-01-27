@@ -440,6 +440,7 @@ export default function Products({ currentUser }) {
         />
       </div>
 
+      {/* Desktop Table */}
       <div className="products-card__table">
         <table className="products-table">
           <thead>
@@ -496,6 +497,55 @@ export default function Products({ currentUser }) {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card Layout */}
+      <div className="products-mobile-list">
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((p) => (
+            <div key={p.id} className="products-mobile-card">
+              <div className="products-mobile-card-header">
+                <div className="products-mobile-card-title">{p.product_name}</div>
+                <div className="products-mobile-card-status">{renderStatus(p.status)}</div>
+              </div>
+              <div className="products-mobile-card-row">
+                <span className="products-mobile-card-label">Device Type:</span>
+                <span className="products-mobile-card-value">{p.type_name || 'N/A'}</span>
+              </div>
+              <div className="products-mobile-card-row">
+                <span className="products-mobile-card-label">Purchase Year:</span>
+                <span className="products-mobile-card-value">{p.purchase_date}</span>
+              </div>
+              <div className="products-mobile-card-row">
+                <span className="products-mobile-card-label">Location:</span>
+                <span className="products-mobile-card-value">{p.location_name || 'N/A'}</span>
+              </div>
+              <div className="products-mobile-card-actions">
+                <button
+                  onClick={() => setSelectedProduct(p)}
+                  className="view-qr-btn"
+                >
+                  View QR
+                </button>
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="delete-btn"
+                    aria-label="Delete"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="empty-state" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+            {searchTerm ? 'No products found matching your search.' : 'No products in database. Add your first product!'}
+          </div>
+        )}
       </div>
 
       {selectedProduct && (
