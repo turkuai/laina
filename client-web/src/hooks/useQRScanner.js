@@ -173,9 +173,18 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
     }
 
     try {
-      // Parse return date (assuming format dd.mm.yyyy)
-      const [day, month, year] = borrowData.returnDate.split('.');
-      const estimatedReturnDate = `${year}-${month}-${day}`;
+      // Parse return date.
+      // Supports either 'dd.mm.yyyy' or HTML date 'yyyy-mm-dd' formats.
+      let estimatedReturnDate = '';
+      if (borrowData.returnDate.includes('.')) {
+        const [day, month, year] = borrowData.returnDate.split('.');
+        estimatedReturnDate = `${year}-${month}-${day}`;
+      } else if (borrowData.returnDate.includes('-')) {
+        const [year, month, day] = borrowData.returnDate.split('-');
+        estimatedReturnDate = `${year}-${month}-${day}`;
+      } else {
+        throw new Error('Invalid return date format.');
+      }
 
       // Create borrowing record
       const res = await fetch('/api/borrowing-history', {

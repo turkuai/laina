@@ -179,8 +179,7 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
             <div className="mobile-product-modal-info-section">
               <p className="mobile-product-modal-label">Viimeinen palautuspäivä:</p>
               <input
-                type="text"
-                placeholder="dd.mm.yyyy"
+                type="date"
                 className="mobile-product-modal-input"
                 value={returnDate}
                 onChange={(e) => setReturnDate(e.target.value)}
