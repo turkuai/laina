@@ -4,6 +4,9 @@
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: visible;
 }
 
 .products-card__header {
@@ -523,6 +526,82 @@
   background: #1f2937;
 }
 
+/* ===== MOBILE CARD LAYOUT ===== */
+.products-mobile-list {
+  display: none;
+}
+
+.products-mobile-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.products-mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.products-mobile-card-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1f2937;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.products-mobile-card-status {
+  flex-shrink: 0;
+}
+
+.products-mobile-card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.products-mobile-card-row:last-child {
+  border-bottom: none;
+}
+
+.products-mobile-card-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #6b7280;
+  min-width: 100px;
+}
+
+.products-mobile-card-value {
+  font-size: 13px;
+  color: #1f2937;
+  text-align: right;
+  flex: 1;
+}
+
+.products-mobile-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.products-mobile-card-actions .view-qr-btn {
+  flex: 1;
+}
+
+.products-mobile-card-actions .delete-btn {
+  flex-shrink: 0;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .add-product-form-grid {
@@ -533,13 +612,12 @@
     width: 100%;
   }
 
-  .products-table {
-    font-size: 14px;
+  .products-card__table {
+    display: none;
   }
 
-  .products-table th,
-  .products-table td {
-    padding: 8px;
+  .products-mobile-list {
+    display: block;
   }
 
   .product-modal {
@@ -569,30 +647,41 @@
 }
 
 @media (max-width: 480px) {
+  .products-card {
+    padding: 8px;
+  }
 
-  .products-table th,
-  .products-table td {
-    padding: 6px 4px;
+  .products-mobile-card {
+    padding: 10px;
+  }
+
+  .products-mobile-card-title {
+    font-size: 15px;
+  }
+
+  .products-mobile-card-label,
+  .products-mobile-card-value {
     font-size: 12px;
   }
 
   .view-qr-btn {
     font-size: 11px;
-    padding: 4px 8px;
+    padding: 6px 12px;
   }
 
   .qr-code-container {
-    max-width: 400px;
-    padding: 24px;
+    max-width: 95%;
+    padding: 16px;
   }
 
   .qr-code-image {
-    width: 250px;
-    height: 250px;
-    background-size: 250px 250px;
+    width: 200px;
+    height: 200px;
+    background-size: 200px 200px;
   }
 
   .qr-code-info-label {
-    min-width: 100px;
+    min-width: 80px;
+    font-size: 12px;
   }
 }
