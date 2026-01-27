@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ServerGrid from './ServerGrid';
 import SearchBox from './SearchBox';
+import UserInfoPopup from './UserInfoPopup';
 import './Admin.css';
 
 /**
@@ -25,6 +26,8 @@ export default function UsersTab({
 }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showUserInfoPopup, setShowUserInfoPopup] = useState(false);
+  const [createdUserInfo, setCreatedUserInfo] = useState({ username: '', password: '' });
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -106,7 +109,9 @@ export default function UsersTab({
       // Refresh grid
       setRefreshKey((k) => k + 1);
       handleCloseAddModal();
-      alert(`User created.\nUsername: ${username}\nTemporary password: ${password}`);
+      // Show user info popup instead of alert
+      setCreatedUserInfo({ username, password });
+      setShowUserInfoPopup(true);
     } catch (err) {
       console.error('Add user error:', err);
       alert(err.message || 'Failed to add user');
@@ -237,6 +242,14 @@ export default function UsersTab({
             </form>
           </div>
         </div>
+      )}
+
+      {showUserInfoPopup && (
+        <UserInfoPopup
+          username={createdUserInfo.username}
+          password={createdUserInfo.password}
+          onClose={() => setShowUserInfoPopup(false)}
+        />
       )}
     </>
   );

@@ -1351,3 +1351,184 @@
     margin: 0;
   }
 }
+
+.user-info-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.user-info-popup {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+.user-info-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: #374151;
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-info-popup-close:hover {
+  color: #dc2626;
+  transform: scale(1.1);
+}
+
+.user-info-popup-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.user-info-popup-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  padding: 0;
+  text-align: left;
+}
+
+.user-info-section {
+  margin-bottom: 20px;
+}
+
+.user-info-item {
+  margin-bottom: 16px;
+}
+
+.user-info-item:last-child {
+  margin-bottom: 0;
+}
+
+.user-info-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.user-info-value-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.user-info-value {
+  flex: 1;
+  font-size: 14px;
+  color: #1f2937;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.user-info-copy-btn {
+  padding: 6px 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.user-info-copy-btn:hover {
+  background: #1d4ed8;
+}
+
+.user-info-copy-btn:active {
+  transform: scale(0.95);
+}
+
+.user-info-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.user-info-copy-all-btn {
+  width: 100%;
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.user-info-copy-all-btn:hover {
+  background: #1d4ed8;
+}
+
+.user-info-close-btn {
+  width: 100%;
+  padding: 10px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.user-info-close-btn:hover {
+  background: #1f2937;
+}
+
+/* Responsive for User Info Popup */
+@media (max-width: 768px) {
+  .user-info-popup {
+    max-width: 95%;
+    padding: 20px;
+  }
+
+  .user-info-value-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-info-copy-btn {
+    width: 100%;
+  }
+}
