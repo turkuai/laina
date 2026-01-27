@@ -66,11 +66,32 @@ function list_users(PDO $pdo): void
 {
     $user = require_authenticated_user($pdo);
 
-    $stmt = $pdo->query(
-        'SELECT id, username, first_name, last_name, email, role, phone_number, created_at
-         FROM users
-         ORDER BY id DESC'
-    );
+    $search = $_GET['search'] ?? null;
+    
+    $sql = 'SELECT id, username, first_name, last_name, email, role, phone_number, created_at
+            FROM users';
+    
+    if ($search && trim($search) !== '') {
+        // Use unique placeholders to avoid PDO named-parameter reuse issues
+        $sql .= ' WHERE first_name LIKE :s1 
+                  OR last_name LIKE :s2 
+                  OR email LIKE :s3 
+                  OR username LIKE :s4';
+    }
+    
+    $sql .= ' ORDER BY id DESC';
+    
+    $stmt = $pdo->prepare($sql);
+    
+    if ($search && trim($search) !== '') {
+        $searchParam = '%' . trim($search) . '%';
+        $stmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
+    }
+    
+    $stmt->execute();
     $result = $stmt->fetchAll();
 
     json_response([
