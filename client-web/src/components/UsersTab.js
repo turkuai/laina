@@ -141,6 +141,7 @@ export default function UsersTab({
               onDataChange={onDataChange}
               pageSize={10}
               onAdd={handleOpenAddModal}
+              query={query}
             />
           </div>
         </div>
@@ -159,6 +160,7 @@ export default function UsersTab({
           onDataChange={onDataChange}
           pageSize={10}
           onAdd={handleOpenAddModal}
+          query={query}
         />
       </div>
 

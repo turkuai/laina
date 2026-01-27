@@ -24,11 +24,17 @@ export default function ServerGrid({
   showAddButton = true, // Show add button by default (except history tab which doesn't use ServerGrid)
   ...rest               // anything else you want to pass to Grid
 }) {
+  const query = typeof rest.query === 'string' ? rest.query : '';
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  // If search query changes, jump back to first page
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query]);
 
   const fetchData = useCallback(async () => {
     if (!path) return;
@@ -48,6 +54,12 @@ export default function ServerGrid({
       const separator = fullUrl.includes('?') ? '&' : '?';
       fullUrl = `${fullUrl}${separator}page=${currentPage}`;
 
+      // Optional server-side search
+      const trimmedQuery = query.trim();
+      if (trimmedQuery !== '') {
+        fullUrl = `${fullUrl}&search=${encodeURIComponent(trimmedQuery)}`;
+      }
+
       const res = await fetch(fullUrl, {
         method: 'GET',
         credentials: 'include', // Include httpOnly cookies
@@ -56,33 +68,55 @@ export default function ServerGrid({
         },
       });
 
-      if (!res.ok) {
-        throw new Error(`Request failed with status ${res.status}`);
+      // Parse response safely (handle HTML error pages)
+      const contentType = res.headers.get('content-type') || '';
+      let payload;
+
+      if (contentType.includes('application/json')) {
+        try {
+          payload = await res.json();
+        } catch (parseErr) {
+          const text = await res.text().catch(() => '');
+          const message = text
+            ? `Invalid JSON response: ${text.slice(0, 200)}`
+            : 'Invalid JSON response from server.';
+          throw new Error(message);
+        }
+      } else {
+        const text = await res.text().catch(() => '');
+        const message = text
+          ? `Unexpected response (status ${res.status}): ${text.slice(0, 200)}`
+          : `Unexpected non-JSON response (status ${res.status}).`;
+        throw new Error(message);
       }
 
-      const json = await res.json();
-
-      console.log("Server Response: ", json);
+      if (!res.ok) {
+        throw new Error(
+          payload?.error ||
+          payload?.message ||
+          `Request failed with status ${res.status}`
+        );
+      }
       
       // Handle different response structures
       let rows = [];
       let pages = 1;
 
-      if (Array.isArray(json)) {
-        rows = json;
+      if (Array.isArray(payload)) {
+        rows = payload;
         pages = 1;
-      } else if (json.data) {
-        rows = json.data;
-        pages = json.totalPages || 1;
-      } else if (json.users) {
-        rows = json.users;
-        pages = json.totalPages || 1;
-      } else if (json.products) {
-        rows = json.products;
-        pages = json.totalPages || 1;
-      } else if (json.history) {
-        rows = json.history;
-        pages = json.totalPages || 1;
+      } else if (payload.data) {
+        rows = payload.data;
+        pages = payload.totalPages || 1;
+      } else if (payload.users) {
+        rows = payload.users;
+        pages = payload.totalPages || 1;
+      } else if (payload.products) {
+        rows = payload.products;
+        pages = payload.totalPages || 1;
+      } else if (payload.history) {
+        rows = payload.history;
+        pages = payload.totalPages || 1;
       }
 
       setData(rows);
@@ -93,7 +127,7 @@ export default function ServerGrid({
     } finally {
       setLoading(false);
     }
-  }, [path, currentPage]);
+  }, [path, currentPage, query]);
 
   useEffect(() => {
     fetchData();
@@ -118,19 +152,6 @@ export default function ServerGrid({
       if (shouldDelete === false) {
         return; // Parent prevented deletion
       }
-    }
-
-    // Default confirmation (prevents accidental deletes, e.g. products)
-    // If a parent handler exists, we assume it handles confirmation itself.
-    if (typeof onDeleteRow !== 'function') {
-      const label =
-        row.product_name ||
-        row.username ||
-        row.name ||
-        row.email ||
-        `ID ${row.id}`;
-      const ok = window.confirm(`Delete "${label}"?`);
-      if (!ok) return;
     }
 
     try {
@@ -163,30 +184,17 @@ export default function ServerGrid({
       }
 
       if (!res.ok) {
-        // Check for database constraint / domain errors
-        const errorMessage =
-          responseData.error ||
-          responseData.message ||
-          `Delete failed with status ${res.status}`;
+        // Check for database constraint errors
+        const errorMessage = responseData.error || responseData.message || `Delete failed with status ${res.status}`;
         
-        // Specific domain error: product is borrowed (blocked by API with 409)
-        if (res.status === 409) {
-          alert(errorMessage);
-          throw new Error(errorMessage);
-        }
-
-        // Check if it's a foreign key constraint error (fallback heuristics)
+        // Check if it's a foreign key constraint error
         const errorStr = String(errorMessage).toLowerCase();
         if (errorStr.includes('foreign key constraint') || 
             errorStr.includes('borrow_history') || 
             errorStr.includes('cannot delete') ||
             errorStr.includes('1451')) {
-          const friendly =
-            path?.includes('products')
-              ? 'Cannot delete product because it has borrowing history (or is currently borrowed).'
-              : 'Cannot delete user because they have borrowing history. Please return all borrowed items first.';
-          alert(friendly);
-          throw new Error(friendly);
+          alert('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
+          throw new Error('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
         }
         
         alert(errorMessage);
@@ -219,7 +227,6 @@ export default function ServerGrid({
       delete payload.id;
       delete payload.created_at;
       delete payload.updated_at;
-      delete payload.role; // Role cannot be changed after user creation
 
       const res = await fetch(updateUrl, {
         method: 'PATCH',
@@ -268,15 +275,10 @@ export default function ServerGrid({
   };
 
   // Create column configuration with display names
-  const columnConfig = columns.map(col => {
-    if (typeof col === 'object') {
-      return col;
-    }
-    return {
-      field: col,
-      displayName: formatColumnName(col)
-    };
-  });
+  const columnConfig = columns.map(col => ({
+    field: col,
+    displayName: formatColumnName(col)
+  }));
 
   return (
     <div style={{ position: 'relative' }}>
@@ -304,21 +306,21 @@ export default function ServerGrid({
             type="button"
             style={{
               padding: '0.5rem 1rem',
-              backgroundColor: '#22c55e',
+              backgroundColor: '#10b981',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '0.875rem',
               cursor: 'pointer',
               fontWeight: '500',
-              transition: 'opacity 0.2s',
+              transition: 'background-color 0.2s',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
               whiteSpace: 'nowrap'
             }}
-            onMouseOver={(e) => e.target.style.opacity = '0.85'}
-            onMouseOut={(e) => e.target.style.opacity = '1'}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
           >
             <span style={{ fontSize: '1.25rem', lineHeight: '1' }}>+</span>
             <span>Add</span>

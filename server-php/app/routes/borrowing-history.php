@@ -40,6 +40,7 @@ function list_borrowing_history(PDO $pdo): void
 {
     // Optional filter for a specific borrower (used by students)
     $borrowerId = $_GET['borrower_id'] ?? null;
+    $search = $_GET['search'] ?? null;
 
     $sql = "
         SELECT 
@@ -69,12 +70,27 @@ function list_borrowing_history(PDO $pdo): void
         LEFT JOIN products p ON p.id = bh.product_id
         WHERE 1 = 1
             " . ($borrowerId ? "AND bh.borrower_id = :borrower_id" : "") . "
+            " . (($search && trim($search) !== '') ? "
+              AND (
+                p.product_name LIKE :s1
+                OR u.first_name LIKE :s2
+                OR u.last_name LIKE :s3
+                OR u.username LIKE :s4
+              )
+            " : "") . "
         ORDER BY bh.id DESC
     ";
 
     $stmt = $pdo->prepare($sql);
     if ($borrowerId) {
         $stmt->bindValue(':borrower_id', $borrowerId, PDO::PARAM_INT);
+    }
+    if ($search && trim($search) !== '') {
+        $searchParam = '%' . trim($search) . '%';
+        $stmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
     }
     $stmt->execute();
     $rows = $stmt->fetchAll();

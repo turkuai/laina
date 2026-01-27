@@ -48,6 +48,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
               allowDelete={false}
               pageSize={10}
               showAddButton={false}
+              query={query}
             />
           </div>
         </div>
@@ -63,6 +64,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
           allowDelete={false}
           pageSize={10}
           showAddButton={false}
+          query={query}
         />
       </div>
     </>
