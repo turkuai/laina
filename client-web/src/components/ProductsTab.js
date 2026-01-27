@@ -180,7 +180,48 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
   const isAdmin = currentUser?.role === 'admin';
   
   return (
-    <div>
+    <div className="products-card">
+      <div className="products-card__header">
+        <div className="title">Products</div>
+      </div>
+
+      {/* Desktop search bar (reuses existing design) */}
+      <div className="products-card__search">
+        <span className="search-icon">
+          {/* Simple magnifying glass icon */}
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="11"
+              cy="11"
+              r="6"
+              stroke="#6b7280"
+              strokeWidth="2"
+            />
+            <line
+              x1="15"
+              y1="15"
+              x2="20"
+              y2="20"
+              stroke="#6b7280"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Search ..."
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+        />
+      </div>
+
       <ServerGrid
         key={refreshKey}
         columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
@@ -192,6 +233,7 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
         onAdd={isAdmin ? handleOpenAddModal : undefined}
         showAddButton={isAdmin}
         onDataChange={setProductsFromDb}
+        query={query}
       />
 
       {showAddModal && (
