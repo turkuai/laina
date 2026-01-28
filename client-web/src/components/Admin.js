@@ -154,65 +154,6 @@ export default function Admin({ productsData }) {
 
   // Render camera view content
 
-  // Render mobile content for each tab
-  const renderMobileContent = () => {
-    // Camera tab removed - camera opens as modal instead
-    if (activeTab === 'camera') {
-      return null;
-    }
-
-    if (activeTab === 'users' && currentUser?.role === 'admin') {
-      return (
-        <UsersTab
-          currentUser={currentUser}
-          query={userQuery}
-          onQueryChange={setUserQuery}
-          onDeleteUser={handleDeleteUser}
-          onDataChange={handleDataChange}
-        />
-      );
-    }
-
-    if (activeTab === 'products') {
-      return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-            {/* Products component already includes its own search input */}
-            <Products
-              key={productsRefreshKey}
-              currentUser={currentUser}
-              borrowingHistory={borrowingHistory}
-              productsData={productsData}
-              query={userQuery}
-            />
-          </div>
-        </div>
-      );
-    }
-
-    if (activeTab === 'history') {
-      return (
-        <HistoryTab
-          currentUser={currentUser}
-          query={userQuery}
-          onQueryChange={setUserQuery}
-        />
-      );
-    }
-
-    if (activeTab === 'settings') {
-      return (
-        <div className="mobile-tab-content">
-          <div className="mobile-content-section">
-            <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
-          </div>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
   return (
     <div className="admin-page">
 
@@ -229,9 +170,56 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Content - Render based on active tab */}
       {isMobile && (
-        <div key={activeTab}>
-          {renderMobileContent()}
-        </div>
+        <>
+          {/* Mobile Users tab */}
+          {currentUser?.role === 'admin' && (
+            <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
+              <UsersTab
+                currentUser={currentUser}
+                query={userQuery}
+                onQueryChange={setUserQuery}
+                onDeleteUser={handleDeleteUser}
+                onDataChange={handleDataChange}
+              />
+            </div>
+          )}
+
+          {/* Mobile Products tab */}
+          <div
+            style={{ display: activeTab === 'products' ? 'block' : 'none' }}
+            className="mobile-tab-content"
+          >
+            <div className="mobile-content-section">
+              {/* Products component already includes its own search input */}
+              <Products
+                key={productsRefreshKey}
+                currentUser={currentUser}
+                borrowingHistory={borrowingHistory}
+                productsData={productsData}
+                query={userQuery}
+              />
+            </div>
+          </div>
+
+          {/* Mobile History tab */}
+          <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
+            <HistoryTab
+              currentUser={currentUser}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
+          </div>
+
+          {/* Mobile Settings tab */}
+          <div
+            style={{ display: activeTab === 'settings' ? 'block' : 'none' }}
+            className="mobile-tab-content"
+          >
+            <div className="mobile-content-section">
+              <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
+            </div>
+          </div>
+        </>
       )}
 
       {showCamera && currentUser?.role !== 'student' && (
@@ -288,38 +276,44 @@ export default function Admin({ productsData }) {
             />
           )}
 
-          {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <UsersTab
+          {/* Desktop Users tab */}
+          {currentUser?.role === 'admin' && (
+            <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
+              <UsersTab
+                currentUser={currentUser}
+                query={userQuery}
+                onQueryChange={setUserQuery}
+                onDeleteUser={handleDeleteUser}
+                onDataChange={handleDataChange}
+              />
+            </div>
+          )}
+
+          {/* Desktop Products tab */}
+          <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+            <ProductsTab
+              key={productsRefreshKey}
               currentUser={currentUser}
+              productsData={productsData}
+              borrowingHistory={borrowingHistory}
               query={userQuery}
               onQueryChange={setUserQuery}
-              onDeleteUser={handleDeleteUser}
-              onDataChange={handleDataChange}
             />
-          )}
+          </div>
 
-          {activeTab === 'products' && (
-          <ProductsTab
-            key={productsRefreshKey}
-            currentUser={currentUser}
-            productsData={productsData}
-            borrowingHistory={borrowingHistory}
-            query={userQuery}
-            onQueryChange={setUserQuery}
-          />
-          )}
-
-          {activeTab === 'history' && (
+          {/* Desktop History tab */}
+          <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
             <HistoryTab
               currentUser={currentUser}
               query={userQuery}
               onQueryChange={setUserQuery}
             />
-          )}
+          </div>
 
-          {activeTab === 'settings' && (
+          {/* Desktop Settings tab */}
+          <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}>
             <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
-          )}
+          </div>
         </div>
       </div>
 
