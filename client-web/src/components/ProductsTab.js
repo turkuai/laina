@@ -48,6 +48,11 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Fetch metadata on mount to populate dropdowns
+  useEffect(() => {
+    fetchMetadata();
+  }, []);
+
   // Fetch device types and locations from API
   const fetchMetadata = async () => {
     setIsLoadingMeta(true);
@@ -229,13 +234,15 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
         columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
         columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
         path="/products"
-        allowEditing={false}
+        allowEditing={isAdmin}
         allowDelete={isAdmin}
         pageSize={10}
         onAdd={isAdmin ? handleOpenAddModal : undefined}
         showAddButton={isAdmin}
         onDataChange={setProductsFromDb}
         query={query}
+        typeOptions={deviceTypes}
+        locationOptions={locations}
       />
 
       {showAddModal && (
@@ -323,14 +330,16 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
 
                 <div>
                   <label className="form-label">Status</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value="Available"
-                    readOnly
-                    disabled
-                    style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
-                  />
+                  <select
+                    className="form-select"
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, status: e.target.value }))
+                    }
+                  >
+                    <option value="available">Available</option>
+                    <option value="borrowed">Borrowed</option>
+                  </select>
                 </div>
 
                 <div>

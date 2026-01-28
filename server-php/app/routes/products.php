@@ -183,6 +183,7 @@ function update_product(PDO $pdo, string $id): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
+    // Fetch existing product
     $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $product = $stmt->fetch();
@@ -191,30 +192,47 @@ function update_product(PDO $pdo, string $id): void
         json_response(['error' => 'Product not found'], 404);
     }
 
-    $name        = $input['name']        ?? $product['name'];
-    $description = $input['description'] ?? $product['description'];
-    $typeId      = $input['type_id']     ?? $product['type_id'];
-    $locationId  = $input['location_id'] ?? $product['location_id'];
+    // Map incoming payload fields to real DB columns
+    $productName   = $input['product_name']    ?? $product['product_name'];
+    $deviceTypeId  = $input['device_type_id']  ?? $product['device_type_id'];
+    $purchaseDate  = $input['purchase_date']   ?? $product['purchase_date'];
+    $locationId    = array_key_exists('location_id', $input)
+        ? $input['location_id']
+        : $product['location_id'];
+    $status        = $input['status']          ?? $product['status'];
+    $details       = array_key_exists('details', $input)
+        ? $input['details']
+        : $product['details'];
 
     $stmt = $pdo->prepare(
         'UPDATE products
-         SET name = :name, description = :description, type_id = :type_id, location_id = :location_id
+         SET product_name   = :product_name,
+             device_type_id = :device_type_id,
+             purchase_date  = :purchase_date,
+             location_id    = :location_id,
+             status         = :status,
+             details        = :details,
+             updated_at     = NOW()
          WHERE id = :id'
     );
     $stmt->execute([
-        ':name'        => $name,
-        ':description' => $description,
-        ':type_id'     => $typeId,
-        ':location_id' => $locationId,
-        ':id'          => $id,
+        ':product_name'   => $productName,
+        ':device_type_id' => $deviceTypeId,
+        ':purchase_date'  => $purchaseDate,
+        ':location_id'    => $locationId,
+        ':status'         => $status,
+        ':details'        => $details,
+        ':id'             => $id,
     ]);
 
     json_response([
-        'id'          => (int)$id,
-        'name'        => $name,
-        'description' => $description,
-        'type_id'     => $typeId,
-        'location_id' => $locationId,
+        'id'             => (int)$id,
+        'product_name'   => $productName,
+        'device_type_id' => $deviceTypeId,
+        'purchase_date'  => $purchaseDate,
+        'location_id'    => $locationId,
+        'status'         => $status,
+        'details'        => $details,
     ]);
 }
 

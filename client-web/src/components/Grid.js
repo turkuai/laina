@@ -42,6 +42,8 @@ export default function Grid({
   onEditRow,
   onDeleteRow,
   allowSelection = true,
+  typeOptions = [],
+  locationOptions = [],
 }) {
   const [rowData, setRowData] = useState(Array.isArray(data) ? data : []);
   const [editingRow, setEditingRow] = useState(null);
@@ -265,6 +267,70 @@ export default function Grid({
                         <option value="teacher">Teacher</option>
                         <option value="student">Student</option>
                       </select>
+                    ) : field === 'status' ? (
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editValues[field] ?? ''}
+                        readOnly
+                        disabled
+                        style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                      />
+                    ) : field === 'type_name' && typeOptions.length > 0 ? (
+                      <select
+                        className="form-select"
+                        value={editValues.device_type_id ?? editingRow?.device_type_id ?? ''}
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          const selectedType = typeOptions.find(
+                            (t) => String(t.id) === String(selectedId)
+                          );
+                          setEditValues((prev) => ({
+                            ...prev,
+                            device_type_id: selectedId ? parseInt(selectedId, 10) : null,
+                            type_name: selectedType?.type_name || prev.type_name,
+                          }));
+                        }}
+                      >
+                        <option value="">Select type...</option>
+                        {typeOptions.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.type_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field === 'location_name' && locationOptions.length > 0 ? (
+                      <select
+                        className="form-select"
+                        value={editValues.location_id ?? editingRow?.location_id ?? ''}
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          const selectedLoc = locationOptions.find(
+                            (loc) => String(loc.id) === String(selectedId)
+                          );
+                          setEditValues((prev) => ({
+                            ...prev,
+                            location_id: selectedId ? parseInt(selectedId, 10) : null,
+                            location_name: selectedLoc?.location_name || prev.location_name,
+                          }));
+                        }}
+                      >
+                        <option value="">Select location...</option>
+                        {locationOptions.map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.location_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field === 'purchase_date' ? (
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={editValues[field] ?? ''}
+                        onChange={(e) => handleEditChange(field, e.target.value)}
+                        min="1900"
+                        max={new Date().getFullYear() + 1}
+                      />
                     ) : (
                       <input
                         type="text"
