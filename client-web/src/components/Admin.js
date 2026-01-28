@@ -267,9 +267,23 @@ export default function Admin({ productsData }) {
       {/* Desktop Content Area */}
       <div className="admin-content hide-on-mobile">
         <div className="admin-content-card">
+          {/* Desktop Users tab */}
+          {currentUser?.role === 'admin' && (
+            <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
+              <UsersTab
+                currentUser={currentUser}
+                query={userQuery}
+                onQueryChange={setUserQuery}
+                onDeleteUser={handleDeleteUser}
+                onDataChange={handleDataChange}
+              />
+            </div>
+          )}
 
-          {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <UsersTab
+          {/* Desktop Products tab */}
+          <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+            <ProductsTab
+              key={productsRefreshKey}
               currentUser={currentUser}
               productsData={productsData}
               borrowingHistory={borrowingHistory}
