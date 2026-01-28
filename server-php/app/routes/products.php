@@ -38,8 +38,10 @@ function handle_products_route(string $method, ?string $id, PDO $pdo): void
 
 function list_products(PDO $pdo): void
 {
-    $stmt = $pdo->query(
-        'SELECT 
+    $search = $_GET['search'] ?? null;
+
+    $sql = '
+        SELECT 
            p.id, 
            p.device_type_id, 
            p.product_name, 
@@ -53,12 +55,44 @@ function list_products(PDO $pdo): void
            p.updated_at,
            dt.type_name,
            l.location_name
-         FROM products p
-         LEFT JOIN device_types dt ON p.device_type_id = dt.id
-         LEFT JOIN locations l ON p.location_id = l.id
-         WHERE p.is_retired = 0
-         ORDER BY p.id DESC'
-    );
+        FROM products p
+        LEFT JOIN device_types dt ON p.device_type_id = dt.id
+        LEFT JOIN locations l ON p.location_id = l.id
+        WHERE p.is_retired = 0
+    ';
+
+    if ($search && trim($search) !== '') {
+        // Match by any visible column in the grid
+        $sql .= '
+          AND (
+            p.product_name      LIKE :s1
+            OR dt.type_name     LIKE :s2
+            OR l.location_name  LIKE :s3
+            OR CAST(p.purchase_date AS CHAR) LIKE :s4
+            OR p.status         LIKE :s5
+            OR p.details        LIKE :s6
+            OR p.qr_code        LIKE :s7
+          )
+        ';
+    }
+
+    $sql .= ' ORDER BY p.id DESC';
+
+    $stmt = $pdo->prepare($sql);
+
+    if ($search && trim($search) !== '') {
+        $searchParam = '%' . trim($search) . '%';
+        $stmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
+         // These reuse the same pattern for other searchable fields
+        $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s5', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
+    }
+
+    $stmt->execute();
     $rows = $stmt->fetchAll();
     json_response($rows);
 }

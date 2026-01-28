@@ -35,11 +35,11 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
       {/* Mobile view */}
       <div className="mobile-tab-content hide-on-desktop">
         <div className="mobile-content-section">
+          <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
           <SearchBox
             value={query || ''}
             onChange={(e) => onQueryChange(e.target.value)}
           />
-          <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
               columns={mobileColumns}
@@ -57,6 +57,42 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
       {/* Desktop view */}
       <div className="hide-on-mobile">
         <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
+
+        {/* Match Products search bar layout (title, then search) */}
+        <div className="products-card__search">
+          <span className="search-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="6"
+                stroke="#6b7280"
+                strokeWidth="2"
+              />
+              <line
+                x1="15"
+                y1="15"
+                x2="20"
+                y2="20"
+                stroke="#6b7280"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search ..."
+            value={query || ''}
+            onChange={(e) => onQueryChange(e.target.value)}
+          />
+        </div>
         <ServerGrid
           columns={desktopColumns}
           path={path}

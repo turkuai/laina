@@ -280,14 +280,6 @@ export default function Admin({ productsData }) {
       <div className="admin-content hide-on-mobile">
         <div className="admin-content-card">
 
-          {/* Search Box for all tabs except settings and products (Products has its own search) */}
-          {activeTab !== 'settings' && activeTab !== 'products' && (
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-          )}
-
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <UsersTab
               currentUser={currentUser}
