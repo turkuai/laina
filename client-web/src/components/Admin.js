@@ -280,9 +280,6 @@ export default function Admin({ productsData }) {
             </div>
           )}
 
-          {/* Desktop Users tab */}
-          {activeTab === 'users' && currentUser?.role === 'admin' && (
-            <UsersTab
           {/* Desktop Products tab */}
           <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
             <ProductsTab
@@ -293,18 +290,7 @@ export default function Admin({ productsData }) {
               query={userQuery}
               onQueryChange={setUserQuery}
             />
-          )}
-
-          {/* Desktop Products tab */}
-          {activeTab === 'products' && (
-            <ProductsTab
-              currentUser={currentUser}
-              productsData={productsData}
-              borrowingHistory={borrowingHistory}
-              query={userQuery}
-              onQueryChange={setUserQuery}
-            />
-          )}
+          </div>
 
           {/* Desktop History tab */}
           <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
