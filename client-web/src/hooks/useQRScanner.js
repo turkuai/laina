@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getCurrentDate } from '../utils/dateUtils';
+import { useNotification } from '../components/NotificationContext';
 
 /**
  * Custom hook for managing QR scanner state and handlers
@@ -8,6 +9,7 @@ import { getCurrentDate } from '../utils/dateUtils';
  * @returns {Object} Object containing camera state, scanned product state, and handler functions
  */
 export const useQRScanner = (onProductsRefresh, currentUser) => {
+  const { showNotification } = useNotification();
   // QR Scanner states
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
@@ -44,13 +46,13 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
     try {
       parsed = JSON.parse(qrData);
     } catch (e) {
-      alert('Invalid QR code format. Please use a JSON-based QR sticker.');
+      showNotification('Invalid QR code format. Please use a JSON-based QR sticker.', 'error');
       console.error('QR parse error:', e);
       return;
     }
 
     if (!parsed.qr_code && !parsed.name) {
-      alert('QR code missing required fields (qr_code or name).');
+      showNotification('QR code missing required fields (qr_code or name).', 'error');
       return;
     }
 
@@ -58,7 +60,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
     const product = await fetchProductByQR(parsed.qr_code);
     
     if (!product) {
-      alert('Product not found in database. Please check the QR code.');
+      showNotification('Product not found in database. Please check the QR code.', 'error');
       return;
     }
 
@@ -124,7 +126,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
   // Handler for returning a product - updates database
   const handleReturn = async () => {
     if (!scannedProduct?.id || !scannedProduct?.borrowId) {
-      alert('Cannot return: Missing product or borrow record information.');
+      showNotification('Cannot return: Missing product or borrow record information.', 'error');
       return;
     }
 
@@ -145,7 +147,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
         throw new Error(errorData.error || 'Failed to return product');
       }
 
-      alert(`Product "${scannedProduct.name}" returned successfully!`);
+      showNotification(`Product "${scannedProduct.name}" returned successfully!`, 'success');
       
       // Refresh products list to show updated status
       if (typeof onProductsRefresh === 'function') {
@@ -156,19 +158,19 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
       setProductStatus(null);
     } catch (err) {
       console.error('Return error:', err);
-      alert(`Failed to return product: ${err.message}`);
+      showNotification(`Failed to return product: ${err.message}`, 'error');
     }
   };
 
   // Handler for borrowing a product - creates database record
   const handleBorrow = async (borrowData) => {
     if (!scannedProduct?.id) {
-      alert('Cannot borrow: Missing product information.');
+      showNotification('Cannot borrow: Missing product information.', 'error');
       return;
     }
 
     if (!borrowData.selectedUser?.id) {
-      alert('Please select a user to borrow the product.');
+      showNotification('Please select a user to borrow the product.', 'error');
       return;
     }
 
@@ -205,7 +207,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
         throw new Error(errorData.error || 'Failed to borrow product');
       }
 
-      alert(`Product "${scannedProduct.name}" borrowed successfully!`);
+      showNotification(`Product "${scannedProduct.name}" borrowed successfully!`, 'success');
       
       // Refresh products list to show updated status
       if (typeof onProductsRefresh === 'function') {
@@ -216,7 +218,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
       setProductStatus(null);
     } catch (err) {
       console.error('Borrow error:', err);
-      alert(`Failed to borrow product: ${err.message}`);
+      showNotification(`Failed to borrow product: ${err.message}`, 'error');
     }
   };
 

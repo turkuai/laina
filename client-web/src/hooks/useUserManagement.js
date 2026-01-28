@@ -1,4 +1,5 @@
 import { useAuth } from '../components/AuthContext';
+import { useNotification } from '../components/NotificationContext';
 
 /**
  * Custom hook for managing user operations (delete, edit, etc.)
@@ -6,6 +7,7 @@ import { useAuth } from '../components/AuthContext';
  */
 export const useUserManagement = () => {
   const { currentUser } = useAuth();
+  const { showNotification } = useNotification();
 
   // Check if user has borrowing history
   const checkBorrowingHistory = async (userId) => {
@@ -45,14 +47,17 @@ export const useUserManagement = () => {
     if (row.first_name && row.last_name) {
       const fullName = `${row.first_name} ${row.last_name}`;
       if (fullName === currentUser?.name || `${row.first_name}${row.last_name}` === currentUser?.name) {
-        alert("You cannot delete your own account!");
+        showNotification('You cannot delete your own account!', 'error');
         return false; // Prevent deletion
       }
       
       // Check if user has borrowing history / borrowed items
       const hasBorrowingHistory = await checkBorrowingHistory(row.id);
       if (hasBorrowingHistory) {
-        alert(`Cannot delete user "${fullName}" because they have borrowed items / borrowing history. Please return the items first.`);
+        showNotification(
+          `Cannot delete user "${fullName}" because they have borrowed items / borrowing history. Please return the items first.`,
+          'error'
+        );
         return false; // Prevent deletion
       }
       
@@ -61,13 +66,16 @@ export const useUserManagement = () => {
       }
       return false; // User cancelled
     } else if (row.name === currentUser?.name) {
-      alert("You cannot delete your own account!");
+      showNotification('You cannot delete your own account!', 'error');
       return false; // Prevent deletion
     } else {
       // Check if user has borrowing history / borrowed items
       const hasBorrowingHistory = await checkBorrowingHistory(row.id);
       if (hasBorrowingHistory) {
-        alert(`Cannot delete user "${row.name || row.email}" because they have borrowed items / borrowing history. Please return the items first.`);
+        showNotification(
+          `Cannot delete user "${row.name || row.email}" because they have borrowed items / borrowing history. Please return the items first.`,
+          'error'
+        );
         return false; // Prevent deletion
       }
       

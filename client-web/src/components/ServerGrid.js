@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Grid from './Grid';
+import { useNotification } from './NotificationContext';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -30,6 +31,7 @@ export default function ServerGrid({
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { showNotification } = useNotification();
 
   // If search query changes, jump back to first page
   useEffect(() => {
@@ -193,11 +195,14 @@ export default function ServerGrid({
             errorStr.includes('borrow_history') || 
             errorStr.includes('cannot delete') ||
             errorStr.includes('1451')) {
-          alert('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
+          showNotification(
+            'Cannot delete user because they have borrowing history. Please return all borrowed items first.',
+            'error'
+          );
           throw new Error('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
         }
         
-        alert(errorMessage);
+        showNotification(errorMessage, 'error');
         throw new Error(errorMessage);
       }
 

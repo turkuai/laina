@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ServerGrid from './ServerGrid';
 import SearchBox from './SearchBox';
 import UserInfoPopup from './UserInfoPopup';
+import { useNotification } from './NotificationContext';
 import './Admin.css';
 
 /**
@@ -34,6 +35,7 @@ export default function UsersTab({
     email: '',
     role: 'student',
   });
+  const { showNotification } = useNotification();
 
   const handleOpenAddModal = () => {
     setShowAddModal(true);
@@ -70,7 +72,7 @@ export default function UsersTab({
     e.preventDefault();
 
     if (!formData.first_name.trim() || !formData.last_name.trim() || !formData.email.trim()) {
-      alert('Please fill in first name, last name and email');
+      showNotification('Please fill in first name, last name and email', 'error');
       return;
     }
 
@@ -114,7 +116,7 @@ export default function UsersTab({
       setShowUserInfoPopup(true);
     } catch (err) {
       console.error('Add user error:', err);
-      alert(err.message || 'Failed to add user');
+      showNotification(err.message || 'Failed to add user', 'error');
     }
   };
 

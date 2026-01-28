@@ -1,5 +1,6 @@
 import React from 'react';
 import './Admin.css';
+import { useNotification } from './NotificationContext';
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {
@@ -23,6 +24,7 @@ function CameraView({
   onReturn, 
   onBorrow 
 }) {
+  const { showNotification } = useNotification();
   return (
     <div className="borrow-content">
       {currentUser?.role !== 'student' && (
@@ -94,7 +96,7 @@ function CameraView({
                 const phone = document.getElementById('mobile-borrower-phone').value;
                 const returnDate = document.getElementById('mobile-return-date').value;
                 if (!name || !phone || !returnDate) {
-                  alert('Fill in all fields!');
+                  showNotification('Fill in all fields!', 'error');
                   return;
                 }
                 onBorrow({
