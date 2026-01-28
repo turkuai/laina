@@ -187,10 +187,8 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
   const isAdmin = currentUser?.role === 'admin';
   
   return (
-    <div className="products-card">
-      <div className="products-card__header">
-        <div className="title">Products</div>
-      </div>
+    <>
+      <h2 className="title">Products</h2>
 
       {/* Desktop search bar (reuses existing design) */}
       <div className="products-card__search">
@@ -367,6 +365,6 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
