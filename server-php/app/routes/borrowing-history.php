@@ -55,6 +55,7 @@ function list_borrowing_history(PDO $pdo): void
             bh.notes,
             -- Friendly fields expected by the frontend grid
             COALESCE(
+                NULLIF(bh.borrower_name_snapshot, ''),
                 NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
                 u.username,
                 CONCAT('User ', bh.borrower_id)
@@ -139,12 +140,28 @@ function create_borrowing_record(PDO $pdo): void
         json_response(['error' => 'Missing borrower_id (or user_id) or product_id'], 400);
     }
 
+    // Build a snapshot of the borrower name at borrow time
+    $nameStmt = $pdo->prepare(
+        'SELECT first_name, last_name, username FROM users WHERE id = :id'
+    );
+    $nameStmt->execute([':id' => $borrowerId]);
+    $userRow = $nameStmt->fetch();
+
+    $borrowerNameSnapshot = null;
+    if ($userRow) {
+        $full = trim(($userRow['first_name'] ?? '') . ' ' . ($userRow['last_name'] ?? ''));
+        $borrowerNameSnapshot = $full !== '' ? $full : ($userRow['username'] ?? null);
+    }
+
     $stmt = $pdo->prepare(
-        'INSERT INTO borrow_history (borrower_id, product_id, lender_id, estimated_return_date, notes, borrow_date)
-         VALUES (:borrower_id, :product_id, :lender_id, :estimated_return_date, :notes, NOW())'
+        'INSERT INTO borrow_history
+            (borrower_id, borrower_name_snapshot, product_id, lender_id, estimated_return_date, notes, borrow_date)
+         VALUES
+            (:borrower_id, :borrower_name_snapshot, :product_id, :lender_id, :estimated_return_date, :notes, NOW())'
     );
     $stmt->execute([
         ':borrower_id' => $borrowerId,
+        ':borrower_name_snapshot' => $borrowerNameSnapshot,
         ':product_id' => $productId,
         ':lender_id' => $lenderId,
         ':estimated_return_date' => $estimatedReturnDate,

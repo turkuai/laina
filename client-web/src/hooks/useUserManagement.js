@@ -9,7 +9,7 @@ export const useUserManagement = () => {
   const { currentUser } = useAuth();
   const { showNotification } = useNotification();
 
-  // Check if user has borrowing history
+  // Check if user has active (not yet returned) borrowing records
   const checkBorrowingHistory = async (userId) => {
     try {
       const res = await fetch(`/api/borrowing-history?borrower_id=${userId}&page=1`, {
@@ -33,8 +33,17 @@ export const useUserManagement = () => {
       const data = await res.json();
       const history = Array.isArray(data) ? data : (data.history || data.data || []);
 
-      // Check if user has any borrowing records (or currently borrowed items)
-      return Array.isArray(history) && history.length > 0;
+      if (!Array.isArray(history)) return false;
+
+      // Only block deletion if the user has at least one ACTIVE borrow
+      // i.e. no actual_return_date yet, or status still indicates borrowed
+      return history.some((entry) => {
+        const notReturned =
+          entry.actual_return_date == null ||
+          entry.actual_return_date === '' ||
+          entry.status === 'borrowed';
+        return notReturned;
+      });
     } catch (err) {
       console.error('Error checking borrowing history:', err);
       return false; // If check fails, allow deletion attempt

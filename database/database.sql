@@ -86,8 +86,9 @@ DELIMITER ;
 CREATE TABLE `borrow_history` (
   `id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
-  `borrower_id` int(11) NOT NULL,
-  `lender_id` int(11) NOT NULL,
+  `borrower_id` int(11) DEFAULT NULL,
+  `borrower_name_snapshot` varchar(201) DEFAULT NULL,
+  `lender_id` int(11) DEFAULT NULL,
   `borrow_date` datetime NOT NULL DEFAULT current_timestamp(),
   `estimated_return_date` date DEFAULT NULL,
   `actual_return_date` datetime DEFAULT NULL,
@@ -101,11 +102,11 @@ CREATE TABLE `borrow_history` (
 -- Dumping data for table `borrow_history`
 --
 
-INSERT INTO `borrow_history` (`id`, `product_id`, `borrower_id`, `lender_id`, `borrow_date`, `estimated_return_date`, `actual_return_date`, `return_processed_by`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 2, 4, 2, '2025-10-10 09:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(2, 2, 5, 2, '2025-09-25 14:00:00', '2025-09-28', '2025-09-28 17:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(3, 1, 4, 2, '2025-10-10 10:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(4, 1, 5, 2, '2025-09-25 15:00:00', '2025-09-28', NULL, NULL, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02');
+INSERT INTO `borrow_history` (`id`, `product_id`, `borrower_id`, `borrower_name_snapshot`, `lender_id`, `borrow_date`, `estimated_return_date`, `actual_return_date`, `return_processed_by`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 2, 4, 'Aurora Williams', 2, '2025-10-10 09:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(2, 2, 5, 'Kevin Brown', 2, '2025-09-25 14:00:00', '2025-09-28', '2025-09-28 17:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(3, 1, 4, 'Aurora Williams', 2, '2025-10-10 10:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(4, 1, 5, 'Kevin Brown', 2, '2025-09-25 15:00:00', '2025-09-28', NULL, NULL, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02');
 
 --
 -- Triggers `borrow_history`
@@ -367,9 +368,9 @@ ALTER TABLE `users`
 --
 ALTER TABLE `borrow_history`
   ADD CONSTRAINT `borrow_history_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
-  ADD CONSTRAINT `borrow_history_ibfk_2` FOREIGN KEY (`borrower_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `borrow_history_ibfk_3` FOREIGN KEY (`lender_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `borrow_history_ibfk_4` FOREIGN KEY (`return_processed_by`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `borrow_history_ibfk_2` FOREIGN KEY (`borrower_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `borrow_history_ibfk_3` FOREIGN KEY (`lender_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `borrow_history_ibfk_4` FOREIGN KEY (`return_processed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `products`
