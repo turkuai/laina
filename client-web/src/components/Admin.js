@@ -268,6 +268,7 @@ export default function Admin({ productsData }) {
       <div className="admin-content hide-on-mobile">
         <div className="admin-content-card">
 
+          {/* Desktop Users tab */}
           {activeTab === 'users' && currentUser?.role === 'admin' && (
             <UsersTab
               currentUser={currentUser}
@@ -276,7 +277,18 @@ export default function Admin({ productsData }) {
               query={userQuery}
               onQueryChange={setUserQuery}
             />
-          </div>
+          )}
+
+          {/* Desktop Products tab */}
+          {activeTab === 'products' && (
+            <ProductsTab
+              currentUser={currentUser}
+              productsData={productsData}
+              borrowingHistory={borrowingHistory}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+            />
+          )}
 
           {/* Desktop History tab */}
           <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
