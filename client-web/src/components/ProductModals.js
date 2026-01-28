@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
+import { useNotification } from './NotificationContext';
 
 /**
  * ProductModals component - Desktop modals for product borrow/return actions
@@ -11,6 +12,7 @@ import './Admin.css';
  * @param {Function} getCurrentDate - Function to get current date formatted
  */
 const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBorrow, getCurrentDate }) => {
+  const { showNotification } = useNotification();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -86,7 +88,7 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
   const handleBorrowClick = () => {
     const returnDate = document.getElementById('desktop-return-date').value;
     if (!selectedUser || !returnDate) {
-      alert('Please select a user and fill in return date!');
+      showNotification('Please select a user and fill in return date!', 'error');
       return;
     }
     onBorrow({

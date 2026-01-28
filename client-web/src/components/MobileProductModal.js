@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
+import { useNotification } from './NotificationContext';
 
 /**
  * MobileProductModal component - Mobile-only modal popup for scanned QR code products
@@ -11,6 +12,7 @@ import './Admin.css';
  * @param {Function} getCurrentDate - Function to get current date formatted
  */
 const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, onBorrow, getCurrentDate }) => {
+  const { showNotification } = useNotification();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -86,7 +88,7 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
 
   const handleBorrowClick = () => {
     if (!selectedUser || !returnDate) {
-      alert('Please select a user and fill in return date!');
+      showNotification('Please select a user and fill in return date!', 'error');
       return;
     }
     onBorrow({

@@ -3,6 +3,7 @@ import Products from './Products';
 import ServerGrid from './ServerGrid';
 import StatusRenderer from './StatusRenderer';
 import QRCodeRenderer from './QRCodeRenderer';
+import { useNotification } from './NotificationContext';
 import './Products.css';
 
 // Simple hash generator for qr_code (shorter than the standalone Products view)
@@ -16,6 +17,7 @@ const generateHash = () => {
 };
 
 export default function ProductsTab({ currentUser, productsData, borrowingHistory, query, onQueryChange }) {
+  const { showNotification } = useNotification();
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640;
@@ -106,7 +108,7 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
     e.preventDefault();
 
     if (!formData.product_name.trim() || !formData.device_type_id || !formData.purchase_date) {
-      alert('Please fill in Product name, Type and Purchase year');
+      showNotification('Please fill in Product name, Type and Purchase year', 'error');
       return;
     }
 
@@ -144,10 +146,10 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
       // Also keep local cache in sync for dropdown options
       setProductsFromDb((prev) => [...prev, payload]);
       handleCloseAddModal();
-      alert('Product added successfully!');
+      showNotification('Product added successfully!', 'success');
     } catch (err) {
       console.error('Add product error:', err);
-      alert(err.message || 'Failed to add product');
+      showNotification(err.message || 'Failed to add product', 'error');
     }
   };
 

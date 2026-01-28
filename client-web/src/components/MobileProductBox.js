@@ -1,5 +1,6 @@
 import React from 'react';
 import './Admin.css';
+import { useNotification } from './NotificationContext';
 
 /**
  * MobileProductBox component - Displays product information and action buttons for mobile view
@@ -10,6 +11,8 @@ import './Admin.css';
  * @param {Function} getCurrentDate - Function to get current date formatted
  */
 const MobileProductBox = ({ product, status, onReturn, onBorrow, getCurrentDate }) => {
+  const { showNotification } = useNotification();
+
   if (!product) return null;
 
   const handleActionClick = () => {
@@ -20,7 +23,7 @@ const MobileProductBox = ({ product, status, onReturn, onBorrow, getCurrentDate 
       const phone = document.getElementById('mobile-borrower-phone').value;
       const returnDate = document.getElementById('mobile-return-date').value;
       if (!name || !phone || !returnDate) {
-        alert('Fill in all fields!');
+        showNotification('Fill in all fields!', 'error');
         return;
       }
       onBorrow({

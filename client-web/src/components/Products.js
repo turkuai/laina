@@ -3,6 +3,7 @@ import './Products.css';
 import ServerGrid from './ServerGrid';
 import QRCodeRenderer from './QRCodeRenderer';
 import { generateQRCodeWithInfo } from '../utils/qrCodeUtils';
+import { useNotification } from './NotificationContext';
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -34,7 +35,11 @@ const ProductModal = ({ product, onClose }) => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating QR code with info:', error);
-      alert('Failed to download QR code. Please try again.');
+      // Use window-level notification event to avoid hook usage inside nested component
+      const event = new CustomEvent('app-notification', {
+        detail: { message: 'Failed to download QR code. Please try again.', type: 'error' }
+      });
+      window.dispatchEvent(event);
     }
   };
 
@@ -125,6 +130,7 @@ export default function Products({ currentUser }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showNotification } = useNotification();
 
   // Fetch all data on component mount and when refresh event is triggered
   useEffect(() => {
@@ -189,7 +195,10 @@ export default function Products({ currentUser }) {
 
   const handleAddProduct = async () => {
     if (!formData.product_name.trim() || !formData.device_type_id || !formData.purchase_date) {
-      alert('Please fill in all required fields (Product Name, Device Type, Purchase Year)');
+      showNotification(
+        'Please fill in all required fields (Product Name, Device Type, Purchase Year)',
+        'error'
+      );
       return;
     }
 
@@ -230,10 +239,13 @@ export default function Products({ currentUser }) {
         details: ''
       });
       setShowAddForm(false);
-      alert(`Product "${formData.product_name}" added successfully and saved to database with unique hash!`);
+      showNotification(
+        `Product "${formData.product_name}" added successfully and saved to database with unique hash!`,
+        'success'
+      );
     } catch (err) {
       console.error('Error adding product:', err);
-      alert(`Failed to add product: ${err.message}`);
+      showNotification(`Failed to add product: ${err.message}`, 'error');
     }
   };
   
@@ -268,10 +280,13 @@ export default function Products({ currentUser }) {
 
       // Reload products from database
       await loadAllData();
-      alert(`Product "${product.product_name}" deleted from database.`);
+      showNotification(`Product "${product.product_name}" deleted from database.`, 'success');
     } catch (err) {
       console.error('Error deleting product:', err);
-      alert(err.message || 'Failed to delete product. Please make sure the server is running.');
+      showNotification(
+        err.message || 'Failed to delete product. Please make sure the server is running.',
+        'error'
+      );
     }
   };
 

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
+import { useNotification } from "./NotificationContext";
 
 function QRCodePopup({ ref, product, onClose }) {
+  const { showNotification } = useNotification();
   const productData = JSON.stringify({
     id: product.id,
     name: product.product_name,
@@ -29,7 +31,7 @@ function QRCodePopup({ ref, product, onClose }) {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error generating QR code with info:", error);
-      alert("Failed to download QR code. Please try again.");
+      showNotification("Failed to download QR code. Please try again.", "error");
     }
   };
 

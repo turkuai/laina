@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './BorrowPage.css';
+import { useNotification } from './NotificationContext';
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {
@@ -66,7 +67,11 @@ const ProductModalAvailable = ({ product, onClose, onBorrow }) => {
 
   const handleBorrow = () => {
     if (!borrowerName || !borrowerPhone || !returnDate) {
-      alert('Fill in all fields!');
+      // Use window-level notification via event to avoid hook usage inside nested component
+      const event = new CustomEvent('app-notification', {
+        detail: { message: 'Fill in all fields!', type: 'error' }
+      });
+      window.dispatchEvent(event);
       return;
     }
     onBorrow({ 
@@ -138,6 +143,7 @@ function BorrowPage() {
   const [showCamera, setShowCamera] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
   const [productStatus, setProductStatus] = useState(null);
+  const { showNotification } = useNotification();
 
   // Updated to use real QR sticker data
   const handleQRCodeScanned = (qrData) => {
@@ -148,13 +154,13 @@ function BorrowPage() {
     try {
       parsed = JSON.parse(qrData);
     } catch (e) {
-      alert('Invalid QR code format. Please use a JSON-based QR sticker.');
+      showNotification('Invalid QR code format. Please use a JSON-based QR sticker.', 'error');
       console.error('QR parse error:', e);
       return;
     }
 
     if (!parsed.name || !parsed.status) {
-      alert('QR code missing required fields (name/status).');
+      showNotification('QR code missing required fields (name/status).', 'error');
       return;
     }
 
@@ -174,14 +180,14 @@ function BorrowPage() {
         qrCode: qrData
       });
     } else {
-      alert(`Unknown product status: ${parsed.status}`);
+      showNotification(`Unknown product status: ${parsed.status}`, 'error');
     }
   };
 
   const handleReturn = () => {
     const currentDate = getCurrentDate();
     console.log('Returning product:', scannedProduct, 'on', currentDate);
-    alert(`Product returned successfully!\nReturn date: ${currentDate}`);
+    showNotification(`Product returned successfully! Return date: ${currentDate}`, 'success');
     setScannedProduct(null);
     setProductStatus(null);
   };
@@ -189,7 +195,10 @@ function BorrowPage() {
   const handleBorrow = (borrowData) => {
     console.log('Borrowing product:', scannedProduct);
     console.log('Borrow data:', borrowData);
-    alert(`Product borrowed successfully!\nBorrower: ${borrowData.borrowerName}\nBorrow date: ${borrowData.borrowDate}\nReturn by: ${borrowData.returnDate}`);
+    showNotification(
+      `Product borrowed successfully! Borrower: ${borrowData.borrowerName}, Borrow date: ${borrowData.borrowDate}, Return by: ${borrowData.returnDate}`,
+      'success'
+    );
     setScannedProduct(null);
     setProductStatus(null);
   };
