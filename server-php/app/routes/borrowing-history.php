@@ -76,6 +76,11 @@ function list_borrowing_history(PDO $pdo): void
                 OR u.first_name LIKE :s2
                 OR u.last_name LIKE :s3
                 OR u.username LIKE :s4
+                OR CAST(bh.borrow_date AS CHAR) LIKE :s5
+                OR CAST(bh.estimated_return_date AS CHAR) LIKE :s6
+                OR CAST(bh.actual_return_date AS CHAR) LIKE :s7
+                OR p.status LIKE :s8
+                OR bh.notes LIKE :s9
               )
             " : "") . "
         ORDER BY bh.id DESC
@@ -91,6 +96,11 @@ function list_borrowing_history(PDO $pdo): void
         $stmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s5', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s8', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s9', $searchParam, PDO::PARAM_STR);
     }
     $stmt->execute();
     $rows = $stmt->fetchAll();

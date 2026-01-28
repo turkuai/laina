@@ -268,31 +268,8 @@ export default function Admin({ productsData }) {
       <div className="admin-content hide-on-mobile">
         <div className="admin-content-card">
 
-          {/* Search Box for all tabs except settings and products (Products has its own search) */}
-          {activeTab !== 'settings' && activeTab !== 'products' && (
-            <SearchBox
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-          )}
-
-          {/* Desktop Users tab */}
-          {currentUser?.role === 'admin' && (
-            <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
-              <UsersTab
-                currentUser={currentUser}
-                query={userQuery}
-                onQueryChange={setUserQuery}
-                onDeleteUser={handleDeleteUser}
-                onDataChange={handleDataChange}
-              />
-            </div>
-          )}
-
-          {/* Desktop Products tab */}
-          <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
-            <ProductsTab
-              key={productsRefreshKey}
+          {activeTab === 'users' && currentUser?.role === 'admin' && (
+            <UsersTab
               currentUser={currentUser}
               productsData={productsData}
               borrowingHistory={borrowingHistory}
