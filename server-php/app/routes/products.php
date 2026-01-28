@@ -193,24 +193,25 @@ function update_product(PDO $pdo, string $id): void
     }
 
     // Map incoming payload fields to real DB columns
+    // NOTE: status is NOT updatable - it's managed by SQL triggers based on borrow_history
     $productName   = $input['product_name']    ?? $product['product_name'];
     $deviceTypeId  = $input['device_type_id']  ?? $product['device_type_id'];
     $purchaseDate  = $input['purchase_date']   ?? $product['purchase_date'];
     $locationId    = array_key_exists('location_id', $input)
         ? $input['location_id']
         : $product['location_id'];
-    $status        = $input['status']          ?? $product['status'];
+    // Status is managed by triggers - always use current DB value, ignore any input
     $details       = array_key_exists('details', $input)
         ? $input['details']
         : $product['details'];
 
+    // Update only editable fields - status is managed by SQL triggers
     $stmt = $pdo->prepare(
         'UPDATE products
          SET product_name   = :product_name,
              device_type_id = :device_type_id,
              purchase_date  = :purchase_date,
              location_id    = :location_id,
-             status         = :status,
              details        = :details,
              updated_at     = NOW()
          WHERE id = :id'
@@ -220,10 +221,14 @@ function update_product(PDO $pdo, string $id): void
         ':device_type_id' => $deviceTypeId,
         ':purchase_date'  => $purchaseDate,
         ':location_id'    => $locationId,
-        ':status'         => $status,
         ':details'        => $details,
         ':id'             => $id,
     ]);
+
+    // Fetch updated product to get current status (which may have been changed by triggers)
+    $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
+    $stmt->execute([':id' => $id]);
+    $updatedProduct = $stmt->fetch();
 
     json_response([
         'id'             => (int)$id,
@@ -231,7 +236,7 @@ function update_product(PDO $pdo, string $id): void
         'device_type_id' => $deviceTypeId,
         'purchase_date'  => $purchaseDate,
         'location_id'    => $locationId,
-        'status'         => $status,
+        'status'         => $updatedProduct['status'], // Get current status from DB (managed by triggers)
         'details'        => $details,
     ]);
 }
