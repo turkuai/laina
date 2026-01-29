@@ -251,6 +251,7 @@ CREATE TABLE `users` (
   `last_name` varchar(100) NOT NULL,
   `phone_number` varchar(20) DEFAULT NULL,
   `role` enum('admin','teacher','student') NOT NULL DEFAULT 'student',
+  `flag` enum('visible','hidden') NOT NULL DEFAULT 'visible',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -259,12 +260,12 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `email`, `first_name`, `last_name`, `phone_number`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2y$10$YourHashedPasswordHere', 'mohammad@edu.turku.fi', 'Mohammad', 'Admin', NULL, 'admin', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(2, 'teacher1', '$2y$10$YourHashedPasswordHere', 'teacher1@edu.turku.fi', 'John', 'Smith', NULL, 'teacher', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(3, 'teacher2', '$2y$10$YourHashedPasswordHere', 'teacher2@edu.turku.fi', 'Sarah', 'Johnson', NULL, 'teacher', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(4, 'aurora', '$2y$10$YourHashedPasswordHere', 'aurora@student.turku.fi', 'Aurora', 'Williams', NULL, 'student', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(5, 'kevin', '$2y$10$YourHashedPasswordHere', 'kevin@student.turku.fi', 'Kevin', 'Brown', NULL, 'student', '2025-10-22 09:44:02', '2025-10-22 09:44:02');
+INSERT INTO `users` (`id`, `username`, `password`, `email`, `first_name`, `last_name`, `phone_number`, `role`, `flag`, `created_at`, `updated_at`) VALUES
+(1, 'admin', '$2y$10$YourHashedPasswordHere', 'mohammad@edu.turku.fi', 'Mohammad', 'Admin', NULL, 'admin', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(2, 'teacher1', '$2y$10$YourHashedPasswordHere', 'teacher1@edu.turku.fi', 'John', 'Smith', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(3, 'teacher2', '$2y$10$YourHashedPasswordHere', 'teacher2@edu.turku.fi', 'Sarah', 'Johnson', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(4, 'aurora', '$2y$10$YourHashedPasswordHere', 'aurora@student.turku.fi', 'Aurora', 'Williams', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(5, 'kevin', '$2y$10$YourHashedPasswordHere', 'kevin@student.turku.fi', 'Kevin', 'Brown', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02');
 
 -- --------------------------------------------------------
 
