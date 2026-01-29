@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import ServerGrid from './ServerGrid';
 import SearchBox from './SearchBox';
-import UserInfoPopup from './UserInfoPopup';
 import { useNotification } from './NotificationContext';
 import './Admin.css';
 
@@ -25,100 +24,8 @@ export default function UsersTab({
   onDeleteUser,
   onDataChange
 }) {
-  const [showAddModal, setShowAddModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [showUserInfoPopup, setShowUserInfoPopup] = useState(false);
-  const [createdUserInfo, setCreatedUserInfo] = useState({ username: '', password: '' });
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    role: 'student',
-  });
   const { showNotification } = useNotification();
-
-  const handleOpenAddModal = () => {
-    setShowAddModal(true);
-  };
-
-  const handleCloseAddModal = () => {
-    setShowAddModal(false);
-    setFormData({
-      first_name: '',
-      last_name: '',
-      email: '',
-      role: 'student',
-    });
-  };
-
-  const generateUsername = () => {
-    if (formData.email.includes('@')) {
-      return formData.email.split('@')[0];
-    }
-    const base = (formData.first_name + '.' + formData.last_name).toLowerCase();
-    return base.replace(/\s+/g, '');
-  };
-
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let pwd = '';
-    for (let i = 0; i < 10; i++) {
-      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return pwd;
-  };
-
-  const handleSubmitUser = async (e) => {
-    e.preventDefault();
-
-    if (!formData.first_name.trim() || !formData.last_name.trim() || !formData.email.trim()) {
-      showNotification('Please fill in first name, last name and email', 'error');
-      return;
-    }
-
-    const username = generateUsername();
-    const password = generatePassword();
-
-    try {
-      const payload = {
-        username,
-        first_name: formData.first_name.trim(),
-        last_name: formData.last_name.trim(),
-        email: formData.email.trim(),
-        password,
-        role: formData.role,
-        phone_number: null,
-      };
-
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        let msg = 'Failed to add user';
-        try {
-          const data = await res.json();
-          msg = data.error || data.message || msg;
-        } catch (_) {
-          // ignore
-        }
-        throw new Error(msg);
-      }
-
-      // Refresh grid
-      setRefreshKey((k) => k + 1);
-      handleCloseAddModal();
-      // Show user info popup instead of alert
-      setCreatedUserInfo({ username, password });
-      setShowUserInfoPopup(true);
-    } catch (err) {
-      console.error('Add user error:', err);
-      showNotification(err.message || 'Failed to add user', 'error');
-    }
-  };
 
   return (
     <>
@@ -147,7 +54,7 @@ export default function UsersTab({
               onDeleteRow={onDeleteUser}
               onDataChange={onDataChange}
               pageSize={10}
-              onAdd={handleOpenAddModal}
+              showAddButton={true}
               query={query}
             />
           </div>
@@ -202,93 +109,11 @@ export default function UsersTab({
           onDeleteRow={onDeleteUser}
           onDataChange={onDataChange}
           pageSize={10}
-          onAdd={handleOpenAddModal}
+          showAddButton={true}
           query={query}
         />
       </div>
 
-      {showAddModal && (
-        <div className="product-modal-overlay" onClick={handleCloseAddModal}>
-          <div
-            className="product-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '540px' }}
-          >
-            <button
-              onClick={handleCloseAddModal}
-              className="product-modal-close"
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h2 className="product-modal-title">Add User</h2>
-
-            <form onSubmit={handleSubmitUser} className="add-product-form">
-              <div className="add-product-form-grid">
-                <div>
-                  <label className="form-label">First name *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={formData.first_name}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, first_name: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="form-label">Last name *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={formData.last_name}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, last_name: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="form-label">Email *</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="form-label">Role</label>
-                  <select
-                    className="form-select"
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, role: e.target.value }))
-                    }
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="student">Student</option>
-                  </select>
-                </div>
-
-                <button type="submit" className="form-add-btn">
-                  Save user
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showUserInfoPopup && (
-        <UserInfoPopup
-          username={createdUserInfo.username}
-          password={createdUserInfo.password}
-          onClose={() => setShowUserInfoPopup(false)}
-        />
-      )}
     </>
   );
 }

@@ -31,6 +31,7 @@ export default function ServerGrid({
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
   const { showNotification } = useNotification();
 
   // If search query changes, jump back to first page
@@ -271,11 +272,93 @@ export default function ServerGrid({
   };
 
   const handleAdd = () => {
-    if (typeof onAdd === 'function') {
-      onAdd();
-    } else {
-      // Default behavior: refresh data or show alert
-      console.log('Add button clicked - no handler provided');
+    setIsAdding(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAdding(false);
+  };
+
+  const handleAddRow = async (newRowData) => {
+    if (!path) return;
+
+    try {
+      let addUrl = path.split('?')[0];
+      // Ensure /api/ prefix if not present
+      if (!addUrl.startsWith('/api/')) {
+        const cleanPath = addUrl.startsWith('/') ? addUrl.slice(1) : addUrl;
+        addUrl = `/api/${cleanPath}`;
+      }
+
+      // Prepare payload - exclude technical fields
+      const payload = { ...newRowData };
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+      delete payload.qr_code; // Will be generated on server if needed
+
+      // Handle special cases for products
+      if (path.includes('products')) {
+        // Generate QR code hash if not provided
+        if (!payload.qr_code) {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let hash = '';
+          for (let i = 0; i < 32; i++) {
+            hash += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          payload.qr_code = hash;
+        }
+      }
+
+      // Handle special cases for users
+      if (path.includes('users')) {
+        // Generate username and password if not provided
+        if (!payload.username && payload.email) {
+          payload.username = payload.email.split('@')[0];
+        }
+        if (!payload.password) {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let pwd = '';
+          for (let i = 0; i < 10; i++) {
+            pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          payload.password = pwd;
+        }
+        payload.phone_number = payload.phone_number || null;
+      }
+
+      const res = await fetch(addUrl, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        let msg = 'Failed to add item';
+        try {
+          const errorData = await res.json();
+          msg = errorData.error || errorData.message || msg;
+        } catch (_) {
+          // ignore json parse error
+        }
+        throw new Error(msg);
+      }
+
+      // Refresh data after successful addition
+      await fetchData();
+      setIsAdding(false);
+      showNotification('Item added successfully!', 'success');
+
+      // Call parent callback if provided
+      if (typeof onAdd === 'function') {
+        onAdd();
+      }
+    } catch (err) {
+      console.error('Add error:', err);
+      showNotification(err.message || 'Failed to add item', 'error');
     }
   };
 
@@ -322,10 +405,14 @@ export default function ServerGrid({
         data={data}
         allowEditing={allowEditing}
         allowDelete={allowDelete}
+        allowAdding={showAddButton}
         pageSize={pageSize}
         onDataChange={handleDataChange}
         onEditRow={handleEdit}
         onDeleteRow={handleDelete}
+        onAddRow={handleAddRow}
+        isAdding={isAdding}
+        onCloseAddModal={handleCloseAddModal}
         {...rest}
       />
 
