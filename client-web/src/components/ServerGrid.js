@@ -309,26 +309,9 @@ export default function ServerGrid({
             onClick={handleAdd}
             className="server-grid-add-button"
             type="button"
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              fontWeight: '500',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
           >
-            <span style={{ fontSize: '1.25rem', lineHeight: '1' }}>+</span>
-            <span>Add</span>
+            <span className="server-grid-add-button__icon">+</span>
+            <span className="server-grid-add-button__label">Add</span>
           </button>
         </div>
       )}
