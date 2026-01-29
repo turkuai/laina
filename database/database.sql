@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 23, 2025 at 08:29 AM
--- Server version: 10.4.6-MariaDB
--- PHP Version: 7.3.9
+-- Generation Time: Jan 29, 2026 at 12:11 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -26,7 +25,7 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `borrow_product` (IN `p_product_id` INT, IN `p_borrower_id` INT, IN `p_lender_id` INT, IN `p_estimated_return_date` DATE, IN `p_notes` TEXT)  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `borrow_product` (IN `p_product_id` INT, IN `p_borrower_id` INT, IN `p_lender_id` INT, IN `p_estimated_return_date` DATE, IN `p_notes` TEXT)   BEGIN
     DECLARE v_product_status VARCHAR(20);
 
     -- Check if product exists and get current status
@@ -48,7 +47,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `borrow_product` (IN `p_product_id` 
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `return_product` (IN `p_product_id` INT, IN `p_lender_id` INT, IN `p_notes` TEXT)  BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `return_product` (IN `p_product_id` INT, IN `p_lender_id` INT, IN `p_notes` TEXT)   BEGIN
     DECLARE v_borrow_id INT;
 
     -- Find active borrow record (where actual_return_date is NULL)
@@ -96,7 +95,7 @@ CREATE TABLE `borrow_history` (
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `borrow_history`
@@ -146,7 +145,7 @@ CREATE TABLE `device_types` (
   `id` int(11) NOT NULL,
   `type_name` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `device_types`
@@ -173,7 +172,7 @@ CREATE TABLE `locations` (
   `location_name` varchar(100) NOT NULL,
   `description` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `locations`
@@ -203,17 +202,18 @@ CREATE TABLE `products` (
   `qr_code` varchar(255) DEFAULT NULL,
   `is_retired` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `flag` varchar(20) NOT NULL DEFAULT 'visible'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `device_type_id`, `product_name`, `purchase_date`, `location_id`, `status`, `details`, `qr_code`, `is_retired`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Canon EOS R5', 2021, 1, 'borrowed', 'Full-frame mirrorless camera with 45MP sensor', 'QR_CANON_R5_001', 0, '2025-10-22 09:44:02', '2025-10-23 06:25:32'),
-(2, 2, 'DJI Mavic Air 2', 2020, 3, 'available', '4K drone with 48MP camera', 'QR_DJI_MAVIC_001', 0, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(3, 3, 'Godox SL60W', 2019, 2, 'available', '60W LED video light', 'QR_GODOX_SL60_001', 0, '2025-10-22 09:44:02', '2025-10-22 09:44:02');
+INSERT INTO `products` (`id`, `device_type_id`, `product_name`, `purchase_date`, `location_id`, `status`, `details`, `qr_code`, `is_retired`, `created_at`, `updated_at`, `flag`) VALUES
+(1, 1, 'Canon EOS R5', '2021', 1, 'borrowed', 'Full-frame mirrorless camera with 45MP sensor', 'QR_CANON_R5_001', 0, '2025-10-22 09:44:02', '2025-10-23 06:25:32', 'visible'),
+(2, 2, 'DJI Mavic Air 2', '2020', 3, 'available', '4K drone with 48MP camera', 'QR_DJI_MAVIC_001', 0, '2025-10-22 09:44:02', '2026-01-29 09:57:25', 'visible'),
+(3, 3, 'Godox SL60W', '2019', 2, 'available', '60W LED video light', 'QR_GODOX_SL60_001', 0, '2025-10-22 09:44:02', '2026-01-29 10:00:27', 'visible');
 
 -- --------------------------------------------------------
 
@@ -254,14 +254,14 @@ CREATE TABLE `users` (
   `flag` enum('visible','hidden') NOT NULL DEFAULT 'visible',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `first_name`, `last_name`, `phone_number`, `role`, `flag`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2y$10$YourHashedPasswordHere', 'mohammad@edu.turku.fi', 'Mohammad', 'Admin', NULL, 'admin', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
+(1, 'admin', '$2a$12$qNOa3ibmvzzvVHiP6SVhreboubzUve4OMtCncIwg3WNmJTiVsnzPO', 'mohammad@edu.turku.fi', 'Mohammad', 'Admin', NULL, 'admin', 'visible', '2025-10-22 09:44:02', '2026-01-29 09:50:22'),
 (2, 'teacher1', '$2y$10$YourHashedPasswordHere', 'teacher1@edu.turku.fi', 'John', 'Smith', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
 (3, 'teacher2', '$2y$10$YourHashedPasswordHere', 'teacher2@edu.turku.fi', 'Sarah', 'Johnson', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
 (4, 'aurora', '$2y$10$YourHashedPasswordHere', 'aurora@student.turku.fi', 'Aurora', 'Williams', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
@@ -274,7 +274,7 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `first_name`, `last_
 --
 DROP TABLE IF EXISTS `product_current_status`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `product_current_status`  AS  select `p`.`id` AS `id`,`p`.`product_name` AS `product_name`,`dt`.`type_name` AS `type_name`,`p`.`purchase_date` AS `purchase_date`,`l`.`location_name` AS `location_name`,`p`.`status` AS `status`,`p`.`details` AS `details`,`p`.`qr_code` AS `qr_code`,`bh`.`borrower_id` AS `current_borrower_id`,concat(`u`.`first_name`,' ',`u`.`last_name`) AS `current_borrower_name`,`bh`.`borrow_date` AS `current_borrow_date`,`bh`.`estimated_return_date` AS `estimated_return_date` from ((((`products` `p` left join `device_types` `dt` on(`p`.`device_type_id` = `dt`.`id`)) left join `locations` `l` on(`p`.`location_id` = `l`.`id`)) left join `borrow_history` `bh` on(`p`.`id` = `bh`.`product_id` and `bh`.`actual_return_date` is null)) left join `users` `u` on(`bh`.`borrower_id` = `u`.`id`)) where `p`.`is_retired` = 0 ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `product_current_status`  AS SELECT `p`.`id` AS `id`, `p`.`product_name` AS `product_name`, `dt`.`type_name` AS `type_name`, `p`.`purchase_date` AS `purchase_date`, `l`.`location_name` AS `location_name`, `p`.`status` AS `status`, `p`.`details` AS `details`, `p`.`qr_code` AS `qr_code`, `bh`.`borrower_id` AS `current_borrower_id`, concat(`u`.`first_name`,' ',`u`.`last_name`) AS `current_borrower_name`, `bh`.`borrow_date` AS `current_borrow_date`, `bh`.`estimated_return_date` AS `estimated_return_date` FROM ((((`products` `p` left join `device_types` `dt` on(`p`.`device_type_id` = `dt`.`id`)) left join `locations` `l` on(`p`.`location_id` = `l`.`id`)) left join `borrow_history` `bh` on(`p`.`id` = `bh`.`product_id` and `bh`.`actual_return_date` is null)) left join `users` `u` on(`bh`.`borrower_id` = `u`.`id`)) WHERE `p`.`is_retired` = 0 ;
 
 --
 -- Indexes for dumped tables
@@ -384,4 +384,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
