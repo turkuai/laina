@@ -68,15 +68,16 @@ function list_users(PDO $pdo): void
 
     $search = $_GET['search'] ?? null;
     
-    $sql = 'SELECT id, username, first_name, last_name, email, role, phone_number, created_at
-            FROM users';
+    $sql = 'SELECT id, username, first_name, last_name, email, role, phone_number, flag, created_at
+            FROM users
+            WHERE flag IS NULL OR flag = "visible"';
     
     if ($search && trim($search) !== '') {
         // Use unique placeholders to avoid PDO named-parameter reuse issues
-        $sql .= ' WHERE first_name LIKE :s1 
-                  OR last_name LIKE :s2 
-                  OR email LIKE :s3 
-                  OR username LIKE :s4';
+        $sql .= ' AND (first_name LIKE :s1 
+                       OR last_name LIKE :s2 
+                       OR email LIKE :s3 
+                       OR username LIKE :s4)';
     }
     
     $sql .= ' ORDER BY id DESC';
@@ -111,7 +112,7 @@ function get_user(PDO $pdo, string $id): void
     $user = require_authenticated_user($pdo);
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, first_name, last_name, email, role, phone_number, created_at
+        'SELECT id, username, first_name, last_name, email, role, phone_number, flag, created_at
          FROM users WHERE id = :id'
     );
     $stmt->execute([':id' => $id]);
@@ -265,7 +266,8 @@ function delete_user(PDO $pdo, string $id): void
 {
     $currentUser = require_authenticated_user($pdo);
 
-    $stmt = $pdo->prepare('DELETE FROM users WHERE id = :id');
+    // Soft delete: mark user as hidden instead of removing the row
+    $stmt = $pdo->prepare('UPDATE users SET flag = "hidden" WHERE id = :id');
     $stmt->execute([':id' => $id]);
 
     if ($stmt->rowCount() === 0) {
@@ -354,13 +356,13 @@ function get_authenticated_user(PDO $pdo): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, first_name, last_name, email, role
+        'SELECT id, username, first_name, last_name, email, role, flag
          FROM users WHERE id = :id'
     );
     $stmt->execute([':id' => $payload['id']]);
     $user = $stmt->fetch();
 
-    if (!$user) {
+    if (!$user || ($user['flag'] ?? 'visible') === 'hidden') {
         return null;
     }
 
@@ -402,14 +404,18 @@ function login_user(PDO $pdo): void
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, password, first_name, last_name, role
+        'SELECT id, username, password, first_name, last_name, role, flag
          FROM users
          WHERE username = :username'
     );
     $stmt->execute([':username' => $username]);
     $row = $stmt->fetch();
 
-    if (!$row || !password_verify($password, $row['password'])) {
+    if (
+        !$row ||
+        ($row['flag'] ?? 'visible') === 'hidden' ||
+        !password_verify($password, $row['password'])
+    ) {
         json_response([
             'success' => false,
             'error'   => 'Invalid username or password',
