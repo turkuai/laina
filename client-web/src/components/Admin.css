@@ -239,8 +239,8 @@
 
 .admin-tab-button.active {
   color: #1f2937;
-  border-bottom-color: #2563eb;
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), transparent);
+  border-bottom-color: #dc2626;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent);
 }
 
 .admin-tab-button.camera-tab {
@@ -248,11 +248,11 @@
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
-  border-bottom-color: #2563eb;
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.12), transparent);
+  border-bottom-color: #dc2626;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.12), transparent);
   border-top-left-radius: 999px;
   border-top-right-radius: 999px;
-  box-shadow: 0 -2px 10px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 -2px 10px rgba(220, 38, 38, 0.08);
 }
 
 /* Borrow Button */
@@ -294,8 +294,8 @@
 
 .admin-badge {
   padding: 0.25rem 0.5rem;
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #fee2e2;
+  color: #991b1b;
   font-size: 0.75rem;
   border-radius: 9999px;
   font-weight: 500;
@@ -1455,7 +1455,7 @@
 
 .user-info-copy-btn {
   padding: 6px 12px;
-  background: #2563eb;
+  background: #dc2626;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1468,7 +1468,7 @@
 }
 
 .user-info-copy-btn:hover {
-  background: #1d4ed8;
+  background: #b91c1c;
 }
 
 .user-info-copy-btn:active {
@@ -1485,7 +1485,7 @@
 .user-info-copy-all-btn {
   width: 100%;
   padding: 10px;
-  background: #2563eb;
+  background: #dc2626;
   color: white;
   border: none;
   border-radius: 8px;
@@ -1496,7 +1496,7 @@
 }
 
 .user-info-copy-all-btn:hover {
-  background: #1d4ed8;
+  background: #b91c1c;
 }
 
 .user-info-close-btn {

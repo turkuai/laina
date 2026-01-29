@@ -73,7 +73,7 @@
 }
 
 .btn-page {
-  background: #2563eb;
+  background: #dc2626;
   color: white;
   border: none;
   padding: 6px 10px;
@@ -143,8 +143,8 @@
 
 .form-row input:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .modal-actions {

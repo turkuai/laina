@@ -72,7 +72,7 @@
 
 .login-input:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: #dc2626;
 }
 
 /* Error message */
@@ -88,7 +88,7 @@
 /* Submit button */
 .login-submit-btn {
     width: 100%;
-    background-color: #2563eb;
+    background-color: #dc2626;
     color: white;
     padding: 0.625rem;
     border-radius: 6px;
@@ -100,7 +100,7 @@
 }
 
 .login-submit-btn:hover {
-    background-color: #1d4ed8;
+    background-color: #b91c1c;
 }
 
 /* Demo credentials section */
