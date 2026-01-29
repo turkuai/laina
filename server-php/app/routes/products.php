@@ -51,6 +51,7 @@ function list_products(PDO $pdo): void
            p.details, 
            p.qr_code, 
            p.is_retired, 
+           p.flag,
            p.created_at, 
            p.updated_at,
            dt.type_name,
@@ -59,6 +60,7 @@ function list_products(PDO $pdo): void
         LEFT JOIN device_types dt ON p.device_type_id = dt.id
         LEFT JOIN locations l ON p.location_id = l.id
         WHERE p.is_retired = 0
+          AND (p.flag IS NULL OR p.flag != "hidden")
     ';
 
     if ($search && trim($search) !== '') {
@@ -144,6 +146,7 @@ function create_product(PDO $pdo): void
     $status         = $input['status']         ?? 'available';
     $details        = $input['details']        ?? null;
     $qrCode         = $input['qr_code']        ?? null;
+    $flag           = $input['flag']           ?? 'visible';
 
     if (!$productName) {
         json_response(['error' => 'Missing product name'], 400);
@@ -158,8 +161,8 @@ function create_product(PDO $pdo): void
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (device_type_id, product_name, purchase_date, location_id, status, details, qr_code, created_at)
-         VALUES (:device_type_id, :product_name, :purchase_date, :location_id, :status, :details, :qr_code, NOW())'
+        'INSERT INTO products (device_type_id, product_name, purchase_date, location_id, status, details, qr_code, flag, created_at)
+         VALUES (:device_type_id, :product_name, :purchase_date, :location_id, :status, :details, :qr_code, :flag, NOW())'
     );
     $stmt->execute([
         ':device_type_id' => $deviceTypeId,
@@ -169,6 +172,7 @@ function create_product(PDO $pdo): void
         ':status'         => $status,
         ':details'        => $details,
         ':qr_code'        => $qrCode,
+        ':flag'           => $flag,
     ]);
 
     $id = $pdo->lastInsertId();
@@ -275,20 +279,17 @@ function delete_product(PDO $pdo, string $id): void
         ], 409);
     }
 
-    // Attempt deletion (may still fail if there is borrowing history due to FK constraints)
-    try {
-        $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-    } catch (PDOException $e) {
-        // 23000 = integrity constraint violation (e.g. foreign key constraint)
-        if ($e->getCode() === '23000') {
-            json_response([
-                'error' => 'Cannot delete product because it has borrowing history. Consider retiring it instead.'
-            ], 409);
-        }
-        json_response(['error' => 'Failed to delete product'], 500);
-    }
+    // Soft delete: mark product as hidden instead of removing it
+    $stmt = $pdo->prepare(
+        'UPDATE products
+         SET flag = :flag
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        ':flag' => 'hidden',
+        ':id'   => $id,
+    ]);
 
-    json_response(['success' => true]);
+    json_response(['success' => true, 'flag' => 'hidden']);
 }
 
