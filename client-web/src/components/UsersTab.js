@@ -29,7 +29,7 @@ export default function UsersTab({
 
   return (
     <>
-      {/* Mobile view */}
+      {/* Mobile view - same ServerGrid and add popup as desktop (all fields: first_name, last_name, email, role) */}
       <div className="mobile-tab-content hide-on-desktop">
         <div className="mobile-content-section">
           <h2>Users Management</h2>
@@ -40,14 +40,7 @@ export default function UsersTab({
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
               key={refreshKey}
-              columns={[
-                { 
-                  field: 'name', 
-                  displayName: 'Name',
-                  valueGetter: (row) => `${row.first_name || ''} ${row.last_name || ''}`.trim()
-                },
-                'email'
-              ]}
+              columns={['first_name', 'last_name', 'email', 'role']}
               path="users"
               allowEditing={true}
               allowDelete={true}
