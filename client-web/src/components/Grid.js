@@ -36,19 +36,25 @@ export default function Grid({
   data,
   allowEditing = false,
   allowDelete = false,
+  allowAdding = false,
   pageSize = 20,
   height = '500px',
   onDataChange,
   onEditRow,
   onDeleteRow,
+  onAddRow,
   allowSelection = true,
   typeOptions = [],
   locationOptions = [],
+  onOpenAddModal,
+  isAdding = false,
+  onCloseAddModal,
 }) {
   const [rowData, setRowData] = useState(Array.isArray(data) ? data : []);
   const [editingRow, setEditingRow] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [addingMode, setAddingMode] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -71,6 +77,31 @@ export default function Grid({
     const firstRow = Array.isArray(data) && data.length > 0 ? data[0] : undefined;
     return firstRow ? Object.keys(firstRow) : [];
   }, [columns, data]);
+
+  // Handle external add modal trigger
+  useEffect(() => {
+    if (isAdding && allowAdding) {
+      setAddingMode(true);
+      // Initialize empty values based on columns
+      const initialValues = {};
+      effectiveColumns.forEach((col) => {
+        const field = getColumnField(col);
+        if (field === 'purchase_date') {
+          initialValues[field] = new Date().getFullYear();
+        } else if (field === 'status') {
+          initialValues[field] = 'available';
+        } else if (field === 'role') {
+          initialValues[field] = 'student';
+        } else {
+          initialValues[field] = '';
+        }
+      });
+      setEditValues(initialValues);
+    } else if (!isAdding) {
+      setAddingMode(false);
+      setEditValues({});
+    }
+  }, [isAdding, allowAdding, effectiveColumns]);
 
   const columnDefs = useMemo(() => {
     const baseCols = effectiveColumns.map((col) => {
@@ -184,11 +215,16 @@ export default function Grid({
   const openEditModal = (row) => {
     setEditingRow(row);
     setEditValues({ ...row });
+    setAddingMode(false);
   };
 
   const closeEditModal = () => {
     setEditingRow(null);
     setEditValues({});
+    setAddingMode(false);
+    if (typeof onCloseAddModal === 'function') {
+      onCloseAddModal();
+    }
   };
 
   const handleEditChange = (field, value) => {
@@ -196,13 +232,22 @@ export default function Grid({
   };
 
   const saveEdit = () => {
-    const updated = rowData.map((r) =>
-      r.id === editingRow.id || r.email === editingRow.email ? { ...r, ...editValues } : r
-    );
-    setRowData(updated);
-    if (typeof onDataChange === 'function') onDataChange(updated);
-    if (typeof onEditRow === 'function') onEditRow(editValues);
-    closeEditModal();
+    if (addingMode) {
+      // Add new row
+      if (typeof onAddRow === 'function') {
+        onAddRow(editValues);
+      }
+      closeEditModal();
+    } else {
+      // Edit existing row
+      const updated = rowData.map((r) =>
+        r.id === editingRow.id || r.email === editingRow.email ? { ...r, ...editValues } : r
+      );
+      setRowData(updated);
+      if (typeof onDataChange === 'function') onDataChange(updated);
+      if (typeof onEditRow === 'function') onEditRow(editValues);
+      closeEditModal();
+    }
   };
 
   return (
@@ -227,8 +272,8 @@ export default function Grid({
         />
       </div>
 
-      {/* Generic edit popup for rows */}
-      {allowEditing && editingRow && (
+      {/* Generic edit/add popup for rows */}
+      {((allowEditing && editingRow) || (allowAdding && addingMode)) && (
         <div className="product-modal-overlay" onClick={closeEditModal}>
           <div
             className="product-modal"
@@ -243,7 +288,7 @@ export default function Grid({
               ×
             </button>
 
-            <h2 className="product-modal-title">Edit</h2>
+            <h2 className="product-modal-title">{addingMode ? 'Add' : 'Edit'}</h2>
 
             <div className="add-product-form-grid">
               {effectiveColumns
@@ -260,8 +305,8 @@ export default function Grid({
                         className="form-select"
                         value={editValues[field] ?? ''}
                         onChange={(e) => handleEditChange(field, e.target.value)}
-                        disabled
-                        style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                        disabled={!addingMode}
+                        style={addingMode ? {} : { opacity: 0.6, cursor: 'not-allowed' }}
                       >
                         <option value="admin">Admin</option>
                         <option value="teacher">Teacher</option>
@@ -279,7 +324,7 @@ export default function Grid({
                     ) : field === 'type_name' && typeOptions.length > 0 ? (
                       <select
                         className="form-select"
-                        value={editValues.device_type_id ?? editingRow?.device_type_id ?? ''}
+                        value={editValues.device_type_id ?? (addingMode ? '' : editingRow?.device_type_id ?? '')}
                         onChange={(e) => {
                           const selectedId = e.target.value;
                           const selectedType = typeOptions.find(
@@ -302,7 +347,7 @@ export default function Grid({
                     ) : field === 'location_name' && locationOptions.length > 0 ? (
                       <select
                         className="form-select"
-                        value={editValues.location_id ?? editingRow?.location_id ?? ''}
+                        value={editValues.location_id ?? (addingMode ? '' : editingRow?.location_id ?? '')}
                         onChange={(e) => {
                           const selectedId = e.target.value;
                           const selectedLoc = locationOptions.find(
@@ -331,6 +376,13 @@ export default function Grid({
                         min="1900"
                         max={new Date().getFullYear() + 1}
                       />
+                    ) : field === 'email' ? (
+                      <input
+                        type="email"
+                        className="form-input"
+                        value={editValues[field] ?? ''}
+                        onChange={(e) => handleEditChange(field, e.target.value)}
+                      />
                     ) : (
                       <input
                         type="text"
@@ -358,7 +410,7 @@ export default function Grid({
                 style={{ backgroundColor: '#22c55e' }}
                 onClick={saveEdit}
               >
-                Save changes
+                {addingMode ? 'Add' : 'Save changes'}
               </button>
             </div>
           </div>
