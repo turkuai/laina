@@ -383,6 +383,14 @@ export default function Grid({
                         value={editValues[field] ?? ''}
                         onChange={(e) => handleEditChange(field, e.target.value)}
                       />
+                    ) : field === 'details' ? (
+                      <textarea
+                        className="form-input"
+                        value={editValues[field] ?? ''}
+                        onChange={(e) => handleEditChange(field, e.target.value)}
+                        placeholder="Additional details"
+                        rows={3}
+                      />
                     ) : (
                       <input
                         type="text"

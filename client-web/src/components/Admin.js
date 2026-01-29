@@ -190,7 +190,6 @@ export default function Admin({ productsData }) {
             className="mobile-tab-content"
           >
             <div className="mobile-content-section">
-              {/* Products component already includes its own search input */}
               <Products
                 key={productsRefreshKey}
                 currentUser={currentUser}

@@ -66,13 +66,13 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
   };
 
 
-  // Mobile version
+  // Mobile version - same ServerGrid and add popup as desktop (all product fields)
   if (isMobile) {
     const isAdmin = currentUser?.role === 'admin';
     return (
       <div className="mobile-tab-content">
         <div className="mobile-content-section">
-          {/* Search Box */}
+          <h2 className="title">Products</h2>
           <div className="user-search">
             <input
               placeholder="Search ..."
@@ -83,7 +83,7 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
 
           <ServerGrid
             key={refreshKey}
-            columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
+            columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'details', 'qr_code']}
             columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
             path="/products"
             allowEditing={isAdmin}
@@ -146,7 +146,7 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
 
       <ServerGrid
         key={refreshKey}
-        columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'qr_code']}
+        columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'details', 'qr_code']}
         columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
         path="/products"
         allowEditing={isAdmin}

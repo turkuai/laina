@@ -351,94 +351,103 @@ export default function Products({ currentUser }) {
       </div>
 
       {showAddForm && (
-        <div className="add-product-form">
-          <div className="add-product-form-grid">
-            <div>
-              <label className="form-label">
-                Product Name *
-              </label>
-              <input
-                type="text"
-                value={formData.product_name}
-                onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
-                placeholder="Enter product name"
-                className="form-input"
-              />
+        <div className="product-modal-overlay" onClick={() => setShowAddForm(false)}>
+          <div className="product-modal add-product-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <button onClick={() => setShowAddForm(false)} className="product-modal-close" aria-label="Close">×</button>
+            <h2 className="product-modal-title">Add product</h2>
+            <div className="add-product-form-grid">
+              <div>
+                <label className="form-label">
+                  Product Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.product_name}
+                  onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                  placeholder="Enter product name"
+                  className="form-input"
+                />
+              </div>
+              <div>
+                <label className="form-label">
+                  Device Type *
+                </label>
+                <select
+                  value={formData.device_type_id}
+                  onChange={(e) => setFormData({ ...formData, device_type_id: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="">Select type...</option>
+                  {deviceTypes.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.type_name || type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">
+                  Purchase Year *
+                </label>
+                <input
+                  type="number"
+                  value={formData.purchase_date}
+                  onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                  placeholder="2024"
+                  min="1900"
+                  max={new Date().getFullYear() + 1}
+                  className="form-input"
+                />
+              </div>
+              <div>
+                <label className="form-label">
+                  Location
+                </label>
+                <select
+                  value={formData.location_id}
+                  onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="">Select location...</option>
+                  {locations.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.location_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">
+                  Status
+                </label>
+                <input
+                  type="text"
+                  value="Available"
+                  readOnly
+                  disabled
+                  className="form-input"
+                  style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                />
+              </div>
+              <div>
+                <label className="form-label">
+                  Details
+                </label>
+                <input
+                  type="text"
+                  value={formData.details}
+                  onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                  placeholder="Additional details"
+                  className="form-input"
+                />
+              </div>
+              <div className="product-modal-actions">
+                <button type="button" onClick={() => setShowAddForm(false)} className="product-modal-close-btn">
+                  Cancel
+                </button>
+                <button onClick={handleAddProduct} className="product-modal-print-btn">
+                  Add
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="form-label">
-                Device Type *
-              </label>
-              <select
-                value={formData.device_type_id}
-                onChange={(e) => setFormData({ ...formData, device_type_id: e.target.value })}
-                className="form-select"
-              >
-                <option value="">Select type...</option>
-                {deviceTypes.map(type => (
-                  <option key={type.id} value={type.id}>
-                    {type.type_name || type.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="form-label">
-                Purchase Year *
-              </label>
-              <input
-                type="number"
-                value={formData.purchase_date}
-                onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
-                placeholder="2024"
-                min="1900"
-                max={new Date().getFullYear() + 1}
-                className="form-input"
-              />
-            </div>
-            <div>
-              <label className="form-label">
-                Location
-              </label>
-              <select
-                value={formData.location_id}
-                onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
-                className="form-select"
-              >
-                <option value="">Select location...</option>
-                {locations.map(loc => (
-                  <option key={loc.id} value={loc.id}>{loc.location_name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="form-label">
-                Status
-              </label>
-              <input
-                type="text"
-                value="Available"
-                readOnly
-                disabled
-                className="form-input"
-                style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
-              />
-            </div>
-            <div>
-              <label className="form-label">
-                Details
-              </label>
-              <input
-                type="text"
-                value={formData.details}
-                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
-                placeholder="Additional details"
-                className="form-input"
-              />
-            </div>
-            <button onClick={handleAddProduct} className="form-add-btn">
-              Add to Database
-            </button>
           </div>
         </div>
       )}
