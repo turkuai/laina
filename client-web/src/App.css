@@ -98,6 +98,40 @@ button:hover {
   background-color: #ce1717;
 }
 
+/* ServerGrid "Add" button */
+.server-grid-add-button {
+  padding: 0.5rem 1rem;
+  background-color: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.server-grid-add-button__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.server-grid-add-button__label {
+  line-height: 1;
+}
+
+.server-grid-add-button:hover {
+  background-color: #059669;
+}
+
+.server-grid-add-button:active {
+  transform: translateY(1px);
+}
+
 /* Admin page layout */
 .admin-container {
   padding: 40px;
