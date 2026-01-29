@@ -211,12 +211,46 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  transition: all 0.2s ease;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #991b1b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
 }
 
 .delete-btn:hover {
-  transform: scale(1.1);
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.delete-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.edit-btn:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.edit-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(55, 65, 81, 0.3);
 }
 
 /* ===== PRODUCT MODAL ===== */
@@ -598,6 +632,7 @@
   flex: 1;
 }
 
+.products-mobile-card-actions .edit-btn,
 .products-mobile-card-actions .delete-btn {
   flex-shrink: 0;
 }

@@ -124,6 +124,14 @@ export default function Products({ currentUser }) {
     details: ''
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    product_name: '',
+    device_type_id: '',
+    purchase_date: '',
+    location_id: '',
+    details: ''
+  });
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deviceTypes, setDeviceTypes] = useState([]);
@@ -131,6 +139,19 @@ export default function Products({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { showNotification } = useNotification();
+
+  // Sync edit form when opening edit modal
+  useEffect(() => {
+    if (editingProduct) {
+      setEditFormData({
+        product_name: editingProduct.product_name || '',
+        device_type_id: editingProduct.device_type_id ?? '',
+        purchase_date: editingProduct.purchase_date ?? '',
+        location_id: editingProduct.location_id ?? '',
+        details: editingProduct.details || ''
+      });
+    }
+  }, [editingProduct]);
 
   // Fetch all data on component mount and when refresh event is triggered
   useEffect(() => {
@@ -287,6 +308,43 @@ export default function Products({ currentUser }) {
         err.message || 'Failed to delete product. Please make sure the server is running.',
         'error'
       );
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingProduct?.id) return;
+    if (!editFormData.product_name.trim() || !editFormData.device_type_id || !editFormData.purchase_date) {
+      showNotification('Please fill in all required fields (Product Name, Device Type, Purchase Year)', 'error');
+      return;
+    }
+
+    try {
+      const payload = {
+        product_name: editFormData.product_name,
+        device_type_id: parseInt(editFormData.device_type_id),
+        purchase_date: parseInt(editFormData.purchase_date),
+        location_id: editFormData.location_id ? parseInt(editFormData.location_id) : null,
+        details: editFormData.details || null
+      };
+
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update product');
+      }
+
+      await loadAllData();
+      setEditingProduct(null);
+      showNotification(`Product "${editFormData.product_name}" updated.`, 'success');
+    } catch (err) {
+      console.error('Error updating product:', err);
+      showNotification(err.message || 'Failed to update product.', 'error');
     }
   };
 
@@ -452,6 +510,94 @@ export default function Products({ currentUser }) {
         </div>
       )}
 
+      {editingProduct && (
+        <div className="product-modal-overlay" onClick={() => setEditingProduct(null)}>
+          <div className="product-modal add-product-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <button onClick={() => setEditingProduct(null)} className="product-modal-close" aria-label="Close">×</button>
+            <h2 className="product-modal-title">Edit product</h2>
+            <div className="add-product-form-grid">
+              <div>
+                <label className="form-label">Product Name *</label>
+                <input
+                  type="text"
+                  value={editFormData.product_name}
+                  onChange={(e) => setEditFormData({ ...editFormData, product_name: e.target.value })}
+                  placeholder="Enter product name"
+                  className="form-input"
+                />
+              </div>
+              <div>
+                <label className="form-label">Device Type *</label>
+                <select
+                  value={editFormData.device_type_id}
+                  onChange={(e) => setEditFormData({ ...editFormData, device_type_id: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="">Select type...</option>
+                  {deviceTypes.map(type => (
+                    <option key={type.id} value={type.id}>{type.type_name || type.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Purchase Year *</label>
+                <input
+                  type="number"
+                  value={editFormData.purchase_date}
+                  onChange={(e) => setEditFormData({ ...editFormData, purchase_date: e.target.value })}
+                  placeholder="2024"
+                  min="1900"
+                  max={new Date().getFullYear() + 1}
+                  className="form-input"
+                />
+              </div>
+              <div>
+                <label className="form-label">Location</label>
+                <select
+                  value={editFormData.location_id}
+                  onChange={(e) => setEditFormData({ ...editFormData, location_id: e.target.value })}
+                  className="form-select"
+                >
+                  <option value="">Select location...</option>
+                  {locations.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.location_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Status</label>
+                <input
+                  type="text"
+                  value={editingProduct.status || 'Available'}
+                  readOnly
+                  disabled
+                  className="form-input"
+                  style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                />
+              </div>
+              <div>
+                <label className="form-label">Details</label>
+                <input
+                  type="text"
+                  value={editFormData.details}
+                  onChange={(e) => setEditFormData({ ...editFormData, details: e.target.value })}
+                  placeholder="Additional details"
+                  className="form-input"
+                />
+              </div>
+              <div className="product-modal-actions">
+                <button type="button" onClick={() => setEditingProduct(null)} className="product-modal-close-btn">
+                  Cancel
+                </button>
+                <button onClick={handleSaveEdit} className="product-modal-print-btn">
+                  Save changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="products-card__search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
           <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -505,7 +651,7 @@ export default function Products({ currentUser }) {
                         aria-label="Delete"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
+                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="currentColor"/>
                         </svg>
                       </button>
                     </td>
@@ -552,15 +698,27 @@ export default function Products({ currentUser }) {
                   View QR
                 </button>
                 {currentUser?.role === 'admin' && (
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="delete-btn"
-                    aria-label="Delete"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="#DC2626"/>
-                    </svg>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setEditingProduct(p)}
+                      className="edit-btn"
+                      aria-label="Edit"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="delete-btn"
+                      aria-label="Delete"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="currentColor"/>
+                      </svg>
+                    </button>
+                  </>
                 )}
               </div>
             </div>
