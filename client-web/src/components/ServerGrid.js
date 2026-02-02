@@ -424,6 +424,9 @@ export default function ServerGrid({
 
       {isAdding && (
         <ServerGridEditDialog
+          isEditing={false}
+          onCancel={handleCloseAddModal}
+          onSave={() => handleAddRow(formData)}
           formComponent={
             <FormComponent data={formData} setData={setFormData} />
           }
