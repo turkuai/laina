@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Grid from './Grid';
 import { useNotification } from './NotificationContext';
+import ServerGridEditDialog from './ServerGridEditDialog';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -22,8 +23,10 @@ export default function ServerGrid({
   onEditRow,
   onDeleteRow,
   onAdd,                // Callback for add button click
-  showAddButton = true, // Show add button by default (except history tab which doesn't use ServerGrid)
+  showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
+  formComponent : FormComponent,
   ...rest               // anything else you want to pass to Grid
+
 }) {
   const query = typeof rest.query === 'string' ? rest.query : '';
   const [data, setData] = useState([]);
@@ -32,6 +35,7 @@ export default function ServerGrid({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [formData, setFormData] = useState({});
   const { showNotification } = useNotification();
 
   // If search query changes, jump back to first page
@@ -411,11 +415,20 @@ export default function ServerGrid({
         onEditRow={handleEdit}
         onDeleteRow={handleDelete}
         onAddRow={handleAddRow}
-        isAdding={isAdding}
+        //  isAdding={isAdding}
         onCloseAddModal={handleCloseAddModal}
         {...rest}
       />
 
+      
+
+      {isAdding && (
+        <ServerGridEditDialog
+          formComponent={
+            <FormComponent data={formData} setData={setFormData} />
+          }
+        />
+      )}
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div style={{

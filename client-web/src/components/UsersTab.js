@@ -104,9 +104,21 @@ export default function UsersTab({
           pageSize={10}
           showAddButton={true}
           query={query}
+          formComponent={UsersForm}
         />
       </div>
 
     </>
+  );
+}
+
+
+
+function UsersForm({ data, setData }) {
+  return (
+    <div>
+      <h4>User name</h4>
+      <h4>Add kevin username</h4>
+    </div>
   );
 }
