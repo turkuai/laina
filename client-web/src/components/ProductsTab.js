@@ -240,14 +240,17 @@ function ProductForm({ data, setData }) {
 
       <div>
         <label className="form-label">Status</label>
-        <input
-          type="text"
+        <select
           className="form-input"
           value={data.status || ''}
           onChange={(e) =>
             setData({ ...data, status: e.target.value })
           }
-        />
+        >
+          <option value="">Select Status</option>
+          <option value="available">Available</option>
+          <option value="unavailable">Unavailable</option>
+        </select>
       </div>
 
       <div>
