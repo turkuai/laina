@@ -25,6 +25,7 @@ export default function ServerGrid({
   onAdd,                // Callback for add button click
   showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
   formComponent : FormComponent,
+  transformAddPayload,
   ...rest               // anything else you want to pass to Grid
 
 }) {
@@ -295,40 +296,13 @@ export default function ServerGrid({
       }
 
       // Prepare payload - exclude technical fields
-      const payload = { ...newRowData };
+      let payload = { ...newRowData };
       delete payload.id;
       delete payload.created_at;
       delete payload.updated_at;
-      delete payload.qr_code; // Will be generated on server if needed
 
-      // Handle special cases for products
-      if (path.includes('products')) {
-        // Generate QR code hash if not provided
-        if (!payload.qr_code) {
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-          let hash = '';
-          for (let i = 0; i < 32; i++) {
-            hash += chars.charAt(Math.floor(Math.random() * chars.length));
-          }
-          payload.qr_code = hash;
-        }
-      }
-
-      // Handle special cases for users
-      if (path.includes('users')) {
-        // Generate username and password if not provided
-        if (!payload.username && payload.email) {
-          payload.username = payload.email.split('@')[0];
-        }
-        if (!payload.password) {
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-          let pwd = '';
-          for (let i = 0; i < 10; i++) {
-            pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-          }
-          payload.password = pwd;
-        }
-        payload.phone_number = payload.phone_number || null;
+      if (typeof transformAddPayload === 'function') {
+        payload = transformAddPayload(payload, { path });
       }
 
       const res = await fetch(addUrl, {
