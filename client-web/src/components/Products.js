@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import './Products.css';
-import ServerGrid from './ServerGrid';
-import QRCodeRenderer from './QRCodeRenderer';
-import { generateQRCodeWithInfo } from '../utils/qrCodeUtils';
-import { useNotification } from './NotificationContext';
+import React, { useState, useEffect, useRef } from "react";
+import "./Products.css";
+import ServerGrid from "./ServerGrid";
+import QRCodeRenderer from "./QRCodeRenderer";
+import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
+import { useNotification } from "./NotificationContext";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -26,7 +26,7 @@ const ProductModal = ({ product, onClose }) => {
     try {
       const blob = await generateQRCodeWithInfo(qrCodeUrl, product);
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `${product.product_name}-qrcode.png`;
       document.body.appendChild(link);
@@ -34,10 +34,13 @@ const ProductModal = ({ product, onClose }) => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error generating QR code with info:', error);
+      console.error("Error generating QR code with info:", error);
       // Use window-level notification event to avoid hook usage inside nested component
-      const event = new CustomEvent('app-notification', {
-        detail: { message: 'Failed to download QR code. Please try again.', type: 'error' }
+      const event = new CustomEvent("app-notification", {
+        detail: {
+          message: "Failed to download QR code. Please try again.",
+          type: "error",
+        },
       });
       window.dispatchEvent(event);
     }
@@ -46,12 +49,16 @@ const ProductModal = ({ product, onClose }) => {
   return (
     <div className="product-modal-overlay" onClick={onClose}>
       <div className="product-modal" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="product-modal-close" aria-label="Close">
+        <button
+          onClick={onClose}
+          className="product-modal-close"
+          aria-label="Close"
+        >
           ×
         </button>
-        
+
         <h2 className="product-modal-title">{product.product_name}</h2>
-        
+
         <div className="product-modal-info">
           {product.type_name && (
             <div className="product-info-item">
@@ -76,15 +83,15 @@ const ProductModal = ({ product, onClose }) => {
         </div>
 
         <div className="product-modal-qr">
-          <div 
-            className="qr-code-image" 
+          <div
+            className="qr-code-image"
             style={{
               background: `url("${qrCodeUrl}")`,
-              backgroundSize: '250px 250px',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center',
-              width: '250px',
-              height: '250px',
+              backgroundSize: "250px 250px",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              width: "250px",
+              height: "250px",
             }}
           />
           <p className="qr-code-label">QR Code</p>
@@ -105,8 +112,9 @@ const ProductModal = ({ product, onClose }) => {
 
 // Generate a unique 45-character hash
 const generateHash = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let hash = '';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let hash = "";
   for (let i = 0; i < 45; i++) {
     hash += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -115,40 +123,53 @@ const generateHash = () => {
 
 export default function Products({ currentUser }) {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({ 
-    product_name: '', 
-    device_type_id: '', 
+  const [formData, setFormData] = useState({
+    product_name: "",
+    device_type_id: "",
     purchase_date: new Date().getFullYear(),
-    location_id: '',
-    status: 'available',
-    details: ''
+    location_id: "",
+    status: "available",
+    details: "",
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    product_name: '',
-    device_type_id: '',
-    purchase_date: '',
-    location_id: '',
-    details: ''
+    product_name: "",
+    device_type_id: "",
+    purchase_date: "",
+    location_id: "",
+    details: "",
   });
   const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [deviceTypes, setDeviceTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { showNotification } = useNotification();
 
+  // ✅ Mobile incremental rendering (prevents dumping 500+ cards at once)
+  const MOBILE_BATCH = 20;
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [visibleCount, setVisibleCount] = useState(MOBILE_BATCH);
+  const mobileSentinelRef = useRef(null);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   // Sync edit form when opening edit modal
   useEffect(() => {
     if (editingProduct) {
       setEditFormData({
-        product_name: editingProduct.product_name || '',
-        device_type_id: editingProduct.device_type_id ?? '',
-        purchase_date: editingProduct.purchase_date ?? '',
-        location_id: editingProduct.location_id ?? '',
-        details: editingProduct.details || ''
+        product_name: editingProduct.product_name || "",
+        device_type_id: editingProduct.device_type_id ?? "",
+        purchase_date: editingProduct.purchase_date ?? "",
+        location_id: editingProduct.location_id ?? "",
+        details: editingProduct.details || "",
       });
     }
   }, [editingProduct]);
@@ -156,38 +177,38 @@ export default function Products({ currentUser }) {
   // Fetch all data on component mount and when refresh event is triggered
   useEffect(() => {
     loadAllData();
-    
+
     const handleRefresh = () => {
       loadAllData();
     };
-    
-    window.addEventListener('products-refresh', handleRefresh);
-    return () => window.removeEventListener('products-refresh', handleRefresh);
+
+    window.addEventListener("products-refresh", handleRefresh);
+    return () => window.removeEventListener("products-refresh", handleRefresh);
   }, []);
 
   const loadAllData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch products, device types, and locations in parallel
       const [productsRes, typesRes, locationsRes] = await Promise.all([
-        fetch('/api/products?page=1', {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' }
+        fetch("/api/products?page=1", {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         }),
-        fetch('/api/device-types', {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' }
+        fetch("/api/device-types", {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         }),
-        fetch('/api/locations?page=1', {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' }
-        })
+        fetch("/api/locations?page=1", {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }),
       ]);
 
       if (!productsRes.ok || !typesRes.ok || !locationsRes.ok) {
-        throw new Error('Failed to fetch data from server');
+        throw new Error("Failed to fetch data from server");
       }
 
       const productsData = await productsRes.json();
@@ -203,22 +224,30 @@ export default function Products({ currentUser }) {
         return [];
       };
 
-      setProducts(normalizeList(productsData, ['products', 'data', 'items']));
-      setDeviceTypes(normalizeList(typesData, ['device_types', 'types', 'data', 'items']));
-      setLocations(normalizeList(locationsData, ['locations', 'data', 'items']));
+      setProducts(normalizeList(productsData, ["products", "data", "items"]));
+      setDeviceTypes(
+        normalizeList(typesData, ["device_types", "types", "data", "items"]),
+      );
+      setLocations(
+        normalizeList(locationsData, ["locations", "data", "items"]),
+      );
     } catch (err) {
-      console.error('Error loading data:', err);
-      setError('Failed to connect to server.');
+      console.error("Error loading data:", err);
+      setError("Failed to connect to server.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddProduct = async () => {
-    if (!formData.product_name.trim() || !formData.device_type_id || !formData.purchase_date) {
+    if (
+      !formData.product_name.trim() ||
+      !formData.device_type_id ||
+      !formData.purchase_date
+    ) {
       showNotification(
-        'Please fill in all required fields (Product Name, Device Type, Purchase Year)',
-        'error'
+        "Please fill in all required fields (Product Name, Device Type, Purchase Year)",
+        "error",
       );
       return;
     }
@@ -228,64 +257,65 @@ export default function Products({ currentUser }) {
         device_type_id: parseInt(formData.device_type_id),
         product_name: formData.product_name,
         purchase_date: parseInt(formData.purchase_date),
-        location_id: formData.location_id ? parseInt(formData.location_id) : null,
+        location_id: formData.location_id
+          ? parseInt(formData.location_id)
+          : null,
         status: formData.status,
         details: formData.details || null,
-        qr_code: generateHash() // Generate hash once and send to database
+        qr_code: generateHash(), // Generate hash once and send to database
       };
 
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/products", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newProduct),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add product');
+        throw new Error(errorData.error || "Failed to add product");
       }
 
       // Reload products from database
       await loadAllData();
-      
-      setFormData({ 
-        product_name: '', 
-        device_type_id: '', 
+
+      setFormData({
+        product_name: "",
+        device_type_id: "",
         purchase_date: new Date().getFullYear(),
-        location_id: '',
-        status: 'available',
-        details: ''
+        location_id: "",
+        status: "available",
+        details: "",
       });
       setShowAddForm(false);
       showNotification(
         `Product "${formData.product_name}" added successfully and saved to database with unique hash!`,
-        'success'
+        "success",
       );
     } catch (err) {
-      console.error('Error adding product:', err);
-      showNotification(`Failed to add product: ${err.message}`, 'error');
+      console.error("Error adding product:", err);
+      showNotification(`Failed to add product: ${err.message}`, "error");
     }
   };
-  
 
   const handleDelete = async (productId) => {
-    if (currentUser?.role !== 'admin') return;
-    
-    const product = products.find(p => p.id === productId);
+    if (currentUser?.role !== "admin") return;
+
+    const product = products.find((p) => p.id === productId);
     if (!window.confirm(`Delete product "${product.product_name}"?`)) {
       return;
     }
 
     try {
       const response = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -301,20 +331,31 @@ export default function Products({ currentUser }) {
 
       // Reload products from database
       await loadAllData();
-      showNotification(`Product "${product.product_name}" deleted from database.`, 'success');
-    } catch (err) {
-      console.error('Error deleting product:', err);
       showNotification(
-        err.message || 'Failed to delete product. Please make sure the server is running.',
-        'error'
+        `Product "${product.product_name}" deleted from database.`,
+        "success",
+      );
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      showNotification(
+        err.message ||
+          "Failed to delete product. Please make sure the server is running.",
+        "error",
       );
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingProduct?.id) return;
-    if (!editFormData.product_name.trim() || !editFormData.device_type_id || !editFormData.purchase_date) {
-      showNotification('Please fill in all required fields (Product Name, Device Type, Purchase Year)', 'error');
+    if (
+      !editFormData.product_name.trim() ||
+      !editFormData.device_type_id ||
+      !editFormData.purchase_date
+    ) {
+      showNotification(
+        "Please fill in all required fields (Product Name, Device Type, Purchase Year)",
+        "error",
+      );
       return;
     }
 
@@ -323,41 +364,77 @@ export default function Products({ currentUser }) {
         product_name: editFormData.product_name,
         device_type_id: parseInt(editFormData.device_type_id),
         purchase_date: parseInt(editFormData.purchase_date),
-        location_id: editFormData.location_id ? parseInt(editFormData.location_id) : null,
-        details: editFormData.details || null
+        location_id: editFormData.location_id
+          ? parseInt(editFormData.location_id)
+          : null,
+        details: editFormData.details || null,
       };
 
       const response = await fetch(`/api/products/${editingProduct.id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update product');
+        throw new Error(errorData.error || "Failed to update product");
       }
 
       await loadAllData();
       setEditingProduct(null);
-      showNotification(`Product "${editFormData.product_name}" updated.`, 'success');
+      showNotification(
+        `Product "${editFormData.product_name}" updated.`,
+        "success",
+      );
     } catch (err) {
-      console.error('Error updating product:', err);
-      showNotification(err.message || 'Failed to update product.', 'error');
+      console.error("Error updating product:", err);
+      showNotification(err.message || "Failed to update product.", "error");
     }
   };
 
-  const filteredProducts = products.filter(p =>
-    p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.type_name && p.type_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredProducts = products.filter(
+    (p) =>
+      p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.type_name &&
+        p.type_name.toLowerCase().includes(searchTerm.toLowerCase())),
   );
+
+  // Reset mobile visible count when the list changes (search or refresh)
+  useEffect(() => {
+    setVisibleCount(MOBILE_BATCH);
+  }, [searchTerm, products.length]);
+
+  // Increase visible items when scrolling near the bottom (mobile only)
+  useEffect(() => {
+    if (!isMobile) return;
+    if (visibleCount >= filteredProducts.length) return;
+
+    const el = mobileSentinelRef.current;
+    if (!el) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          setVisibleCount((v) =>
+            Math.min(v + MOBILE_BATCH, filteredProducts.length),
+          );
+        }
+      },
+      { rootMargin: "200px" },
+    );
+
+    io.observe(el);
+    return () => io.disconnect();
+  }, [isMobile, visibleCount, filteredProducts.length]);
 
   // Custom status renderer for colored badges
   const renderStatus = (status) => {
     return (
       <span className={`status-badge status-${status}`}>
-        {status === 'available' ? 'Available' : 'Borrowed'}
+        {status === "available" ? "Available" : "Borrowed"}
       </span>
     );
   };
@@ -368,8 +445,8 @@ export default function Products({ currentUser }) {
         <div className="products-card__header">
           <h2 className="title">Products</h2>
         </div>
-        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-          Loading products from database...
+        <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+          Loading products from database.
         </div>
       </div>
     );
@@ -381,11 +458,30 @@ export default function Products({ currentUser }) {
         <div className="products-card__header">
           <h2 className="title">Products</h2>
         </div>
-        <div style={{ padding: '20px', textAlign: 'center', color: '#dc2626', backgroundColor: '#fee2e2', borderRadius: '8px', margin: '10px' }}>
-          <p><strong>Error:</strong> {error}</p>
-          <button 
+        <div
+          style={{
+            padding: "20px",
+            textAlign: "center",
+            color: "#dc2626",
+            backgroundColor: "#fee2e2",
+            borderRadius: "8px",
+            margin: "10px",
+          }}
+        >
+          <p>
+            <strong>Error:</strong> {error}
+          </p>
+          <button
             onClick={loadAllData}
-            style={{ marginTop: '10px', padding: '8px 16px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+            style={{
+              marginTop: "10px",
+              padding: "8px 16px",
+              background: "#dc2626",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
           >
             Retry Connection
           </button>
@@ -398,45 +494,58 @@ export default function Products({ currentUser }) {
     <div className="products-card">
       <div className="products-card__header">
         <h2 className="title">Products ({products.length})</h2>
-        {currentUser?.role === 'admin' && (
+        {currentUser?.role === "admin" && (
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="btn btn-primary"
           >
-            {showAddForm ? '✕ Cancel' : '+ Add'}
+            {showAddForm ? "✕ Cancel" : "+ Add"}
           </button>
         )}
       </div>
 
       {showAddForm && (
-        <div className="product-modal-overlay" onClick={() => setShowAddForm(false)}>
-          <div className="product-modal add-product-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
-            <button onClick={() => setShowAddForm(false)} className="product-modal-close" aria-label="Close">×</button>
+        <div
+          className="product-modal-overlay"
+          onClick={() => setShowAddForm(false)}
+        >
+          <div
+            className="product-modal add-product-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "520px" }}
+          >
+            <button
+              onClick={() => setShowAddForm(false)}
+              className="product-modal-close"
+              aria-label="Close"
+            >
+              ×
+            </button>
             <h2 className="product-modal-title">Add product</h2>
             <div className="add-product-form-grid">
               <div>
-                <label className="form-label">
-                  Product Name *
-                </label>
+                <label className="form-label">Product Name *</label>
                 <input
                   type="text"
                   value={formData.product_name}
-                  onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, product_name: e.target.value })
+                  }
                   placeholder="Enter product name"
                   className="form-input"
                 />
               </div>
               <div>
-                <label className="form-label">
-                  Device Type *
-                </label>
+                <label className="form-label">Device Type *</label>
                 <select
                   value={formData.device_type_id}
-                  onChange={(e) => setFormData({ ...formData, device_type_id: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, device_type_id: e.target.value })
+                  }
                   className="form-select"
                 >
-                  <option value="">Select type...</option>
-                  {deviceTypes.map(type => (
+                  <option value="">Select type.</option>
+                  {deviceTypes.map((type) => (
                     <option key={type.id} value={type.id}>
                       {type.type_name || type.name}
                     </option>
@@ -444,13 +553,13 @@ export default function Products({ currentUser }) {
                 </select>
               </div>
               <div>
-                <label className="form-label">
-                  Purchase Year *
-                </label>
+                <label className="form-label">Purchase Year *</label>
                 <input
                   type="number"
                   value={formData.purchase_date}
-                  onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, purchase_date: e.target.value })
+                  }
                   placeholder="2024"
                   min="1900"
                   max={new Date().getFullYear() + 1}
@@ -458,50 +567,57 @@ export default function Products({ currentUser }) {
                 />
               </div>
               <div>
-                <label className="form-label">
-                  Location
-                </label>
+                <label className="form-label">Location</label>
                 <select
                   value={formData.location_id}
-                  onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location_id: e.target.value })
+                  }
                   className="form-select"
                 >
-                  <option value="">Select location...</option>
-                  {locations.map(loc => (
-                    <option key={loc.id} value={loc.id}>{loc.location_name}</option>
+                  <option value="">Select location.</option>
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.location_name}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="form-label">
-                  Status
-                </label>
+                <label className="form-label">Status</label>
                 <input
                   type="text"
                   value="Available"
                   readOnly
                   disabled
                   className="form-input"
-                  style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                  style={{ backgroundColor: "#f3f4f6", cursor: "not-allowed" }}
                 />
               </div>
               <div>
-                <label className="form-label">
-                  Details
-                </label>
+                <label className="form-label">Details</label>
                 <input
                   type="text"
                   value={formData.details}
-                  onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, details: e.target.value })
+                  }
                   placeholder="Additional details"
                   className="form-input"
                 />
               </div>
               <div className="product-modal-actions">
-                <button type="button" onClick={() => setShowAddForm(false)} className="product-modal-close-btn">
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="product-modal-close-btn"
+                >
                   Cancel
                 </button>
-                <button onClick={handleAddProduct} className="product-modal-print-btn">
+                <button
+                  onClick={handleAddProduct}
+                  className="product-modal-print-btn"
+                >
                   Add
                 </button>
               </div>
@@ -511,9 +627,22 @@ export default function Products({ currentUser }) {
       )}
 
       {editingProduct && (
-        <div className="product-modal-overlay" onClick={() => setEditingProduct(null)}>
-          <div className="product-modal add-product-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
-            <button onClick={() => setEditingProduct(null)} className="product-modal-close" aria-label="Close">×</button>
+        <div
+          className="product-modal-overlay"
+          onClick={() => setEditingProduct(null)}
+        >
+          <div
+            className="product-modal add-product-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "520px" }}
+          >
+            <button
+              onClick={() => setEditingProduct(null)}
+              className="product-modal-close"
+              aria-label="Close"
+            >
+              ×
+            </button>
             <h2 className="product-modal-title">Edit product</h2>
             <div className="add-product-form-grid">
               <div>
@@ -521,7 +650,12 @@ export default function Products({ currentUser }) {
                 <input
                   type="text"
                   value={editFormData.product_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, product_name: e.target.value })}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      product_name: e.target.value,
+                    })
+                  }
                   placeholder="Enter product name"
                   className="form-input"
                 />
@@ -530,12 +664,19 @@ export default function Products({ currentUser }) {
                 <label className="form-label">Device Type *</label>
                 <select
                   value={editFormData.device_type_id}
-                  onChange={(e) => setEditFormData({ ...editFormData, device_type_id: e.target.value })}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      device_type_id: e.target.value,
+                    })
+                  }
                   className="form-select"
                 >
-                  <option value="">Select type...</option>
-                  {deviceTypes.map(type => (
-                    <option key={type.id} value={type.id}>{type.type_name || type.name}</option>
+                  <option value="">Select type.</option>
+                  {deviceTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.type_name || type.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -544,7 +685,12 @@ export default function Products({ currentUser }) {
                 <input
                   type="number"
                   value={editFormData.purchase_date}
-                  onChange={(e) => setEditFormData({ ...editFormData, purchase_date: e.target.value })}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      purchase_date: e.target.value,
+                    })
+                  }
                   placeholder="2024"
                   min="1900"
                   max={new Date().getFullYear() + 1}
@@ -555,12 +701,19 @@ export default function Products({ currentUser }) {
                 <label className="form-label">Location</label>
                 <select
                   value={editFormData.location_id}
-                  onChange={(e) => setEditFormData({ ...editFormData, location_id: e.target.value })}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      location_id: e.target.value,
+                    })
+                  }
                   className="form-select"
                 >
-                  <option value="">Select location...</option>
-                  {locations.map(loc => (
-                    <option key={loc.id} value={loc.id}>{loc.location_name}</option>
+                  <option value="">Select location.</option>
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.location_name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -568,11 +721,11 @@ export default function Products({ currentUser }) {
                 <label className="form-label">Status</label>
                 <input
                   type="text"
-                  value={editingProduct.status || 'Available'}
+                  value={editingProduct.status || "Available"}
                   readOnly
                   disabled
                   className="form-input"
-                  style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                  style={{ backgroundColor: "#f3f4f6", cursor: "not-allowed" }}
                 />
               </div>
               <div>
@@ -580,16 +733,28 @@ export default function Products({ currentUser }) {
                 <input
                   type="text"
                   value={editFormData.details}
-                  onChange={(e) => setEditFormData({ ...editFormData, details: e.target.value })}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      details: e.target.value,
+                    })
+                  }
                   placeholder="Additional details"
                   className="form-input"
                 />
               </div>
               <div className="product-modal-actions">
-                <button type="button" onClick={() => setEditingProduct(null)} className="product-modal-close-btn">
+                <button
+                  type="button"
+                  onClick={() => setEditingProduct(null)}
+                  className="product-modal-close-btn"
+                >
                   Cancel
                 </button>
-                <button onClick={handleSaveEdit} className="product-modal-print-btn">
+                <button
+                  onClick={handleSaveEdit}
+                  className="product-modal-print-btn"
+                >
                   Save changes
                 </button>
               </div>
@@ -599,136 +764,209 @@ export default function Products({ currentUser }) {
       )}
 
       <div className="products-card__search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
-          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="search-icon"
+        >
+          <path
+            d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+            stroke="#6B7280"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search products."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {/* Desktop Table */}
-      <div className="products-card__table">
-        <table className="products-table">
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Device Type</th>
-              <th>Purchase Year</th>
-              <th>Location</th>
-              <th>Status</th>
-              <th className="text-center">QR Code</th>
-              {currentUser?.role === 'admin' && (
-                <th className="text-center">Actions</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.product_name}</td>
-                  <td>{p.type_name || 'N/A'}</td>
-                  <td>{p.purchase_date}</td>
-                  <td>{p.location_name || 'N/A'}</td>
-                  <td>{renderStatus(p.status)}</td>
-                  <td className="text-center">
-                    <button
-                      onClick={() => setSelectedProduct(p)}
-                      className="view-qr-btn"
-                    >
-                      View QR
-                    </button>
-                  </td>
-                  {currentUser?.role === 'admin' && (
+      {!isMobile && (
+        <div className="products-card__table">
+          <table className="products-table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Device Type</th>
+                <th>Purchase Year</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th className="text-center">QR Code</th>
+                {currentUser?.role === "admin" && (
+                  <th className="text-center">Actions</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.product_name}</td>
+                    <td>{p.type_name || "N/A"}</td>
+                    <td>{p.purchase_date}</td>
+                    <td>{p.location_name || "N/A"}</td>
+                    <td>{renderStatus(p.status)}</td>
                     <td className="text-center">
+                      <button
+                        onClick={() => setSelectedProduct(p)}
+                        className="view-qr-btn"
+                      >
+                        View QR
+                      </button>
+                    </td>
+                    {currentUser?.role === "admin" && (
+                      <td className="text-center">
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="delete-btn"
+                          aria-label="Delete"
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={currentUser?.role === "admin" ? "7" : "6"}
+                    className="empty-state"
+                  >
+                    {searchTerm
+                      ? "No products found matching your search."
+                      : "No products in database. Add your first product!"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Mobile Card Layout */}
+      {isMobile && (
+        <div className="products-mobile-list">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.slice(0, visibleCount).map((p) => (
+              <div key={p.id} className="products-mobile-card">
+                <div className="products-mobile-card-header">
+                  <div className="products-mobile-card-title">
+                    {p.product_name}
+                  </div>
+                  <div className="products-mobile-card-status">
+                    {renderStatus(p.status)}
+                  </div>
+                </div>
+                <div className="products-mobile-card-row">
+                  <span className="products-mobile-card-label">
+                    Device Type:
+                  </span>
+                  <span className="products-mobile-card-value">
+                    {p.type_name || "N/A"}
+                  </span>
+                </div>
+                <div className="products-mobile-card-row">
+                  <span className="products-mobile-card-label">
+                    Purchase Year:
+                  </span>
+                  <span className="products-mobile-card-value">
+                    {p.purchase_date}
+                  </span>
+                </div>
+                <div className="products-mobile-card-row">
+                  <span className="products-mobile-card-label">Location:</span>
+                  <span className="products-mobile-card-value">
+                    {p.location_name || "N/A"}
+                  </span>
+                </div>
+                <div className="products-mobile-card-actions">
+                  <button
+                    onClick={() => setSelectedProduct(p)}
+                    className="view-qr-btn"
+                  >
+                    View QR
+                  </button>
+                  {currentUser?.role === "admin" && (
+                    <>
+                      <button
+                        onClick={() => setEditingProduct(p)}
+                        className="edit-btn"
+                        aria-label="Edit"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
                       <button
                         onClick={() => handleDelete(p.id)}
                         className="delete-btn"
                         aria-label="Delete"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="currentColor"/>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z"
+                            fill="currentColor"
+                          />
                         </svg>
                       </button>
-                    </td>
+                    </>
                   )}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={currentUser?.role === 'admin' ? '7' : '6'} className="empty-state">
-                  {searchTerm ? 'No products found matching your search.' : 'No products in database. Add your first product!'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Card Layout */}
-      <div className="products-mobile-list">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((p) => (
-            <div key={p.id} className="products-mobile-card">
-              <div className="products-mobile-card-header">
-                <div className="products-mobile-card-title">{p.product_name}</div>
-                <div className="products-mobile-card-status">{renderStatus(p.status)}</div>
+                </div>
               </div>
-              <div className="products-mobile-card-row">
-                <span className="products-mobile-card-label">Device Type:</span>
-                <span className="products-mobile-card-value">{p.type_name || 'N/A'}</span>
-              </div>
-              <div className="products-mobile-card-row">
-                <span className="products-mobile-card-label">Purchase Year:</span>
-                <span className="products-mobile-card-value">{p.purchase_date}</span>
-              </div>
-              <div className="products-mobile-card-row">
-                <span className="products-mobile-card-label">Location:</span>
-                <span className="products-mobile-card-value">{p.location_name || 'N/A'}</span>
-              </div>
-              <div className="products-mobile-card-actions">
-                <button
-                  onClick={() => setSelectedProduct(p)}
-                  className="view-qr-btn"
-                >
-                  View QR
-                </button>
-                {currentUser?.role === 'admin' && (
-                  <>
-                    <button
-                      onClick={() => setEditingProduct(p)}
-                      className="edit-btn"
-                      aria-label="Edit"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="delete-btn"
-                      aria-label="Delete"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z" fill="currentColor"/>
-                      </svg>
-                    </button>
-                  </>
-                )}
-              </div>
+            ))
+          ) : (
+            <div
+              className="empty-state"
+              style={{ padding: "20px", textAlign: "center", color: "#6b7280" }}
+            >
+              {searchTerm
+                ? "No products found matching your search."
+                : "No products in database. Add your first product!"}
             </div>
-          ))
-        ) : (
-          <div className="empty-state" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
-            {searchTerm ? 'No products found matching your search.' : 'No products in database. Add your first product!'}
-          </div>
-        )}
-      </div>
+          )}
+
+          {visibleCount < filteredProducts.length && (
+            <div ref={mobileSentinelRef} style={{ height: 1 }} />
+          )}
+        </div>
+      )}
 
       {selectedProduct && (
         <ProductModal
