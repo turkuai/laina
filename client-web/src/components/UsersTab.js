@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import ServerGrid from './ServerGrid';
-import SearchBox from './SearchBox';
-import { useNotification } from './NotificationContext';
-import './Admin.css';
+import React, { useState } from "react";
+import ServerGrid from "./ServerGrid";
+import SearchBox from "./SearchBox";
+import { useNotification } from "./NotificationContext";
+import "./Admin.css";
 
 /**
  * UsersTab component
- * 
+ *
  * Extracted from Admin.js - handles both mobile and desktop user management views
  * Uses CSS classes for responsive visibility instead of conditional rendering
- * 
+ *
  * Props:
  * - currentUser: Current logged in user object
  * - query: Search query string
@@ -22,7 +22,7 @@ export default function UsersTab({
   query,
   onQueryChange,
   onDeleteUser,
-  onDataChange
+  onDataChange,
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const { showNotification } = useNotification();
@@ -34,13 +34,13 @@ export default function UsersTab({
         <div className="mobile-content-section">
           <h2>Users Management</h2>
           <SearchBox
-            value={query || ''}
+            value={query || ""}
             onChange={(e) => onQueryChange(e.target.value)}
           />
-          <div style={{ height: '500px', width: '100%' }}>
+          <div style={{ height: "500px", width: "100%" }}>
             <ServerGrid
               key={refreshKey}
-              columns={['first_name', 'last_name', 'email', 'role']}
+              columns={["first_name", "last_name", "email", "role"]}
               path="users"
               allowEditing={true}
               allowDelete={true}
@@ -68,13 +68,7 @@ export default function UsersTab({
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle
-                cx="11"
-                cy="11"
-                r="6"
-                stroke="#6b7280"
-                strokeWidth="2"
-              />
+              <circle cx="11" cy="11" r="6" stroke="#6b7280" strokeWidth="2" />
               <line
                 x1="15"
                 y1="15"
@@ -89,13 +83,13 @@ export default function UsersTab({
           <input
             type="text"
             placeholder="Search ..."
-            value={query || ''}
+            value={query || ""}
             onChange={(e) => onQueryChange(e.target.value)}
           />
         </div>
         <ServerGrid
           key={refreshKey}
-          columns={['first_name', 'last_name', 'email', 'role']}
+          columns={["first_name", "last_name", "email", "role"]}
           path="users"
           allowEditing={true}
           allowDelete={true}
@@ -104,9 +98,24 @@ export default function UsersTab({
           pageSize={10}
           showAddButton={true}
           query={query}
+          formComponent={UsersForm}
         />
       </div>
-
     </>
+  );
+}
+
+function UsersForm({ data, setData }) {
+  return (
+    <div>
+      <label htmlFor="first-name">First name</label>
+      <input
+        id="first-name"
+        value={data.first_name}
+        onChange={(e) => setData({ ...data, first_name: e.target.value })}
+      />
+      <h4>User Name</h4>
+      <h4>Create here the form for to add/edit a user</h4>
+    </div>
   );
 }

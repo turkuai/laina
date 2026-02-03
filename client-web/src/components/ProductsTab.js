@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import ServerGrid from './ServerGrid';
-import StatusRenderer from './StatusRenderer';
-import QRCodeRenderer from './QRCodeRenderer';
-import { useNotification } from './NotificationContext';
-import './Products.css';
+import React, { useState, useEffect } from "react";
+import ServerGrid from "./ServerGrid";
+import StatusRenderer from "./StatusRenderer";
+import QRCodeRenderer from "./QRCodeRenderer";
+import { useNotification } from "./NotificationContext";
+import "./Products.css";
 
-
-export default function ProductsTab({ currentUser, productsData, borrowingHistory, query, onQueryChange }) {
+export default function ProductsTab({
+  currentUser,
+  productsData,
+  borrowingHistory,
+  query,
+  onQueryChange,
+}) {
   const { showNotification } = useNotification();
   const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === "undefined") return false;
     return window.innerWidth < 640;
   });
 
@@ -20,13 +25,13 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640);
     };
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Fetch metadata on mount to populate dropdowns
@@ -39,36 +44,39 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
     setIsLoadingMeta(true);
     try {
       const [typesRes, locationsRes] = await Promise.all([
-        fetch('/api/device-types', { credentials: 'include' }),
-        fetch('/api/locations', { credentials: 'include' })
+        fetch("/api/device-types", { credentials: "include" }),
+        fetch("/api/locations", { credentials: "include" }),
       ]);
 
       if (typesRes.ok) {
         const typesData = await typesRes.json();
-        setDeviceTypes(typesData.map(t => ({
-          id: t.id,
-          type_name: t.type_name
-        })));
+        setDeviceTypes(
+          typesData.map((t) => ({
+            id: t.id,
+            type_name: t.type_name,
+          })),
+        );
       }
 
       if (locationsRes.ok) {
         const locationsData = await locationsRes.json();
-        setLocations(locationsData.map(loc => ({
-          id: loc.id,
-          location_name: loc.location_name || loc.name
-        })));
+        setLocations(
+          locationsData.map((loc) => ({
+            id: loc.id,
+            location_name: loc.location_name || loc.name,
+          })),
+        );
       }
     } catch (error) {
-      console.error('Failed to fetch metadata:', error);
+      console.error("Failed to fetch metadata:", error);
     } finally {
       setIsLoadingMeta(false);
     }
   };
 
-
   // Mobile version - same ServerGrid and add popup as desktop (all product fields)
   if (isMobile) {
-    const isAdmin = currentUser?.role === 'admin';
+    const isAdmin = currentUser?.role === "admin";
     return (
       <div className="mobile-tab-content">
         <div className="mobile-content-section">
@@ -83,8 +91,19 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
 
           <ServerGrid
             key={refreshKey}
-            columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'details', 'qr_code']}
-            columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
+            columns={[
+              "product_name",
+              "type_name",
+              "purchase_date",
+              "location_name",
+              "status",
+              "details",
+              "qr_code",
+            ]}
+            columnRenderers={{
+              status: StatusRenderer,
+              qr_code: QRCodeRenderer,
+            }}
             path="/products"
             allowEditing={isAdmin}
             allowDelete={isAdmin}
@@ -101,8 +120,8 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
   }
 
   // Desktop version
-  const isAdmin = currentUser?.role === 'admin';
-  
+  const isAdmin = currentUser?.role === "admin";
+
   return (
     <>
       <h2 className="title">Products</h2>
@@ -118,13 +137,7 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <circle
-              cx="11"
-              cy="11"
-              r="6"
-              stroke="#6b7280"
-              strokeWidth="2"
-            />
+            <circle cx="11" cy="11" r="6" stroke="#6b7280" strokeWidth="2" />
             <line
               x1="15"
               y1="15"
@@ -146,7 +159,15 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
 
       <ServerGrid
         key={refreshKey}
-        columns={['product_name', 'type_name', 'purchase_date', 'location_name', 'status', 'details', 'qr_code']}
+        columns={[
+          "product_name",
+          "type_name",
+          "purchase_date",
+          "location_name",
+          "status",
+          "details",
+          "qr_code",
+        ]}
         columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
         path="/products"
         allowEditing={isAdmin}
@@ -157,7 +178,17 @@ export default function ProductsTab({ currentUser, productsData, borrowingHistor
         query={query}
         typeOptions={deviceTypes}
         locationOptions={locations}
+        formComponent={ProductsForm}
       />
     </>
+  );
+}
+
+function ProductsForm({data, setData}) {
+  return (
+    <div>
+      <label>Product Name</label>
+      <input />
+    </div>
   );
 }
