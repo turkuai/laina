@@ -403,7 +403,7 @@ export default function ServerGrid({
           onSave={() => handleAddRow(formData)}
           formComponent={
             <FormComponent data={formData} setData={setFormData} />
-          }
+          } 
         />
       )}
       {/* Pagination Controls */}
