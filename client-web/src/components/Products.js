@@ -4,6 +4,7 @@ import ServerGrid from "./ServerGrid";
 import QRCodeRenderer from "./QRCodeRenderer";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
 import { useNotification } from "./NotificationContext";
+import ConfirmDialog from "./ConfirmDialog";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -146,6 +147,7 @@ export default function Products({ currentUser }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const { showNotification } = useNotification();
 
   // ✅ Mobile incremental rendering (prevents dumping 500+ cards at once)
@@ -303,14 +305,15 @@ export default function Products({ currentUser }) {
 
   const handleDelete = async (productId) => {
     if (currentUser?.role !== "admin") return;
-
     const product = products.find((p) => p.id === productId);
-    if (!window.confirm(`Delete product "${product.product_name}"?`)) {
-      return;
-    }
+    if (!product) return;
+    setDeleteTarget(product);
+  };
 
+  const performDelete = async (product) => {
+    if (!product?.id) return;
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/products/${product.id}`, {
         method: "DELETE",
         credentials: "include",
         headers: {
@@ -624,6 +627,22 @@ export default function Products({ currentUser }) {
             </div>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Confirm deletion"
+          message={`Are you sure you want to remove the product "${deleteTarget.product_name}"?`}
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            await performDelete(deleteTarget);
+            setDeleteTarget(null);
+          }}
+          isDestructive={true}
+        />
       )}
 
       {editingProduct && (
