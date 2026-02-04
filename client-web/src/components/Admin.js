@@ -101,31 +101,12 @@ export default function Admin({ productsData }) {
   // Custom hooks for data filtering
   const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
-  // Track previous isMobile value to detect transitions
+  // Track previous isMobile value (no tab reset on resize)
   const prevIsMobileRef = useRef(isMobile);
 
-  // Effect to handle tab switching when transitioning between mobile/desktop
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const wasMobile = prevIsMobileRef.current;
-    const isNowMobile = isMobile;
-
-    // Only change tab when transitioning between mobile/desktop
-    if (isNowMobile !== wasMobile) {
-      // When switching TO mobile from desktop
-      if (isNowMobile && !wasMobile && activeTab !== 'settings') {
-        setActiveTab('history'); // Default to history on mobile (camera is now a modal)
-      }
-      // When switching TO desktop from mobile  
-      else if (!isNowMobile && wasMobile && activeTab === 'camera') {
-        setActiveTab(currentUser?.role === 'admin' ? 'users' : 'history');
-      }
-    }
-
-    // Update ref for next comparison
-    prevIsMobileRef.current = isNowMobile;
-  }, [isMobile, activeTab, currentUser]);
+    prevIsMobileRef.current = isMobile;
+  }, [isMobile]);
 
 
 
