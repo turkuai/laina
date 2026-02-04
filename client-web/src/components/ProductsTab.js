@@ -186,83 +186,84 @@ export default function ProductsTab({
 
 function ProductForm({ data, setData }) {
   return (
-    <div className="add-product-form-grid">
-  
-      <div>
-        <label className="form-label">Product Name</label>
-        <input
-          type="text"
-          className="form-input"
-          value={data.product_name || ''}
-          onChange={(e) =>
-            setData({ ...data, product_name: e.target.value })
-          }
-        />
-      </div>
-      
-      <div>
-        <label className="form-label">Type Name</label>
-        <input
-          type="text"
-          className="form-input"
-          value={data.type_name || ''}
-          onChange={(e) =>
-            setData({ ...data, type_name: e.target.value })
-          }
-        />
-      </div>
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">Product Name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.product_name || ''}
+            onChange={(e) =>
+              setData({ ...data, product_name: e.target.value })
+            }
+          />
+        </div>
+        
+        <div>
+          <label className="form-label">Type Name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.type_name || ''}
+            onChange={(e) =>
+              setData({ ...data, type_name: e.target.value })
+            }
+          />
+        </div>
 
-      <div>
-        <label className="form-label">Purchase Date</label>
-        <input
-          type="number"
-          className="form-input"
-          min="1900"
-          max={new Date().getFullYear() + 1}
-          value={data.purchase_date || ''}
-          onChange={(e) =>
-            setData({ ...data, purchase_date: e.target.value })
-          }
-        />
-      </div>
+        <div>
+          <label className="form-label">Purchase Date</label>
+          <input
+            type="number"
+            className="form-input"
+            min="1900"
+            max={new Date().getFullYear() + 1}
+            value={data.purchase_date || ''}
+            onChange={(e) =>
+              setData({ ...data, purchase_date: e.target.value })
+            }
+          />
+        </div>
 
-      <div>
-        <label className="form-label">Location Name</label>
-        <input
-          type="text"
-          className="form-input"
-          value={data.location_name || ''}
-          onChange={(e) =>
-            setData({ ...data, location_name: e.target.value })
-          }
-        />
-      </div>
+        <div>
+          <label className="form-label">Location Name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.location_name || ''}
+            onChange={(e) =>
+              setData({ ...data, location_name: e.target.value })
+            }
+          />
+        </div>
 
-      <div>
-        <label className="form-label">Status</label>
-        <select
-          className="form-input"
-          value={data.status || ''}
-          onChange={(e) =>
-            setData({ ...data, status: e.target.value })
-          }
-        >
-          <option value="">Select Status</option>
-          <option value="available">Available</option>
-          <option value="unavailable">Unavailable</option>
-        </select>
-      </div>
+        <div>
+          <label className="form-label">Status</label>
+          <select
+            className="form-input"
+            value={data.status || ''}
+            onChange={(e) =>
+              setData({ ...data, status: e.target.value })
+            }
+          >
+            <option value="">Select Status</option>
+            <option value="available">Available</option>
+            <option value="unavailable">Unavailable</option>
+          </select>
+        </div>
 
-      <div>
-        <label className="form-label">Details</label>
-        <textarea
-          className="form-input"
-          rows={3}
-          value={data.details || ''}
-          onChange={(e) =>
-            setData({ ...data, details: e.target.value })
-          }
-        />
+        <div>
+          <label className="form-label">Details</label>
+          <textarea
+            className="form-input"
+            rows={3}
+            value={data.details || ''}
+            onChange={(e) =>
+              setData({ ...data, details: e.target.value })
+            }
+          />
+        </div>
       </div>
     </div>
   );
