@@ -969,7 +969,7 @@
   border-top: 1px solid #e5e7eb;
   display: none;
   align-items: stretch;
-  padding-left: 118px;
+  padding-left: 96px;
   padding-right: 0;
   z-index: 70;
 }
@@ -1041,12 +1041,14 @@
 .admin-mobile-nav__cell {
   flex: 1;
   background: #ffffff;
-  color: #0f172a;
+  color: #6b7280; 
   display: flex;
   align-items: center;
   justify-content: center;
   border-left: 1px solid #e5e7eb;
   border-radius: 0;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .admin-mobile-nav__cell:first-child {
@@ -1054,8 +1056,24 @@
 }
 
 .admin-mobile-nav__cell.is-active {
-  background: #f1f5f9;
+  background: #fef2f2; 
   color: #dc2626;
+  font-weight: 600;
+}
+
+.admin-mobile-nav__cell:hover {
+  background: #f9fafb;
+  color: #b91c1c;
+}
+
+.admin-mobile-nav__cell:active {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.admin-mobile-nav__cell:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: -2px;
 }
 
 .admin-mobile-nav__cell svg {
