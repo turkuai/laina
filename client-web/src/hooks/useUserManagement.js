@@ -69,11 +69,8 @@ export const useUserManagement = () => {
         );
         return false; // Prevent deletion
       }
-      
-      if (window.confirm(`Are you sure you want to delete user "${fullName}"?`)) {
-        return true; // Allow deletion
-      }
-      return false; // User cancelled
+
+      return true;
     } else if (row.name === currentUser?.name) {
       showNotification('You cannot delete your own account!', 'error');
       return false; // Prevent deletion
@@ -87,11 +84,8 @@ export const useUserManagement = () => {
         );
         return false; // Prevent deletion
       }
-      
-      if (window.confirm(`Are you sure you want to delete user "${row.name || row.email}"?`)) {
-        return true; // Allow deletion
-      }
-      return false; // User cancelled
+
+      return true;
     }
   };
 

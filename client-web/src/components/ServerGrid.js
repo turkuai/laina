@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Grid from './Grid';
 import { useNotification } from './NotificationContext';
 import ServerGridEditDialog from './ServerGridEditDialog';
+import ConfirmDialog from './ConfirmDialog';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -37,6 +38,8 @@ export default function ServerGrid({
   const [totalPages, setTotalPages] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({});
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { showNotification } = useNotification();
 
   // If search query changes, jump back to first page
@@ -148,7 +151,7 @@ export default function ServerGrid({
     }
   };
 
-  const handleDelete = async (row) => {
+  const performDelete = async (row) => {
     if (!row.id) {
       console.error('Row has no ID');
       return;
@@ -218,6 +221,11 @@ export default function ServerGrid({
       console.error('Delete error:', err);
       setError(`Failed to delete item: ${err.message}`);
     }
+  };
+
+  const handleDeleteRequest = (row) => {
+    if (!row || !row.id) return;
+    setDeleteTarget(row);
   };
 
   const handleEdit = async (row) => {
@@ -387,14 +395,37 @@ export default function ServerGrid({
         pageSize={pageSize}
         onDataChange={handleDataChange}
         onEditRow={handleEdit}
-        onDeleteRow={handleDelete}
+        onDeleteRow={handleDeleteRequest}
         onAddRow={handleAddRow}
         //  isAdding={isAdding}
         onCloseAddModal={handleCloseAddModal}
         {...rest}
       />
 
-      
+      {deleteTarget && (
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Confirm deletion"
+          message={`Are you sure you want to remove this item?`}
+          confirmLabel={isDeleting ? 'Deleting…' : 'Delete'}
+          cancelLabel="Cancel"
+          onCancel={() => {
+            if (isDeleting) return;
+            setDeleteTarget(null);
+          }}
+          onConfirm={async () => {
+            if (isDeleting || !deleteTarget) return;
+            setIsDeleting(true);
+            try {
+              await performDelete(deleteTarget);
+              setDeleteTarget(null);
+            } finally {
+              setIsDeleting(false);
+            }
+          }}
+          isDestructive={true}
+        />
+      )}
 
       {isAdding && (
         <ServerGridEditDialog
