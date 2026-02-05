@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { QrCode, ChevronDown, Settings, LogOut } from 'lucide-react';
-import './Admin.css';
+import '../components/Admin.css';
 
 /**
  * AdminHeader component - Displays the header with title, user info, and action buttons
@@ -94,3 +94,4 @@ const AdminHeader = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, is
 };
 
 export default AdminHeader;
+

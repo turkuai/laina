@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Grid from './Grid';
-import Products from './Products';
-import './Admin.css';
-import QRScannerCamera from './QRScannerCamera';
-import ServerGrid from './ServerGrid';
-import StatusRenderer from './StatusRenderer';
-import QRCodeRenderer from './QRCodeRenderer';
+import Grid from '../components/Grid';
+import Products from '../components/Products';
+import '../components/Admin.css';
+import QRScannerCamera from '../components/QRScannerCamera';
+import ServerGrid from '../components/ServerGrid';
+import StatusRenderer from '../components/StatusRenderer';
+import QRCodeRenderer from '../components/QRCodeRenderer';
 import { formatDate, getCurrentDate } from '../utils/dateUtils';
-import MobileProductBox from './MobileProductBox';
-import MobileProductModal from './MobileProductModal';
-
-import CameraView from './CameraView';
-import SearchBox from './SearchBox';
+import MobileProductBox from '../components/MobileProductBox';
+import MobileProductModal from '../components/MobileProductModal';
+import CameraView from '../components/CameraView';
+import SearchBox from '../components/SearchBox';
 import SettingsTab from './SettingsTab';
 import AdminHeader from './AdminHeader';
-import ProductModals from './ProductModals';
-import AdminTabs from './AdminTabs';
+import ProductModals from '../components/ProductModals';
+import AdminTabs from '../components/AdminTabs';
 import AdminMobileNav from './AdminMobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
@@ -34,7 +33,6 @@ export default function Admin({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
-
 
   // State to force refresh of products
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -73,7 +71,6 @@ export default function Admin({ productsData }) {
   // Responsive hook
   const { isMobile, setIsMobile } = useResponsive();
 
-
   // Set default tab based on role
   const [activeTab, setActiveTab] = useState(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
@@ -96,8 +93,6 @@ export default function Admin({ productsData }) {
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
   ]);
 
-
-
   // Custom hooks for data filtering
   const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
@@ -107,8 +102,6 @@ export default function Admin({ productsData }) {
   useEffect(() => {
     prevIsMobileRef.current = isMobile;
   }, [isMobile]);
-
-
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
@@ -125,15 +118,8 @@ export default function Admin({ productsData }) {
     if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
-
-
-
   // Tab configuration - using utility module
   const tabs = TabConfig.getTabs(currentUser, isMobile);
-
-
-
-  // Render camera view content
 
   return (
     <div className="admin-page">
@@ -305,3 +291,4 @@ export default function Admin({ productsData }) {
     </div >
   );
 }
+

@@ -1,7 +1,7 @@
 import React from 'react';
-import ServerGrid from './ServerGrid';
-import SearchBox from './SearchBox';
-import './Admin.css';
+import ServerGrid from '../components/ServerGrid';
+import SearchBox from '../components/SearchBox';
+import '../components/Admin.css';
 
 /**
  * HistoryTab

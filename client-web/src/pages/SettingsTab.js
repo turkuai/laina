@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Admin.css';
+import '../components/Admin.css';
 
 /**
  * SettingsTab component - User settings including user details, password change, and logout
@@ -276,3 +276,4 @@ const SettingsTab = ({
 };
 
 export default SettingsTab;
+

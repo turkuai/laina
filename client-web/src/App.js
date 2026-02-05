@@ -3,8 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./components/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
-import Admin from "./components/Admin";
-import BorrowPage from "./components/BorrowPage";
+import Admin from "./pages/Admin";
+import BorrowPage from "./pages/BorrowPage";
 import LocationsTest from "./components/LocationsTest";
 
 

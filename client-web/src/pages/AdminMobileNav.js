@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
-import './Admin.css';
+import '../components/Admin.css';
 
 /**
  * AdminMobileNav component - Mobile bottom navigation bar with tabs and camera button
@@ -69,3 +69,4 @@ const AdminMobileNav = ({ tabs, activeTab, onTabClick, onCameraClick, currentUse
 };
 
 export default AdminMobileNav;
+
