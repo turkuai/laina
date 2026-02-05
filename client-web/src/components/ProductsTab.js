@@ -74,7 +74,7 @@ export default function ProductsTab({
     }
   };
 
-  // Mobile version - same ServerGrid and add popup as desktop (all product fields)
+  // Mobile version - same columns as before; just let grid scroll
   if (isMobile) {
     const isAdmin = currentUser?.role === "admin";
     return (

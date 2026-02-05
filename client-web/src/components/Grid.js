@@ -52,10 +52,20 @@ export default function Grid({
   const [editingRow, setEditingRow] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [addingMode, setAddingMode] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 900 : false
+  );
 
   useEffect(() => {
     setRowData(Array.isArray(data) ? data : []);
   }, [data]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onResize = () => setIsNarrow(window.innerWidth < 900);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const effectiveColumns = useMemo(() => {
     if (Array.isArray(columns) && columns.length > 0) return columns;
@@ -90,13 +100,13 @@ export default function Grid({
         field: fieldName,
         editable: false, // prevent inline editing; use modal instead
         sortable: true,
-        filter: 'agTextColumnFilter',
-
-        // Disable floating filters to remove the per-column search inputs
+        filter: false,
         floatingFilter: false,
-        resizable: true,
+        resizable: false,
+        suppressMenu: true,
         suppressMovable: true,
-        flex: 1,
+        flex: isNarrow ? undefined : 1,
+        minWidth: isNarrow ? 140 : undefined,
         cellRenderer: columnRenderers ? columnRenderers[fieldName] : undefined
       };
 
@@ -156,9 +166,11 @@ export default function Grid({
 
   const defaultColDef = useMemo(() => ({
     sortable: true,
-    filter: true,
-    resizable: true,
+    filter: false,
+    resizable: false,
     suppressMovable: true, // prevent dragging/reordering columns
+    suppressMenu: true,
+    floatingFilter: false,
   }), []);
 
   const getRowId = useCallback((params) => {
