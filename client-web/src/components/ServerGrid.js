@@ -33,6 +33,8 @@ export default function ServerGrid({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingRow, setEditingRow] = useState(null);
   const [formData, setFormData] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -209,21 +211,38 @@ export default function ServerGrid({
     setDeleteTarget(row);
   };
 
-  const handleEdit = async (row) => {
-    if (!row.id) {
+  const handleEdit = (row) => {
+    if (!row || !row.id) {
       console.error('Row has no ID');
+      return;
+    }
+    // Set form data to row's data and open edit dialog
+    setFormData({ ...row });
+    setEditingRow(row);
+    setIsEditing(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditing(false);
+    setEditingRow(null);
+    setFormData({});
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRow || !editingRow.id) {
+      console.error('No row to edit');
       return;
     }
 
     try {
-      let updateUrl = `${path.split('?')[0]}/${row.id}`;
+      let updateUrl = `${path.split('?')[0]}/${editingRow.id}`;
       if (!updateUrl.startsWith('/api/')) {
         const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
         updateUrl = `/api/${cleanPath}`;
       }
 
-      // Clone row and drop non-updatable fields; backend will decide what to use
-      const payload = { ...row };
+      // Clone formData and drop non-updatable fields; backend will decide what to use
+      const payload = { ...formData };
 
       // Special-case combined "name" field (e.g. Users grid)
       if (typeof payload.name === 'string' && payload.name.trim()) {
@@ -246,14 +265,23 @@ export default function ServerGrid({
       });
 
       if (!res.ok) {
-        throw new Error(`Update failed with status ${res.status}`);
+        let msg = 'Failed to update item';
+        try {
+          const errorData = await res.json();
+          msg = errorData.error || errorData.message || msg;
+        } catch (_) {
+          // ignore json parse error
+        }
+        throw new Error(msg);
       }
 
       // Refresh from server so grid matches DB
       await fetchData();
+      handleCloseEditModal();
+      showNotification('Item updated successfully!', 'success');
     } catch (err) {
       console.error('Edit error:', err);
-      setError(`Failed to update item: ${err.message}`);
+      showNotification(err.message || 'Failed to update item', 'error');
     }
   };
 
@@ -270,11 +298,13 @@ export default function ServerGrid({
   };
 
   const handleAdd = () => {
+    setFormData({});
     setIsAdding(true);
   };
 
   const handleCloseAddModal = () => {
     setIsAdding(false);
+    setFormData({});
   };
 
   const handleAddRow = async (newRowData) => {
@@ -410,6 +440,17 @@ export default function ServerGrid({
           isEditing={false}
           onCancel={handleCloseAddModal}
           onSave={() => handleAddRow(formData)}
+          formComponent={
+            <FormComponent data={formData} setData={setFormData} />
+          } 
+        />
+      )}
+
+      {isEditing && FormComponent && editingRow && (
+        <ServerGridEditDialog
+          isEditing={true}
+          onCancel={handleCloseEditModal}
+          onSave={handleSaveEdit}
           formComponent={
             <FormComponent data={formData} setData={setFormData} />
           } 
