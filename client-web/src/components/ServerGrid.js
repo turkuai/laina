@@ -20,10 +20,6 @@ export default function ServerGrid({
   allowEditing = false,
   allowDelete = false,
   pageSize = 20,
-  onDataChange,
-  onEditRow,
-  onDeleteRow,
-  onAdd,                // Callback for add button click
   showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
   formComponent : FormComponent,
   transformAddPayload,
@@ -144,25 +140,10 @@ export default function ServerGrid({
     fetchData();
   }, [fetchData]);
 
-  const handleDataChange = (updatedData) => {
-    setData(updatedData);
-    if (typeof onDataChange === 'function') {
-      onDataChange(updatedData);
-    }
-  };
-
   const performDelete = async (row) => {
     if (!row.id) {
       console.error('Row has no ID');
       return;
-    }
-
-    // Check with parent callback first - if it returns false, don't delete
-    if (typeof onDeleteRow === 'function') {
-      const shouldDelete = await onDeleteRow(row);
-      if (shouldDelete === false) {
-        return; // Parent prevented deletion
-      }
     }
 
     try {
@@ -243,6 +224,14 @@ export default function ServerGrid({
 
       // Clone row and drop non-updatable fields; backend will decide what to use
       const payload = { ...row };
+
+      // Special-case combined "name" field (e.g. Users grid)
+      if (typeof payload.name === 'string' && payload.name.trim()) {
+        const parts = payload.name.trim().split(/\s+/);
+        payload.first_name = parts[0];
+        payload.last_name = parts.slice(1).join(' ') || '';
+      }
+      delete payload.name;
       delete payload.id;
       delete payload.created_at;
       delete payload.updated_at;
@@ -262,10 +251,6 @@ export default function ServerGrid({
 
       // Refresh from server so grid matches DB
       await fetchData();
-
-      if (typeof onEditRow === 'function') {
-        onEditRow(row);
-      }
     } catch (err) {
       console.error('Edit error:', err);
       setError(`Failed to update item: ${err.message}`);
@@ -337,11 +322,6 @@ export default function ServerGrid({
       await fetchData();
       setIsAdding(false);
       showNotification('Item added successfully!', 'success');
-
-      // Call parent callback if provided
-      if (typeof onAdd === 'function') {
-        onAdd();
-      }
     } catch (err) {
       console.error('Add error:', err);
       showNotification(err.message || 'Failed to add item', 'error');
@@ -393,12 +373,10 @@ export default function ServerGrid({
         allowDelete={allowDelete}
         allowAdding={showAddButton}
         pageSize={pageSize}
-        onDataChange={handleDataChange}
         onEditRow={handleEdit}
         onDeleteRow={handleDeleteRequest}
         onAddRow={handleAddRow}
         //  isAdding={isAdding}
-        onCloseAddModal={handleCloseAddModal}
         {...rest}
       />
 
@@ -427,7 +405,7 @@ export default function ServerGrid({
         />
       )}
 
-      {isAdding && (
+      {isAdding && FormComponent && (
         <ServerGridEditDialog
           isEditing={false}
           onCancel={handleCloseAddModal}

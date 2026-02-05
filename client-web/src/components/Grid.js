@@ -46,7 +46,6 @@ export default function Grid({
   allowSelection = true,
   onOpenAddModal,
   isAdding = false,
-  onCloseAddModal,
 }) {
   const [rowData, setRowData] = useState(Array.isArray(data) ? data : []);
   const [editingRow, setEditingRow] = useState(null);
@@ -192,7 +191,13 @@ export default function Grid({
 
   const openEditModal = (row) => {
     setEditingRow(row);
-    setEditValues({ ...row });
+    // For rows that have first/last name but no "name" field, synthesize it
+    const fullName =
+      row.name ||
+      `${row.first_name || ''} ${row.last_name || ''}`.trim();
+    const withName =
+      fullName && !row.name ? { ...row, name: fullName } : { ...row };
+    setEditValues(withName);
     setAddingMode(false);
   };
 
@@ -200,9 +205,6 @@ export default function Grid({
     setEditingRow(null);
     setEditValues({});
     setAddingMode(false);
-    if (typeof onCloseAddModal === 'function') {
-      onCloseAddModal();
-    }
   };
 
   const handleEditChange = (field, value) => {
@@ -277,12 +279,16 @@ export default function Grid({
                 )
                 .map((field) => (
                   <div key={field}>
-                    <label className="form-label">{formatColumnName(field)}</label>
+                    <label className="form-label">
+                      {formatColumnName(field)}
+                    </label>
                     <input
                       type="text"
                       className="form-input"
                       value={editValues[field] ?? ''}
-                      onChange={(e) => handleEditChange(field, e.target.value)}
+                      onChange={(e) =>
+                        handleEditChange(field, e.target.value)
+                      }
                     />
                   </div>
                 ))}

@@ -121,10 +121,6 @@ export default function Admin({ productsData }) {
     navigate('/login', { replace: true });
   };
 
-  const handleDataChange = (updatedData) => {
-    if (activeTab === 'history') setBorrowingHistory(updatedData);
-  };
-
 
 
 
@@ -160,7 +156,6 @@ export default function Admin({ productsData }) {
                 query={userQuery}
                 onQueryChange={setUserQuery}
                 onDeleteUser={handleDeleteUser}
-                onDataChange={handleDataChange}
               />
             </div>
           )}
@@ -255,7 +250,6 @@ export default function Admin({ productsData }) {
                 query={userQuery}
                 onQueryChange={setUserQuery}
                 onDeleteUser={handleDeleteUser}
-                onDataChange={handleDataChange}
               />
             </div>
           )}
