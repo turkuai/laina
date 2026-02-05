@@ -8,6 +8,8 @@ import ConfirmDialog from "./ConfirmDialog";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
+  const [qrLoading, setQrLoading] = useState(true);
+
   if (!product) return null;
 
   const productData = JSON.stringify({
@@ -84,18 +86,19 @@ const ProductModal = ({ product, onClose }) => {
         </div>
 
         <div className="product-modal-qr">
-          <div
-            className="qr-code-image"
-            style={{
-              background: `url("${qrCodeUrl}")`,
-              backgroundSize: "250px 250px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              width: "250px",
-              height: "250px",
-            }}
-          />
-          <p className="qr-code-label">QR Code</p>
+          <div className="qr-code-display">
+            {qrLoading && (
+              <div className="qr-code-spinner" aria-label="Generating QR code" />
+            )}
+            <img
+              src={qrCodeUrl}
+              alt="QR code for this product"
+              className="qr-code-image"
+              onLoad={() => setQrLoading(false)}
+              onError={() => setQrLoading(false)}
+            />
+            <p className="qr-code-label">QR Code</p>
+          </div>
         </div>
 
         <div className="product-modal-actions">
