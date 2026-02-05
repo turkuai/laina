@@ -1,8 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import Grid from './Grid';
-import { useNotification } from './NotificationContext';
 import ServerGridEditDialog from './ServerGridEditDialog';
 import ConfirmDialog from './ConfirmDialog';
+import { useServerGet } from './serverGet';
+import { useServerPost } from './serverPost';
+import { useServerPatch } from './serverPatch';
+import { useServerDelete } from './serverDelete';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -36,225 +39,25 @@ export default function ServerGrid({
   const [formData, setFormData] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { showNotification } = useNotification();
 
   // If search query changes, jump back to first page
   useEffect(() => {
     setCurrentPage(1);
   }, [query]);
 
-  const fetchData = useCallback(async () => {
-    if (!path) return;
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Build the full URL with page parameter
-      let fullUrl = path;
-      // Ensure /api/ prefix if not present; avoid accidental double slashes
-      if (!fullUrl.startsWith('/api/')) {
-        // Remove leading slash if present to avoid double slashes
-        const cleanPath = fullUrl.startsWith('/') ? fullUrl.slice(1) : fullUrl;
-        fullUrl = `/api/${cleanPath}`;
-      }
-      
-      const separator = fullUrl.includes('?') ? '&' : '?';
-      fullUrl = `${fullUrl}${separator}page=${currentPage}`;
-
-      // Optional server-side search
-      const trimmedQuery = query.trim();
-      if (trimmedQuery !== '') {
-        fullUrl = `${fullUrl}&search=${encodeURIComponent(trimmedQuery)}`;
-      }
-
-      const res = await fetch(fullUrl, {
-        method: 'GET',
-        credentials: 'include', // Include httpOnly cookies
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Parse response safely (handle HTML error pages)
-      const contentType = res.headers.get('content-type') || '';
-      let payload;
-
-      if (contentType.includes('application/json')) {
-        try {
-          payload = await res.json();
-        } catch (parseErr) {
-          const text = await res.text().catch(() => '');
-          const message = text
-            ? `Invalid JSON response: ${text.slice(0, 200)}`
-            : 'Invalid JSON response from server.';
-          throw new Error(message);
-        }
-      } else {
-        const text = await res.text().catch(() => '');
-        const message = text
-          ? `Unexpected response (status ${res.status}): ${text.slice(0, 200)}`
-          : `Unexpected non-JSON response (status ${res.status}).`;
-        throw new Error(message);
-      }
-
-      if (!res.ok) {
-        throw new Error(
-          payload?.error ||
-          payload?.message ||
-          `Request failed with status ${res.status}`
-        );
-      }
-      
-      // Handle different response structures
-      let rows = [];
-      let pages = 1;
-
-      if (Array.isArray(payload)) {
-        rows = payload;
-        pages = 1;
-      } else if (payload.data) {
-        rows = payload.data;
-        pages = payload.totalPages || 1;
-      } else if (payload.users) {
-        rows = payload.users;
-        pages = payload.totalPages || 1;
-      } else if (payload.products) {
-        rows = payload.products;
-        pages = payload.totalPages || 1;
-      } else if (payload.history) {
-        rows = payload.history;
-        pages = payload.totalPages || 1;
-      }
-
-      setData(rows);
-      setTotalPages(pages);
-    } catch (err) {
-      console.error('ServerGrid fetch error:', err);
-      setError(err.message || 'Failed to load data from server.');
-    } finally {
-      setLoading(false);
-    }
-  }, [path, currentPage, query]);
+  // Use hooks for HTTP operations
+  const fetchData = useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError);
+  const performDelete = useServerDelete(path, fetchData, setError);
+  const handleEdit = useServerPatch(path, fetchData, setError);
+  const handleAddRow = useServerPost(path, fetchData, setIsAdding, transformAddPayload);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const performDelete = async (row) => {
-    if (!row.id) {
-      console.error('Row has no ID');
-      return;
-    }
-
-    try {
-      let deleteUrl = `${path.split('?')[0]}/${row.id}`;
-      // Ensure /api/ prefix if not present; avoid accidental double slashes
-      if (!deleteUrl.startsWith('/api/')) {
-        // Remove leading slash if present to avoid double slashes
-        const cleanPath = deleteUrl.startsWith('/') ? deleteUrl.slice(1) : deleteUrl;
-        deleteUrl = `/api/${cleanPath}`;
-      }
-
-      const res = await fetch(deleteUrl, {
-        method: 'DELETE',
-        credentials: 'include', // Include httpOnly cookies
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Try to parse response as JSON, but handle HTML/plain text errors
-      let responseData = {};
-      const contentType = res.headers.get('content-type') || '';
-      
-      if (contentType.includes('application/json')) {
-        try {
-          responseData = await res.json();
-        } catch (e) {
-          // If JSON parse fails, use empty object
-        }
-      }
-
-      if (!res.ok) {
-        // Check for database constraint errors
-        const errorMessage = responseData.error || responseData.message || `Delete failed with status ${res.status}`;
-        
-        // Check if it's a foreign key constraint error
-        const errorStr = String(errorMessage).toLowerCase();
-        if (errorStr.includes('foreign key constraint') || 
-            errorStr.includes('borrow_history') || 
-            errorStr.includes('cannot delete') ||
-            errorStr.includes('1451')) {
-          showNotification(
-            'Cannot delete user because they have borrowing history. Please return all borrowed items first.',
-            'error'
-          );
-          throw new Error('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
-        }
-        
-        showNotification(errorMessage, 'error');
-        throw new Error(errorMessage);
-      }
-
-      // Refresh data after successful deletion
-      await fetchData();
-    } catch (err) {
-      console.error('Delete error:', err);
-      setError(`Failed to delete item: ${err.message}`);
-    }
-  };
-
   const handleDeleteRequest = (row) => {
     if (!row || !row.id) return;
     setDeleteTarget(row);
-  };
-
-  const handleEdit = async (row) => {
-    if (!row.id) {
-      console.error('Row has no ID');
-      return;
-    }
-
-    try {
-      let updateUrl = `${path.split('?')[0]}/${row.id}`;
-      if (!updateUrl.startsWith('/api/')) {
-        const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
-        updateUrl = `/api/${cleanPath}`;
-      }
-
-      // Clone row and drop non-updatable fields; backend will decide what to use
-      const payload = { ...row };
-
-      // Special-case combined "name" field (e.g. Users grid)
-      if (typeof payload.name === 'string' && payload.name.trim()) {
-        const parts = payload.name.trim().split(/\s+/);
-        payload.first_name = parts[0];
-        payload.last_name = parts.slice(1).join(' ') || '';
-      }
-      delete payload.name;
-      delete payload.id;
-      delete payload.created_at;
-      delete payload.updated_at;
-
-      const res = await fetch(updateUrl, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Update failed with status ${res.status}`);
-      }
-
-      // Refresh from server so grid matches DB
-      await fetchData();
-    } catch (err) {
-      console.error('Edit error:', err);
-      setError(`Failed to update item: ${err.message}`);
-    }
   };
 
   const handlePreviousPage = () => {
@@ -275,57 +78,6 @@ export default function ServerGrid({
 
   const handleCloseAddModal = () => {
     setIsAdding(false);
-  };
-
-  const handleAddRow = async (newRowData) => {
-    if (!path) return;
-
-    try {
-      let addUrl = path.split('?')[0];
-      // Ensure /api/ prefix if not present
-      if (!addUrl.startsWith('/api/')) {
-        const cleanPath = addUrl.startsWith('/') ? addUrl.slice(1) : addUrl;
-        addUrl = `/api/${cleanPath}`;
-      }
-
-      // Prepare payload - exclude technical fields
-      let payload = { ...newRowData };
-      delete payload.id;
-      delete payload.created_at;
-      delete payload.updated_at;
-
-      if (typeof transformAddPayload === 'function') {
-        payload = transformAddPayload(payload, { path });
-      }
-
-      const res = await fetch(addUrl, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        let msg = 'Failed to add item';
-        try {
-          const errorData = await res.json();
-          msg = errorData.error || errorData.message || msg;
-        } catch (_) {
-          // ignore json parse error
-        }
-        throw new Error(msg);
-      }
-
-      // Refresh data after successful addition
-      await fetchData();
-      setIsAdding(false);
-      showNotification('Item added successfully!', 'success');
-    } catch (err) {
-      console.error('Add error:', err);
-      showNotification(err.message || 'Failed to add item', 'error');
-    }
   };
 
   // Create column configuration with display names
