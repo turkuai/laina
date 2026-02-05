@@ -40,7 +40,16 @@ export default function UsersTab({
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
               key={refreshKey}
-              columns={['first_name', 'last_name', 'email', 'role']}
+              columns={[
+                {
+                  field: 'name',
+                  displayName: 'Name',
+                  valueGetter: (row) =>
+                    `${row.first_name || ''} ${row.last_name || ''}`.trim(),
+                },
+                'email',
+                'role',
+              ]}
               path="users"
               allowEditing={true}
               allowDelete={true}
@@ -95,7 +104,16 @@ export default function UsersTab({
         </div>
         <ServerGrid
           key={refreshKey}
-          columns={['first_name', 'last_name', 'email', 'role']}
+          columns={[
+            {
+              field: 'name',
+              displayName: 'Name',
+              valueGetter: (row) =>
+                `${row.first_name || ''} ${row.last_name || ''}`.trim(),
+            },
+            'email',
+            'role',
+          ]}
           path="users"
           allowEditing={true}
           allowDelete={true}
