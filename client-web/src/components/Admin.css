@@ -239,8 +239,12 @@
 
 .admin-tab-button.active {
   color: #1f2937;
-  border-bottom-color: #dc2626;
   background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent);
+}
+
+.admin-tab-button:focus-visible {
+  outline: none;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.16), transparent);
 }
 
 .admin-tab-button.camera-tab {
@@ -331,9 +335,9 @@
 
 .admin-content-card {
   background-color: white;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 18px 18px;
   padding: 1rem;
-  margin: 0;
+  margin: -1px 0 0 0; /* overlap tabs border so there's no visible gap */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   border-top: none;
