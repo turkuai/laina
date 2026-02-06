@@ -4,8 +4,8 @@ import ServerGridEditDialog from './ServerGridEditDialog';
 import ConfirmDialog from './ConfirmDialog';
 import { useServerGet } from './serverGet';
 import { useServerPost } from './serverPost';
-import { useServerPatch } from './serverPatch';
 import { useServerDelete } from './serverDelete';
+import { useNotification } from './NotificationContext';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -41,6 +41,7 @@ export default function ServerGrid({
   const [formData, setFormData] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { showNotification } = useNotification();
 
   // If search query changes, jump back to first page
   useEffect(() => {
@@ -50,7 +51,6 @@ export default function ServerGrid({
   // Use hooks for HTTP operations
   const fetchData = useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError);
   const performDelete = useServerDelete(path, fetchData, setError);
-  const handleEdit = useServerPatch(path, fetchData, setError);
   const handleAddRow = useServerPost(path, fetchData, setIsAdding, transformAddPayload);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function ServerGrid({
     setDeleteTarget(row);
   };
 
-  const handleEdit = (row) => {
+  const handleEditRequest = (row) => {
     if (!row || !row.id) {
       console.error('Row has no ID');
       return;
@@ -201,12 +201,9 @@ export default function ServerGrid({
         data={data}
         allowEditing={allowEditing}
         allowDelete={allowDelete}
-        allowAdding={showAddButton}
         pageSize={pageSize}
-        onEditRow={handleEdit}
+        onEditRow={handleEditRequest}
         onDeleteRow={handleDeleteRequest}
-        onAddRow={handleAddRow}
-        //  isAdding={isAdding}
         {...rest}
       />
 
