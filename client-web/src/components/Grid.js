@@ -36,49 +36,34 @@ export default function Grid({
   data,
   allowEditing = false,
   allowDelete = false,
-  allowAdding = false,
   pageSize = 20,
   height = '500px',
   onDataChange,
   onEditRow,
   onDeleteRow,
-  onAddRow,
   allowSelection = true,
-  onOpenAddModal,
-  isAdding = false,
-  onCloseAddModal,
 }) {
   const [rowData, setRowData] = useState(Array.isArray(data) ? data : []);
-  const [editingRow, setEditingRow] = useState(null);
-  const [editValues, setEditValues] = useState({});
-  const [addingMode, setAddingMode] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 900 : false
+  );
 
   useEffect(() => {
     setRowData(Array.isArray(data) ? data : []);
   }, [data]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onResize = () => setIsNarrow(window.innerWidth < 900);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const effectiveColumns = useMemo(() => {
     if (Array.isArray(columns) && columns.length > 0) return columns;
     const firstRow = Array.isArray(data) && data.length > 0 ? data[0] : undefined;
     return firstRow ? Object.keys(firstRow) : [];
   }, [columns, data]);
-
-  // Handle external add modal trigger
-  useEffect(() => {
-    if (isAdding && allowAdding) {
-      setAddingMode(true);
-      // Initialize empty values based on columns (generic)
-      const initialValues = {};
-      effectiveColumns.forEach((col) => {
-        const field = getColumnField(col);
-        initialValues[field] = '';
-      });
-      setEditValues(initialValues);
-    } else if (!isAdding) {
-      setAddingMode(false);
-      setEditValues({});
-    }
-  }, [isAdding, allowAdding, effectiveColumns]);
 
   const columnDefs = useMemo(() => {
     const baseCols = effectiveColumns.map((col) => {
@@ -90,13 +75,13 @@ export default function Grid({
         field: fieldName,
         editable: false, // prevent inline editing; use modal instead
         sortable: true,
-        filter: 'agTextColumnFilter',
-
-        // Disable floating filters to remove the per-column search inputs
+        filter: false,
         floatingFilter: false,
-        resizable: true,
+        resizable: false,
+        suppressMenu: true,
         suppressMovable: true,
-        flex: 1,
+        flex: isNarrow ? undefined : 1,
+        minWidth: isNarrow ? 140 : undefined,
         cellRenderer: columnRenderers ? columnRenderers[fieldName] : undefined
       };
 
@@ -117,7 +102,7 @@ export default function Grid({
           <div className="grid-actions">
             {allowEditing && (
               <button
-                onClick={() => openEditModal(row)}
+                onClick={() => onEditRow?.(row)}
                 className="icon-btn"
                 aria-label="Edit"
               >
@@ -152,13 +137,15 @@ export default function Grid({
     if (!allowEditing && !allowDelete) return baseCols;
 
     return [...baseCols, actionCol];
-  }, [effectiveColumns, allowEditing, allowDelete, onDeleteRow]);
+  }, [effectiveColumns, allowEditing, allowDelete, onDeleteRow, onEditRow, isNarrow, columnRenderers]);
 
   const defaultColDef = useMemo(() => ({
     sortable: true,
-    filter: true,
-    resizable: true,
+    filter: false,
+    resizable: false,
     suppressMovable: true, // prevent dragging/reordering columns
+    suppressMenu: true,
+    floatingFilter: false,
   }), []);
 
   const getRowId = useCallback((params) => {
@@ -177,44 +164,6 @@ export default function Grid({
     },
     [onDataChange]
   );
-
-  const openEditModal = (row) => {
-    setEditingRow(row);
-    setEditValues({ ...row });
-    setAddingMode(false);
-  };
-
-  const closeEditModal = () => {
-    setEditingRow(null);
-    setEditValues({});
-    setAddingMode(false);
-    if (typeof onCloseAddModal === 'function') {
-      onCloseAddModal();
-    }
-  };
-
-  const handleEditChange = (field, value) => {
-    setEditValues((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const saveEdit = () => {
-    if (addingMode) {
-      // Add new row
-      if (typeof onAddRow === 'function') {
-        onAddRow(editValues);
-      }
-      closeEditModal();
-    } else {
-      // Edit existing row
-      const updated = rowData.map((r) =>
-        r.id === editingRow.id ? { ...r, ...editValues } : r
-      );
-      setRowData(updated);
-      if (typeof onDataChange === 'function') onDataChange(updated);
-      if (typeof onEditRow === 'function') onEditRow(editValues);
-      closeEditModal();
-    }
-  };
 
   return (
     <>
@@ -238,65 +187,6 @@ export default function Grid({
         />
       </div>
 
-      {/* Generic edit/add popup for rows */}
-      {((allowEditing && editingRow) || (allowAdding && addingMode)) && (
-        <div className="product-modal-overlay" onClick={closeEditModal}>
-          <div
-            className="product-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '520px' }}
-          >
-            <button
-              onClick={closeEditModal}
-              className="product-modal-close"
-              aria-label="Close"
-            >
-              ×
-            </button>
-
-            <h2 className="product-modal-title">{addingMode ? 'Add' : 'Edit'}</h2>
-
-            <div className="add-product-form-grid">
-              {effectiveColumns
-                .map(getColumnField)
-                .filter(
-                  (field) =>
-                    !['id', 'created_at', 'updated_at'].includes(field)
-                )
-                .map((field) => (
-                  <div key={field}>
-                    <label className="form-label">{formatColumnName(field)}</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={editValues[field] ?? ''}
-                      onChange={(e) => handleEditChange(field, e.target.value)}
-                    />
-                  </div>
-                ))}
-            </div>
-
-            <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                className="product-modal-close-btn"
-                style={{ backgroundColor: '#ef4444' }}
-                onClick={closeEditModal}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="product-modal-print-btn"
-                style={{ backgroundColor: '#22c55e' }}
-                onClick={saveEdit}
-              >
-                {addingMode ? 'Add' : 'Save changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

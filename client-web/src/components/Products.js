@@ -4,9 +4,12 @@ import ServerGrid from "./ServerGrid";
 import QRCodeRenderer from "./QRCodeRenderer";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
 import { useNotification } from "./NotificationContext";
+import ConfirmDialog from "./ConfirmDialog";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
+  const [qrLoading, setQrLoading] = useState(true);
+
   if (!product) return null;
 
   const productData = JSON.stringify({
@@ -83,18 +86,19 @@ const ProductModal = ({ product, onClose }) => {
         </div>
 
         <div className="product-modal-qr">
-          <div
-            className="qr-code-image"
-            style={{
-              background: `url("${qrCodeUrl}")`,
-              backgroundSize: "250px 250px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              width: "250px",
-              height: "250px",
-            }}
-          />
-          <p className="qr-code-label">QR Code</p>
+          <div className="qr-code-display">
+            {qrLoading && (
+              <div className="qr-code-spinner" aria-label="Generating QR code" />
+            )}
+            <img
+              src={qrCodeUrl}
+              alt="QR code for this product"
+              className="qr-code-image"
+              onLoad={() => setQrLoading(false)}
+              onError={() => setQrLoading(false)}
+            />
+            <p className="qr-code-label">QR Code</p>
+          </div>
         </div>
 
         <div className="product-modal-actions">
@@ -146,6 +150,7 @@ export default function Products({ currentUser }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const { showNotification } = useNotification();
 
   // ✅ Mobile incremental rendering (prevents dumping 500+ cards at once)
@@ -303,14 +308,15 @@ export default function Products({ currentUser }) {
 
   const handleDelete = async (productId) => {
     if (currentUser?.role !== "admin") return;
-
     const product = products.find((p) => p.id === productId);
-    if (!window.confirm(`Delete product "${product.product_name}"?`)) {
-      return;
-    }
+    if (!product) return;
+    setDeleteTarget(product);
+  };
 
+  const performDelete = async (product) => {
+    if (!product?.id) return;
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/products/${product.id}`, {
         method: "DELETE",
         credentials: "include",
         headers: {
@@ -624,6 +630,22 @@ export default function Products({ currentUser }) {
             </div>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Confirm deletion"
+          message={`Are you sure you want to remove the product "${deleteTarget.product_name}"?`}
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            await performDelete(deleteTarget);
+            setDeleteTarget(null);
+          }}
+          isDestructive={true}
+        />
       )}
 
       {editingProduct && (

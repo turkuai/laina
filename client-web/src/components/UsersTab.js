@@ -15,14 +15,12 @@ import './Admin.css';
  * - query: Search query string
  * - onQueryChange: Callback function for search query changes
  * - onDeleteUser: Callback function for deleting a user
- * - onDataChange: Callback function for data updates
  */
 export default function UsersTab({
   currentUser,
   query,
   onQueryChange,
   onDeleteUser,
-  onDataChange
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const { showNotification } = useNotification();
@@ -40,15 +38,46 @@ export default function UsersTab({
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
               key={refreshKey}
-              columns={['first_name', 'last_name', 'email', 'role']}
+              columns={[
+                {
+                  field: 'name',
+                  displayName: 'Name',
+                  valueGetter: (row) =>
+                    `${row.first_name || ''} ${row.last_name || ''}`.trim(),
+                },
+                'email',
+                'role',
+              ]}
               path="users"
               allowEditing={true}
               allowDelete={true}
-              onDeleteRow={onDeleteUser}
-              onDataChange={onDataChange}
               pageSize={10}
               showAddButton={true}
               query={query}
+              formComponent={UsersForm}
+              transformAddPayload={(payload) => {
+                const email = (payload.email || '').trim();
+                const first = (payload.first_name || '').trim();
+                const last = (payload.last_name || '').trim();
+                const baseUser =
+                  email && email.includes('@')
+                    ? email.split('@')[0]
+                    : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let pwd = '';
+                for (let i = 0; i < 10; i++) {
+                  pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return {
+                  username: baseUser,
+                  first_name: first,
+                  last_name: last,
+                  email,
+                  role: payload.role || 'student',
+                  password: pwd,
+                  phone_number: null,
+                };
+              }}
             />
           </div>
         </div>
@@ -95,16 +124,46 @@ export default function UsersTab({
         </div>
         <ServerGrid
           key={refreshKey}
-          columns={['first_name', 'last_name', 'email', 'role']}
+          columns={[
+            {
+              field: 'name',
+              displayName: 'Name',
+              valueGetter: (row) =>
+                `${row.first_name || ''} ${row.last_name || ''}`.trim(),
+            },
+            'email',
+            'role',
+          ]}
           path="users"
           allowEditing={true}
           allowDelete={true}
-          onDeleteRow={onDeleteUser}
-          onDataChange={onDataChange}
           pageSize={10}
           showAddButton={true}
           query={query}
           formComponent={UsersForm}
+          transformAddPayload={(payload) => {
+            const email = (payload.email || '').trim();
+            const first = (payload.first_name || '').trim();
+            const last = (payload.last_name || '').trim();
+            const baseUser =
+              email && email.includes('@')
+                ? email.split('@')[0]
+                : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let pwd = '';
+            for (let i = 0; i < 10; i++) {
+              pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return {
+              username: baseUser,
+              first_name: first,
+              last_name: last,
+              email,
+              role: payload.role || 'student',
+              password: pwd,
+              phone_number: null,
+            };
+          }}
         />
       </div>
 

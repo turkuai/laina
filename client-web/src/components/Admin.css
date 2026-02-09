@@ -239,8 +239,12 @@
 
 .admin-tab-button.active {
   color: #1f2937;
-  border-bottom-color: #dc2626;
   background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent);
+}
+
+.admin-tab-button:focus-visible {
+  outline: none;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.16), transparent);
 }
 
 .admin-tab-button.camera-tab {
@@ -331,9 +335,9 @@
 
 .admin-content-card {
   background-color: white;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 18px 18px;
   padding: 1rem;
-  margin: 0;
+  margin: -1px 0 0 0; /* overlap tabs border so there's no visible gap */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   border-top: none;
@@ -1186,6 +1190,83 @@
   .admin-mobile-nav {
     display: flex;
   }
+}
+
+.confirm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.confirm-dialog {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 22px 18px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.confirm-dialog__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.confirm-dialog__message {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0 0 18px 0;
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirm-dialog__button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.confirm-dialog__button--secondary {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.confirm-dialog__button--secondary:hover {
+  background-color: #e5e7eb;
+}
+
+.confirm-dialog__button--danger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.confirm-dialog__button--danger:hover {
+  background-color: #b91c1c;
+}
+
+.confirm-dialog__button--primary {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.confirm-dialog__button--primary:hover {
+  background-color: #16a34a;
 }
 
 .bottom-tab-button.active {

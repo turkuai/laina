@@ -55,6 +55,8 @@ function QRCodePopup({ ref, product, onClose }) {
     return date.getFullYear();
   };
 
+  const [qrLoading, setQrLoading] = useState(true);
+
   const dialogContent = (
     <dialog
       onClick={(e) => e.target === e.currentTarget && dialog.current.close()}
@@ -96,17 +98,18 @@ function QRCodePopup({ ref, product, onClose }) {
         </div>
 
         <div className="qr-code-display">
-          <div
+          {qrLoading && (
+            <div className="qr-code-spinner" aria-label="Generating QR code" />
+          )}
+          <img
             className="qr-code-image"
-            style={{
-              background: `url("https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(productData)}")`,
-              backgroundSize: "280px 280px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              width: "280px",
-              height: "280px",
-            }}
-          ></div>
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(
+              productData,
+            )}`}
+            alt="QR code for this product"
+            onLoad={() => setQrLoading(false)}
+            onError={() => setQrLoading(false)}
+          />
           <p className="qr-code-label">QR Code</p>
         </div>
 

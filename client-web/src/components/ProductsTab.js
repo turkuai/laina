@@ -24,6 +24,16 @@ export default function ProductsTab({
   const [productsFromDb, setProductsFromDb] = useState([]);
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
 
+  const generateQrHash = () => {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let hash = '';
+    for (let i = 0; i < 32; i++) {
+      hash += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return hash;
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleResize = () => {
@@ -74,7 +84,7 @@ export default function ProductsTab({
     }
   };
 
-  // Mobile version - same ServerGrid and add popup as desktop (all product fields)
+  // Mobile version - same columns as before; just let grid scroll
   if (isMobile) {
     const isAdmin = currentUser?.role === "admin";
     return (
@@ -109,10 +119,27 @@ export default function ProductsTab({
             allowDelete={isAdmin}
             pageSize={10}
             showAddButton={isAdmin}
-            onDataChange={setProductsFromDb}
             query={query}
             typeOptions={deviceTypes}
             locationOptions={locations}
+            formComponent={ProductForm}
+            transformAddPayload={(payload) => {
+              const type = deviceTypes.find(
+                (t) => t.type_name === payload.type_name
+              );
+              const loc = locations.find(
+                (l) => l.location_name === payload.location_name
+              );
+              return {
+                device_type_id: type ? type.id : null,
+                product_name: (payload.product_name || '').trim(),
+                purchase_date: payload.purchase_date || null,
+                location_id: loc ? loc.id : null,
+                status: payload.status || 'available',
+                details: payload.details || null,
+                qr_code: generateQrHash(),
+              };
+            }}
           />
         </div>
       </div>
@@ -174,11 +201,27 @@ export default function ProductsTab({
         allowDelete={isAdmin}
         pageSize={10}
         showAddButton={isAdmin}
-        onDataChange={setProductsFromDb}
         query={query}
         typeOptions={deviceTypes}
         locationOptions={locations}
         formComponent={ProductForm}
+        transformAddPayload={(payload) => {
+          const type = deviceTypes.find(
+            (t) => t.type_name === payload.type_name
+          );
+          const loc = locations.find(
+            (l) => l.location_name === payload.location_name
+          );
+          return {
+            device_type_id: type ? type.id : null,
+            product_name: (payload.product_name || '').trim(),
+            purchase_date: payload.purchase_date || null,
+            location_id: loc ? loc.id : null,
+            status: payload.status || 'available',
+            details: payload.details || null,
+            qr_code: generateQrHash(),
+          };
+        }}
       />
     </>
   );
