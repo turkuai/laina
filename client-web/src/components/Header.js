@@ -3,14 +3,14 @@ import { QrCode, ChevronDown, Settings, LogOut } from 'lucide-react';
 import './Admin.css';
 
 /**
- * AdminHeader component - Displays the header with title, user info, and action buttons
+ * Header component - Displays the header with title, user info, and action buttons
  * @param {Object} currentUser - Current authenticated user object
  * @param {Function} onLogout - Handler for logout button click
  * @param {Function} onBorrowClick - Handler for borrow/return button click
  * @param {Function} onSettingsClick - Handler for settings menu click
  * @param {boolean} isMobile - Whether the current view is mobile
  */
-const AdminHeader = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, isMobile = false }) => {
+const Header = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, isMobile = false }) => {
   const canAccessBorrow = currentUser?.role === 'admin' || currentUser?.role === 'teacher';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -93,4 +93,5 @@ const AdminHeader = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, is
   );
 };
 
-export default AdminHeader;
+export default Header;
+

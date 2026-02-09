@@ -3,14 +3,14 @@ import { ScanQrCode, History, Package, Settings, Users } from 'lucide-react';
 import './Admin.css';
 
 /**
- * AdminMobileNav component - Mobile bottom navigation bar with tabs and camera button
+ * MobileNav component - Mobile bottom navigation bar with tabs and camera button
  * @param {Array} tabs - Array of tab identifiers to display
  * @param {string} activeTab - Currently active tab identifier
  * @param {Function} onTabClick
  * @param {Function} onCameraClick 
  * @param {Object} currentUser 
  */
-const AdminMobileNav = ({ tabs, activeTab, onTabClick, onCameraClick, currentUser }) => {
+const MobileNav = ({ tabs, activeTab, onTabClick, onCameraClick, currentUser }) => {
   const tabIconMap = {
     camera: ScanQrCode,
     users: Users,
@@ -68,4 +68,5 @@ const AdminMobileNav = ({ tabs, activeTab, onTabClick, onCameraClick, currentUse
   );
 };
 
-export default AdminMobileNav;
+export default MobileNav;
+

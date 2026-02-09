@@ -1,13 +1,39 @@
-import HomePage from './HomePage';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Grid from './Grid';
+import Products from './Products';
+import './Admin.css';
+import QRScannerCamera from './QRScannerCamera';
+import ServerGrid from './ServerGrid';
+import StatusRenderer from './StatusRenderer';
+import QRCodeRenderer from './QRCodeRenderer';
+import { formatDate, getCurrentDate } from '../utils/dateUtils';
+import MobileProductBox from './MobileProductBox';
+import MobileProductModal from './MobileProductModal';
 
-export default HomePage;
+import CameraView from './CameraView';
+import SearchBox from './SearchBox';
+import SettingsTab from './SettingsTab';
+import Header from './Header';
+import ProductModals from './ProductModals';
+import AdminTabs from './AdminTabs';
+import MobileNav from './MobileNav';
+import { useHistoryFilter } from '../hooks/useHistoryFilter';
+import { useQRScanner } from '../hooks/useQRScanner';
+import { usePasswordForm } from '../hooks/usePasswordForm';
+import { useUserManagement } from '../hooks/useUserManagement';
+import { useResponsive } from '../hooks/useResponsive';
+import ProductsTab from './ProductsTab';
+import UsersTab from './UsersTab';
+import HistoryTab from './HistoryTab';
+import { TabConfig } from '../utils/tabConfig';
 
-export default function Admin({ productsData }) {
+export default function HomePage({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
-
 
   // State to force refresh of products
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -46,7 +72,6 @@ export default function Admin({ productsData }) {
   // Responsive hook
   const { isMobile, setIsMobile } = useResponsive();
 
-
   // Set default tab based on role
   const [activeTab, setActiveTab] = useState(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
@@ -69,8 +94,6 @@ export default function Admin({ productsData }) {
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
   ]);
 
-
-
   // Custom hooks for data filtering
   const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
@@ -80,8 +103,6 @@ export default function Admin({ productsData }) {
   useEffect(() => {
     prevIsMobileRef.current = isMobile;
   }, [isMobile]);
-
-
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
@@ -94,22 +115,19 @@ export default function Admin({ productsData }) {
     navigate('/login', { replace: true });
   };
 
-
-
+  const handleDataChange = (updatedData) => {
+    if (activeTab === 'history') setBorrowingHistory(updatedData);
+  };
 
   // Tab configuration - using utility module
   const tabs = TabConfig.getTabs(currentUser, isMobile);
-
-
-
-  // Render camera view content
 
   return (
     <div className="admin-page">
 
       {/* Header - Hidden when scanning */}
       {!showCamera && (
-        <AdminHeader
+        <Header
           currentUser={currentUser}
           onLogout={handleLogout}
           onBorrowClick={() => setShowCamera(true)}
@@ -129,6 +147,7 @@ export default function Admin({ productsData }) {
                 query={userQuery}
                 onQueryChange={setUserQuery}
                 onDeleteUser={handleDeleteUser}
+                onDataChange={handleDataChange}
               />
             </div>
           )}
@@ -223,6 +242,7 @@ export default function Admin({ productsData }) {
                 query={userQuery}
                 onQueryChange={setUserQuery}
                 onDeleteUser={handleDeleteUser}
+                onDataChange={handleDataChange}
               />
             </div>
           )}
@@ -257,7 +277,7 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Bottom Tab Bar (hidden while QR scanner is open) */}
       {isMobile && !showCamera && (
-        <AdminMobileNav
+        <MobileNav
           tabs={tabs}
           activeTab={activeTab}
           onTabClick={setActiveTab}
@@ -272,3 +292,4 @@ export default function Admin({ productsData }) {
     </div >
   );
 }
+
