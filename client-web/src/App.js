@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./components/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
-import Admin from "./components/Admin";
+import HomePage from "./components/HomePage";
 import BorrowPage from "./components/BorrowPage";
 import LocationsTest from "./components/LocationsTest";
 
@@ -44,7 +44,7 @@ export default function App() {
 
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<HomePage />} />
         <Route path="/borrow" element={<BorrowPage />} />
       </Route>
 

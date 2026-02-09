@@ -15,10 +15,10 @@ import MobileProductModal from './MobileProductModal';
 import CameraView from './CameraView';
 import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
-import AdminHeader from './AdminHeader';
+import Header from './Header';
 import ProductModals from './ProductModals';
 import AdminTabs from './AdminTabs';
-import AdminMobileNav from './AdminMobileNav';
+import MobileNav from './MobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
 import { usePasswordForm } from '../hooks/usePasswordForm';
@@ -29,12 +29,11 @@ import UsersTab from './UsersTab';
 import HistoryTab from './HistoryTab';
 import { TabConfig } from '../utils/tabConfig';
 
-export default function Admin({ productsData }) {
+export default function HomePage({ productsData }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
-
 
   // State to force refresh of products
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -73,7 +72,6 @@ export default function Admin({ productsData }) {
   // Responsive hook
   const { isMobile, setIsMobile } = useResponsive();
 
-
   // Set default tab based on role
   const [activeTab, setActiveTab] = useState(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
@@ -96,8 +94,6 @@ export default function Admin({ productsData }) {
     { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
   ]);
 
-
-
   // Custom hooks for data filtering
   const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
 
@@ -107,8 +103,6 @@ export default function Admin({ productsData }) {
   useEffect(() => {
     prevIsMobileRef.current = isMobile;
   }, [isMobile]);
-
-
 
   useEffect(() => {
     if (activeTab !== 'settings' && passwordStatus) {
@@ -125,22 +119,15 @@ export default function Admin({ productsData }) {
     if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
-
-
-
   // Tab configuration - using utility module
   const tabs = TabConfig.getTabs(currentUser, isMobile);
-
-
-
-  // Render camera view content
 
   return (
     <div className="admin-page">
 
       {/* Header - Hidden when scanning */}
       {!showCamera && (
-        <AdminHeader
+        <Header
           currentUser={currentUser}
           onLogout={handleLogout}
           onBorrowClick={() => setShowCamera(true)}
@@ -290,7 +277,7 @@ export default function Admin({ productsData }) {
 
       {/* Mobile Bottom Tab Bar (hidden while QR scanner is open) */}
       {isMobile && !showCamera && (
-        <AdminMobileNav
+        <MobileNav
           tabs={tabs}
           activeTab={activeTab}
           onTabClick={setActiveTab}
@@ -305,3 +292,4 @@ export default function Admin({ productsData }) {
     </div >
   );
 }
+
