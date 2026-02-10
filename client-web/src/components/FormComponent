@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function formcomponent({ onSubmit } = {}) {
+export default function FormComponent({ onSubmit } = {}) {
     const [values, setValues] = useState({ name: '', email: '', message: '' });
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
