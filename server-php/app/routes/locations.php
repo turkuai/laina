@@ -64,19 +64,24 @@ function create_location(PDO $pdo): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    $name = $input['name'] ?? null;
+    // Accept either 'name' or 'location_name' for the location name
+    $name = $input['location_name'] ?? $input['name'] ?? null;
+    $description = $input['description'] ?? null;
 
-    if (!$name) {
+    if (!$name || trim((string)$name) === '') {
         json_response(['error' => 'Missing location name'], 400);
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO locations (name, created_at) VALUES (:name, NOW())'
+        'INSERT INTO locations (location_name, description, created_at) VALUES (:location_name, :description, NOW())'
     );
-    $stmt->execute([':name' => $name]);
+    $stmt->execute([
+        ':location_name' => trim($name),
+        ':description'   => $description !== null ? trim((string)$description) : null,
+    ]);
 
     $id = $pdo->lastInsertId();
-    json_response(['id' => (int)$id, 'name' => $name], 201);
+    json_response(['id' => (int)$id, 'location_name' => trim($name), 'description' => $description], 201);
 }
 
 function update_location(PDO $pdo, string $id): void
@@ -95,17 +100,19 @@ function update_location(PDO $pdo, string $id): void
         json_response(['error' => 'Location not found'], 404);
     }
 
-    $name = $input['name'] ?? $location['name'];
+    $locationName = $input['location_name'] ?? $input['name'] ?? $location['location_name'];
+    $description = array_key_exists('description', $input) ? $input['description'] : $location['description'];
 
     $stmt = $pdo->prepare(
-        'UPDATE locations SET name = :name WHERE id = :id'
+        'UPDATE locations SET location_name = :location_name, description = :description WHERE id = :id'
     );
     $stmt->execute([
-        ':name' => $name,
-        ':id'   => $id,
+        ':location_name' => $locationName,
+        ':description'   => $description,
+        ':id'             => $id,
     ]);
 
-    json_response(['id' => (int)$id, 'name' => $name]);
+    json_response(['id' => (int)$id, 'location_name' => $locationName, 'description' => $description]);
 }
 
 function delete_location(PDO $pdo, string $id): void
