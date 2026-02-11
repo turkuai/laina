@@ -17,7 +17,7 @@ import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
 import Header from './Header';
 import ProductModals from './ProductModals';
-import AdminTabs from './AdminTabs';
+import HomeTabs from './HomeTabs';
 import MobileNav from './MobileNav';
 import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
@@ -222,7 +222,7 @@ export default function HomePage({ productsData }) {
 
       {/* Tabs - Desktop */}
       {!isMobile && (
-        <AdminTabs
+        <HomeTabs
           tabs={tabs}
           activeTab={activeTab}
           onTabClick={setActiveTab}
