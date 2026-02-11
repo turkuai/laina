@@ -23,11 +23,13 @@ export default function ProductsTab({
   const [locations, setLocations] = useState([]);
   const [productsFromDb, setProductsFromDb] = useState([]);
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+  const [showLocationsManager, setShowLocationsManager] = useState(false);
+  const [showDeviceTypesManager, setShowDeviceTypesManager] = useState(false);
 
   const generateQrHash = () => {
     const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let hash = '';
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let hash = "";
     for (let i = 0; i < 32; i++) {
       hash += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -44,12 +46,10 @@ export default function ProductsTab({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Fetch metadata on mount to populate dropdowns
   useEffect(() => {
     fetchMetadata();
   }, []);
 
-  // Fetch device types and locations from API
   const fetchMetadata = async () => {
     setIsLoadingMeta(true);
     try {
@@ -64,7 +64,7 @@ export default function ProductsTab({
           typesData.map((t) => ({
             id: t.id,
             type_name: t.type_name,
-          })),
+          }))
         );
       }
 
@@ -74,7 +74,7 @@ export default function ProductsTab({
           locationsData.map((loc) => ({
             id: loc.id,
             location_name: loc.location_name || loc.name,
-          })),
+          }))
         );
       }
     } catch (error) {
@@ -84,9 +84,10 @@ export default function ProductsTab({
     }
   };
 
-  // Mobile version - same columns as before; just let grid scroll
   if (isMobile) {
-    const isAdmin = currentUser?.role === "admin";
+    const canManageMeta =
+      currentUser?.role === "admin" || currentUser?.role === "teacher";
+
     return (
       <div className="mobile-tab-content">
         <div className="mobile-content-section">
@@ -115,10 +116,10 @@ export default function ProductsTab({
               qr_code: QRCodeRenderer,
             }}
             path="/products"
-            allowEditing={isAdmin}
-            allowDelete={isAdmin}
+            allowEditing={currentUser?.role === "admin"}
+            allowDelete={currentUser?.role === "admin"}
             pageSize={10}
-            showAddButton={isAdmin}
+            showAddButton={currentUser?.role === "admin"}
             query={query}
             typeOptions={deviceTypes}
             locationOptions={locations}
@@ -132,31 +133,106 @@ export default function ProductsTab({
               );
               return {
                 device_type_id: type ? type.id : null,
-                product_name: (payload.product_name || '').trim(),
+                product_name: (payload.product_name || "").trim(),
                 purchase_date: payload.purchase_date || null,
                 location_id: loc ? loc.id : null,
-                status: payload.status || 'available',
+                status: payload.status || "available",
                 details: payload.details || null,
                 qr_code: generateQrHash(),
               };
             }}
           />
+
+          {canManageMeta && (
+            <div className="products-meta-actions-mobile">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  setShowLocationsManager((prev) => !prev)
+                }
+              >
+                {showLocationsManager ? "Hide locations" : "Manage locations"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  setShowDeviceTypesManager((prev) => !prev)
+                }
+              >
+                {showDeviceTypesManager
+                  ? "Hide device types"
+                  : "Manage device types"}
+              </button>
+            </div>
+          )}
+
+          {canManageMeta && showLocationsManager && (
+            <div className="products-meta-section">
+              <h3 className="meta-title">Locations</h3>
+              <ServerGrid
+                columns={["location_name", "description"]}
+                path="locations"
+                allowEditing={true}
+                allowDelete={true}
+                pageSize={10}
+                showAddButton={true}
+                formComponent={LocationForm}
+              />
+            </div>
+          )}
+
+          {canManageMeta && showDeviceTypesManager && (
+            <div className="products-meta-section">
+              <h3 className="meta-title">Device types</h3>
+              <ServerGrid
+                columns={["type_name"]}
+                path="device-types"
+                allowEditing={true}
+                allowDelete={true}
+                pageSize={10}
+                showAddButton={true}
+                formComponent={DeviceTypeForm}
+              />
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // Desktop version
   const isAdmin = currentUser?.role === "admin";
+  const canManageMeta =
+    currentUser?.role === "admin" || currentUser?.role === "teacher";
 
   return (
     <>
       <h2 className="title">Products</h2>
 
-      {/* Desktop search bar (reuses existing design) */}
+      <div className="products-meta-actions-desktop">
+        {canManageMeta && (
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowLocationsManager(true)}
+            >
+              Manage locations
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowDeviceTypesManager(true)}
+            >
+              Manage device types
+            </button>
+          </>
+        )}
+      </div>
+
       <div className="products-card__search">
         <span className="search-icon">
-          {/* Simple magnifying glass icon */}
           <svg
             width="16"
             height="16"
@@ -214,15 +290,81 @@ export default function ProductsTab({
           );
           return {
             device_type_id: type ? type.id : null,
-            product_name: (payload.product_name || '').trim(),
+            product_name: (payload.product_name || "").trim(),
             purchase_date: payload.purchase_date || null,
             location_id: loc ? loc.id : null,
-            status: payload.status || 'available',
+            status: payload.status || "available",
             details: payload.details || null,
             qr_code: generateQrHash(),
           };
         }}
       />
+
+      {!isMobile && canManageMeta && showLocationsManager && (
+        <div
+          className="product-modal-overlay"
+          onClick={() => setShowLocationsManager(false)}
+        >
+          <div
+            className="product-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "720px" }}
+          >
+            <button
+              onClick={() => setShowLocationsManager(false)}
+              className="product-modal-close"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 className="product-modal-title">Manage locations</h2>
+            <div className="products-meta-modal-content">
+              <ServerGrid
+                columns={["location_name", "description"]}
+                path="locations"
+                allowEditing={true}
+                allowDelete={true}
+                pageSize={10}
+                showAddButton={true}
+                formComponent={LocationForm}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isMobile && canManageMeta && showDeviceTypesManager && (
+        <div
+          className="product-modal-overlay"
+          onClick={() => setShowDeviceTypesManager(false)}
+        >
+          <div
+            className="product-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "600px" }}
+          >
+            <button
+              onClick={() => setShowDeviceTypesManager(false)}
+              className="product-modal-close"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 className="product-modal-title">Manage device types</h2>
+            <div className="products-meta-modal-content">
+              <ServerGrid
+                columns={["type_name"]}
+                path="device-types"
+                allowEditing={true}
+                allowDelete={true}
+                pageSize={10}
+                showAddButton={true}
+                formComponent={DeviceTypeForm}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -236,19 +378,19 @@ function ProductForm({ data, setData }) {
           <input
             type="text"
             className="form-input"
-            value={data.product_name || ''}
+            value={data.product_name || ""}
             onChange={(e) =>
               setData({ ...data, product_name: e.target.value })
             }
           />
         </div>
-        
+
         <div>
           <label className="form-label">Type Name</label>
           <input
             type="text"
             className="form-input"
-            value={data.type_name || ''}
+            value={data.type_name || ""}
             onChange={(e) =>
               setData({ ...data, type_name: e.target.value })
             }
@@ -262,7 +404,7 @@ function ProductForm({ data, setData }) {
             className="form-input"
             min="1900"
             max={new Date().getFullYear() + 1}
-            value={data.purchase_date || ''}
+            value={data.purchase_date || ""}
             onChange={(e) =>
               setData({ ...data, purchase_date: e.target.value })
             }
@@ -274,7 +416,7 @@ function ProductForm({ data, setData }) {
           <input
             type="text"
             className="form-input"
-            value={data.location_name || ''}
+            value={data.location_name || ""}
             onChange={(e) =>
               setData({ ...data, location_name: e.target.value })
             }
@@ -285,7 +427,7 @@ function ProductForm({ data, setData }) {
           <label className="form-label">Status</label>
           <select
             className="form-input"
-            value={data.status || ''}
+            value={data.status || ""}
             onChange={(e) =>
               setData({ ...data, status: e.target.value })
             }
@@ -301,9 +443,60 @@ function ProductForm({ data, setData }) {
           <textarea
             className="form-input"
             rows={3}
-            value={data.details || ''}
+            value={data.details || ""}
             onChange={(e) =>
               setData({ ...data, details: e.target.value })
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LocationForm({ data, setData }) {
+  return (
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">Location name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.location_name || data.name || ""}
+            onChange={(e) =>
+              setData({ ...data, location_name: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="form-label">Description</label>
+          <textarea
+            className="form-input"
+            rows={3}
+            value={data.description || ""}
+            onChange={(e) =>
+              setData({ ...data, description: e.target.value })
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeviceTypeForm({ data, setData }) {
+  return (
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">Device type name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.type_name || data.name || ""}
+            onChange={(e) =>
+              setData({ ...data, type_name: e.target.value })
             }
           />
         </div>
