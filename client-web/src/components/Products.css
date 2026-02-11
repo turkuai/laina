@@ -64,6 +64,42 @@
   background: #16a34a;
 }
 
+.btn-secondary {
+  background: #111827;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #020617;
+}
+
+.products-meta-actions-desktop {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.products-meta-actions-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.products-meta-section {
+  margin-top: 16px;
+}
+
+.products-meta-section .meta-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.products-meta-modal-content {
+  margin-top: 16px;
+}
+
 /* ===== ADD PRODUCT FORM ===== */
 .add-product-form {
   background-color: #f9fafb;
