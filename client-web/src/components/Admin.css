@@ -228,8 +228,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
+  /* Same radius on all corners when idle (top & bottom) */
+  border-radius: 18px;
 }
 
 .admin-tab-button:hover {
@@ -239,12 +239,20 @@
 
 .admin-tab-button.active {
   color: #1f2937;
-  background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent);
+  /* No gradient for selected tab, just a subtle solid background */
+  background-color: #fef2f2;
+  /* Visually connect active tab with content (no gap) */
+  border-bottom-color: #ffffff;
+  margin-bottom: -1px;
 }
 
 .admin-tab-button:focus-visible {
   outline: none;
-  background: linear-gradient(180deg, rgba(220, 38, 38, 0.16), transparent);
+  /* Stronger red gradient than active, for keyboard focus */
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.18), transparent);
+  /* Same visual connection when focused via keyboard */
+  border-bottom-color: #ffffff;
+  margin-bottom: -1px;
 }
 
 .admin-tab-button.camera-tab {
@@ -1442,11 +1450,11 @@
 
   .admin-tabs {
     margin: 1rem 2rem 0 2rem;
-    padding: 0 2rem;
+    padding: 1.5rem 1.5rem;
   }
 
   .admin-content-card {
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 1.5rem;
     margin: 0;
   }
 }
