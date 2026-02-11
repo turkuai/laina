@@ -5,6 +5,7 @@ import QRCodeRenderer from "./QRCodeRenderer";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
 import { useNotification } from "./NotificationContext";
 import ConfirmDialog from "./ConfirmDialog";
+import { getApiBase } from "../config";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -197,16 +198,17 @@ export default function Products({ currentUser }) {
 
     try {
       // Fetch products, device types, and locations in parallel
+      const base = getApiBase();
       const [productsRes, typesRes, locationsRes] = await Promise.all([
-        fetch("/api/products?page=1", {
+        fetch(`${base}/api/products?page=1`, {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         }),
-        fetch("/api/device-types", {
+        fetch(`${base}/api/device-types`, {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         }),
-        fetch("/api/locations?page=1", {
+        fetch(`${base}/api/locations?page=1`, {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         }),
@@ -270,7 +272,7 @@ export default function Products({ currentUser }) {
         qr_code: generateHash(), // Generate hash once and send to database
       };
 
-      const response = await fetch("/api/products", {
+      const response = await fetch(`${getApiBase()}/api/products`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -316,7 +318,7 @@ export default function Products({ currentUser }) {
   const performDelete = async (product) => {
     if (!product?.id) return;
     try {
-      const response = await fetch(`/api/products/${product.id}`, {
+      const response = await fetch(`${getApiBase()}/api/products/${product.id}`, {
         method: "DELETE",
         credentials: "include",
         headers: {
@@ -376,7 +378,7 @@ export default function Products({ currentUser }) {
         details: editFormData.details || null,
       };
 
-      const response = await fetch(`/api/products/${editingProduct.id}`, {
+      const response = await fetch(`${getApiBase()}/api/products/${editingProduct.id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

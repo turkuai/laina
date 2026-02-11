@@ -1,4 +1,6 @@
-const apiPath = "/api/locations";
+import { getApiBase } from '../config';
+
+const apiPath = `${getApiBase()}/api/locations`;
 
 export async function getLocations(page = 1) {
     const res = await fetch(`${apiPath}?page=${page}`);

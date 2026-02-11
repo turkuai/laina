@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { QrCode, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { getPublicUrl } from '../config';
 import './Admin.css';
 
 /**
@@ -42,7 +43,7 @@ const Header = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, isMobil
     <div className="admin-header">
       <h1 className="admin-logo">
         <img
-          src="/tai.png"
+          src={`${getPublicUrl()}/tai.png`}
           alt="TAI logo"
           className="admin-logo-image"
         />

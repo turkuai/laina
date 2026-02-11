@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useState, useEffect } from "react";
+import { getPublicUrl } from "../config";
 import '../App.css';
 import './Login.css';
 
@@ -48,7 +49,7 @@ export default function Login() {
                 <div className="login-header">
                     <div className="login-logo">
                         <img
-                            src="/tai.png"
+                            src={`${getPublicUrl()}/tai.png`}
                             alt="TAI logo"
                             className="login-logo-image"
                         />

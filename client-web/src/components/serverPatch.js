@@ -1,3 +1,5 @@
+import { getApiBase } from '../config';
+
 /**
  * Hook for updating data on server
  * @param {string} path - API endpoint path
@@ -33,7 +35,7 @@ export function useServerPatch(path, fetchData, setError) {
       delete payload.created_at;
       delete payload.updated_at;
 
-      const res = await fetch(updateUrl, {
+      const res = await fetch(getApiBase() + updateUrl, {
         method: 'PATCH',
         credentials: 'include',
         headers: {

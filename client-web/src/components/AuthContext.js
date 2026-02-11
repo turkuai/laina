@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { getApiBase } from '../config';
 
 const AuthContext = createContext(null);
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await fetch('/api/users/verify', {
+        const response = await fetch(`${getApiBase()}/api/users/verify`, {
           method: 'GET',
           credentials: 'include', // Include cookies in request
           headers: {
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   // Login function - now with rememberMe parameter for httpOnly cookie
   const login = async (username, password, rememberMe = false) => {
     try {
-      const response = await fetch('/api/users/login', {
+      const response = await fetch(`${getApiBase()}/api/users/login`, {
         method: 'POST',
         credentials: 'include', // Include cookies in request
         headers: {
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function - clear httpOnly cookie on server
   const logout = async () => {
     try {
-      await fetch('/api/users/logout', {
+      await fetch(`${getApiBase()}/api/users/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: {
