@@ -8,7 +8,6 @@ import "./Products.css";
 export default function ProductsTab({
   currentUser,
   productsData,
-  borrowingHistory,
   query,
   onQueryChange,
 }) {
