@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Products.css";
-import ServerGrid from "./ServerGrid";
-import QRCodeRenderer from "./QRCodeRenderer";
+import ServerGrid from "../components/ServerGrid";
+import QRCodeRenderer from "../components/QRCodeRenderer";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
-import { useNotification } from "./NotificationContext";
-import ConfirmDialog from "./ConfirmDialog";
+import { useNotification } from "../components/NotificationContext";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {

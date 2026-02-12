@@ -1,6 +1,6 @@
 import React from 'react';
 import './Admin.css';
-import { useNotification } from './NotificationContext';
+import { useNotification } from '../components/NotificationContext';
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {

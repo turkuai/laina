@@ -1,6 +1,6 @@
 import React from 'react';
-import ServerGrid from './ServerGrid';
-import SearchBox from './SearchBox';
+import ServerGrid from '../components/ServerGrid';
+import SearchBox from '../components/SearchBox';
 import './Admin.css';
 
 /**

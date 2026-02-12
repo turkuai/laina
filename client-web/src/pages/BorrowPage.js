@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './BorrowPage.css';
-import { useNotification } from './NotificationContext';
+import { useNotification } from '../components/NotificationContext';
 
 // Helper function to format date as DD.MM.YYYY
 const formatDate = (date) => {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
-import { useNotification } from './NotificationContext';
+import { useNotification } from '../components/NotificationContext';
 
 /**
- * ProductModals component - Desktop modals for product borrow/return actions
+ * MobileProductModal component - Mobile-only modal popup for scanned QR code products
  * @param {Object} scannedProduct - Scanned product object with name, borrower, borrowDate, returnDate
  * @param {string} productStatus - Product status ('borrowed' or 'available')
  * @param {Function} onClose - Handler to close the modal
@@ -11,13 +11,14 @@ import { useNotification } from './NotificationContext';
  * @param {Function} onBorrow - Handler for borrow button click, receives borrowData object
  * @param {Function} getCurrentDate - Function to get current date formatted
  */
-const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBorrow, getCurrentDate }) => {
+const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, onBorrow, getCurrentDate }) => {
   const { showNotification } = useNotification();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [returnDate, setReturnDate] = useState('');
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -86,7 +87,6 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
   if (!scannedProduct) return null;
 
   const handleBorrowClick = () => {
-    const returnDate = document.getElementById('desktop-return-date').value;
     if (!selectedUser || !returnDate) {
       showNotification('Please select a user and fill in return date!', 'error');
       return;
@@ -101,40 +101,45 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
   };
 
   return (
-    <>
-      {productStatus === 'borrowed' && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <button onClick={onClose} className="modal-close">×</button>
-            <h2 className="modal-title">{scannedProduct.name}</h2>
-            <div className="modal-status"><h3 className="status-borrowed">Borrowed</h3></div>
-            <div className="modal-content">
-              <p className="info-label">Borrowed by:</p>
-              <p className="info-value">{scannedProduct.borrower}</p>
-              <p className="info-value">{scannedProduct.borrowDate}</p>
-              <p className="info-label">Return deadline:</p>
-              <p className="info-value">{scannedProduct.returnDate}</p>
-              <p className="info-label">Return date:</p>
-              <div className="return-date-display">{getCurrentDate()}</div>
-            </div>
-            <button onClick={onReturn} className="modal-action-btn">Return</button>
-          </div>
+    <div className="mobile-product-modal-overlay" onClick={onClose}>
+      <div className="mobile-product-modal" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="mobile-product-modal-close" aria-label="Close">
+          ×
+        </button>
+        
+        <h2 className="mobile-product-modal-title">{scannedProduct.name}</h2>
+        
+        <div className="mobile-product-modal-status">
+          {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
         </div>
-      )}
 
-      {productStatus === 'available' && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <button onClick={onClose} className="modal-close">×</button>
-            <h2 className="modal-title">{scannedProduct.name}</h2>
-            <div className="modal-status"><h3 className="status-available">Available</h3></div>
-            <div className="modal-content">
-              <div className="info-input-wrapper" style={{ position: 'relative' }}>
-                <label className="info-label">Borrowing to:</label>
-                <input 
-                  type="text" 
-                  placeholder="Type to search user..." 
-                  className="info-input" 
+        {productStatus === 'borrowed' ? (
+          <>
+            <div className="mobile-product-modal-info-section">
+              <p className="mobile-product-modal-label">Lainaataan:</p>
+              <p className="mobile-product-modal-value">Nimi: {scannedProduct.borrower}</p>
+              <p className="mobile-product-modal-value">Pvm: {scannedProduct.borrowDate}</p>
+            </div>
+            <div className="mobile-product-modal-info-section">
+              <p className="mobile-product-modal-label">Viimeinen palautuspäivä:</p>
+              <p className="mobile-product-modal-value">{scannedProduct.returnDate}</p>
+            </div>
+            <button
+              onClick={onReturn}
+              className="mobile-product-modal-action-button"
+            >
+              Palauta
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="mobile-product-modal-info-section">
+              <p className="mobile-product-modal-label">Lainaataan:</p>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Type to search user..."
+                  className="mobile-product-modal-input"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onFocus={() => setShowDropdown(filteredUsers.length > 0)}
@@ -143,33 +148,13 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
                 {showDropdown && filteredUsers.length > 0 && (
                   <div 
                     ref={dropdownRef}
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                      zIndex: 1000,
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      marginTop: '4px'
-                    }}
+                    className="mobile-product-modal-dropdown"
                   >
                     {filteredUsers.map(user => (
                       <div
                         key={user.id}
                         onClick={() => handleUserSelect(user)}
-                        style={{
-                          padding: '12px',
-                          cursor: 'pointer',
-                          borderBottom: '1px solid #f3f4f6',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        className="mobile-product-modal-dropdown-item"
                       >
                         <div style={{ fontWeight: 500, color: '#1f2937' }}>
                           {user.first_name} {user.last_name}
@@ -182,36 +167,37 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
                   </div>
                 )}
               </div>
-              <div className="info-input-wrapper">
-                <label className="info-label">Email:</label>
-                <input 
-                  type="email" 
-                  className="info-input" 
-                  value={selectedUser?.email || ''}
-                  disabled
-                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
-                />
-              </div>
-              <div className="info-input-wrapper">
-                <label className="info-label">Return deadline:</label>
-                <input
-                  type="date"
-                  className="info-input"
-                  id="desktop-return-date"
-                />
-              </div>
+            </div>
+            <div className="mobile-product-modal-info-section">
+              <p className="mobile-product-modal-label">Email:</p>
+              <input
+                type="email"
+                className="mobile-product-modal-input"
+                value={selectedUser?.email || ''}
+                disabled
+                style={{ opacity: 0.6, cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="mobile-product-modal-info-section">
+              <p className="mobile-product-modal-label">Viimeinen palautuspäivä:</p>
+              <input
+                type="date"
+                className="mobile-product-modal-input"
+                value={returnDate}
+                onChange={(e) => setReturnDate(e.target.value)}
+              />
             </div>
             <button
               onClick={handleBorrowClick}
-              className="modal-action-btn"
+              className="mobile-product-modal-action-button"
             >
-              Borrow
+              Lainaa
             </button>
-          </div>
-        </div>
-      )}
-    </>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
-export default ProductModals;
+export default MobileProductModal;

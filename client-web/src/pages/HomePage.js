@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Grid from './Grid';
+import Grid from '../components/Grid';
 import Products from './Products';
 import './Admin.css';
 import QRScannerCamera from './QRScannerCamera';
-import ServerGrid from './ServerGrid';
-import StatusRenderer from './StatusRenderer';
-import QRCodeRenderer from './QRCodeRenderer';
+import ServerGrid from '../components/ServerGrid';
+import StatusRenderer from '../components/StatusRenderer';
+import QRCodeRenderer from '../components/QRCodeRenderer';
 import { formatDate, getCurrentDate } from '../utils/dateUtils';
-import MobileProductBox from './MobileProductBox';
+import MobileProductBox from '../components/MobileProductBox';
 import MobileProductModal from './MobileProductModal';
 
 import CameraView from './CameraView';
-import SearchBox from './SearchBox';
+import SearchBox from '../components/SearchBox';
 import SettingsTab from './SettingsTab';
 import Header from './Header';
 import ProductModals from './ProductModals';
