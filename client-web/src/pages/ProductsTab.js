@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import ServerGrid from "./ServerGrid";
-import StatusRenderer from "./StatusRenderer";
-import QRCodeRenderer from "./QRCodeRenderer";
-import { useNotification } from "./NotificationContext";
+import ServerGrid from "../components/ServerGrid";
+import StatusRenderer from "../components/StatusRenderer";
+import QRCodeRenderer from "../components/QRCodeRenderer";
+import { useNotification } from "../components/NotificationContext";
 import "./Products.css";
 
 export default function ProductsTab({

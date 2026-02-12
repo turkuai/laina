@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Products from './Products';
 import './Admin.css';

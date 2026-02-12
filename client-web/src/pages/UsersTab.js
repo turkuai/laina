@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import ServerGrid from './ServerGrid';
-import SearchBox from './SearchBox';
-import { useNotification } from './NotificationContext';
+import ServerGrid from '../components/ServerGrid';
+import SearchBox from '../components/SearchBox';
+import { useNotification } from '../components/NotificationContext';
 import './Admin.css';
 
 /**

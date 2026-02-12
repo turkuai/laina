@@ -2,9 +2,9 @@ import React from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./components/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./components/Login";
-import HomePage from "./components/HomePage";
-import BorrowPage from "./components/BorrowPage";
+import Login from "./pages/Login";
+import HomePage from "./pages/HomePage";
+import BorrowPage from "./pages/BorrowPage";
 import LocationsTest from "./components/LocationsTest";
 
 
