@@ -35,7 +35,7 @@ export default function HomePage({ productsData }) {
 
   const [userQuery, setUserQuery] = useState('');
 
-  // State to force refresh of products
+  // State to force refresh of product
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
 
   // Callback to refresh products after borrow/return
