@@ -1,5 +1,5 @@
 import React from 'react';
-import './Admin.css'; // Reusing Admin.css for user-search styles
+import '../pages/Admin.css'; // Reusing Admin.css for user-search styles
 
 /**
  * Reusable SearchBox component

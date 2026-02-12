@@ -1,5 +1,5 @@
 import React from 'react';
-import './Admin.css';
+import '../pages/Admin.css';
 
 export default function PasswordForm({ form, status, onInputChange, onSubmit }) {
   return (
