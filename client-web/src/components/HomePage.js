@@ -1,25 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Grid from './Grid';
 import Products from './Products';
 import './Admin.css';
 import QRScannerCamera from './QRScannerCamera';
-import ServerGrid from './ServerGrid';
-import StatusRenderer from './StatusRenderer';
-import QRCodeRenderer from './QRCodeRenderer';
-import { formatDate, getCurrentDate } from '../utils/dateUtils';
-import MobileProductBox from './MobileProductBox';
+import { getCurrentDate } from '../utils/dateUtils';
 import MobileProductModal from './MobileProductModal';
 
-import CameraView from './CameraView';
-import SearchBox from './SearchBox';
 import SettingsTab from './SettingsTab';
 import Header from './Header';
 import ProductModals from './ProductModals';
 import HomeTabs from './HomeTabs';
 import MobileNav from './MobileNav';
-import { useHistoryFilter } from '../hooks/useHistoryFilter';
 import { useQRScanner } from '../hooks/useQRScanner';
 import { usePasswordForm } from '../hooks/usePasswordForm';
 import { useUserManagement } from '../hooks/useUserManagement';
@@ -87,16 +79,6 @@ export default function HomePage({ productsData }) {
     return currentUser?.role === "admin" ? "users" : "history";
   });
 
-  const [borrowingHistory, setBorrowingHistory] = useState([
-    { id: 1, userName: 'Mikko', productName: 'Laptop Dell XPS', borrowedAt: '2024-01-15', returnedAt: '2024-01-20', status: 'Returned', userId: 2 },
-    { id: 2, userName: 'Ville', productName: 'Monitor Samsung', borrowedAt: '2024-01-18', returnedAt: null, status: 'On Loan', userId: 3 },
-    { id: 3, userName: 'Aino', productName: 'Keyboard Mechanical', borrowedAt: '2024-01-10', returnedAt: '2024-01-17', status: 'Returned', userId: 5 },
-    { id: 4, userName: 'Mikko', productName: 'Headphones Sony', borrowedAt: '2024-01-22', returnedAt: null, status: 'On Loan', userId: 2 },
-  ]);
-
-  // Custom hooks for data filtering
-  const { filteredHistory } = useHistoryFilter(borrowingHistory, currentUser, userQuery);
-
   // Track previous isMobile value (no tab reset on resize)
   const prevIsMobileRef = useRef(isMobile);
 
@@ -113,10 +95,6 @@ export default function HomePage({ productsData }) {
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
-  };
-
-  const handleDataChange = (updatedData) => {
-    if (activeTab === 'history') setBorrowingHistory(updatedData);
   };
 
   // Tab configuration - using utility module
@@ -147,7 +125,6 @@ export default function HomePage({ productsData }) {
                 query={userQuery}
                 onQueryChange={setUserQuery}
                 onDeleteUser={handleDeleteUser}
-                onDataChange={handleDataChange}
               />
             </div>
           )}
@@ -161,7 +138,6 @@ export default function HomePage({ productsData }) {
               <Products
                 key={productsRefreshKey}
                 currentUser={currentUser}
-                borrowingHistory={borrowingHistory}
                 productsData={productsData}
                 query={userQuery}
               />
@@ -242,7 +218,6 @@ export default function HomePage({ productsData }) {
                 query={userQuery}
                 onQueryChange={setUserQuery}
                 onDeleteUser={handleDeleteUser}
-                onDataChange={handleDataChange}
               />
             </div>
           )}
@@ -253,7 +228,6 @@ export default function HomePage({ productsData }) {
               key={productsRefreshKey}
               currentUser={currentUser}
               productsData={productsData}
-              borrowingHistory={borrowingHistory}
               query={userQuery}
               onQueryChange={setUserQuery}
             />
