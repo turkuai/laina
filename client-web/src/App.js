@@ -30,7 +30,7 @@ export default function App() {
     <Routes>
       <Route
         path="/"
-        element={isAuthenticated ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />}
+        element={isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />}
       />
       <Route path="/login" element={<Login />} />
       <Route path="/locations-test" element={<LocationsTest />} />
@@ -39,12 +39,12 @@ export default function App() {
       {/* Redirect to admin if already authenticated */}
       <Route 
         path="/login" 
-        element={isAuthenticated ? <Navigate to="/admin" replace /> : <Login />} 
+        element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} 
       />
 
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<HomePage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/borrow" element={<BorrowPage />} />
       </Route>
 
