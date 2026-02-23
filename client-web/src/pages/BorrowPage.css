@@ -125,7 +125,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--modal-overlay-bg);
   backdrop-filter: blur(4px);
   z-index: 40;
   display: flex;
@@ -302,7 +302,7 @@
 .product-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--modal-overlay-bg);
   backdrop-filter: blur(4px);
   z-index: 9999; /* Changed from 50 to 9999 */
   display: flex;
