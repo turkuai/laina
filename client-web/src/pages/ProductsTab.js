@@ -3,6 +3,7 @@ import ServerGrid from "../components/ServerGrid";
 import StatusRenderer from "../components/StatusRenderer";
 import QRCodeRenderer from "../components/QRCodeRenderer";
 import { useNotification } from "../components/NotificationContext";
+import SearchableSelect from "../components/SearchableSelect";
 import "./Products.css";
 
 export default function ProductsTab({
@@ -124,22 +125,29 @@ export default function ProductsTab({
             locationOptions={locations}
             formComponent={ProductForm}
             transformAddPayload={(payload) => {
-              const type = deviceTypes.find(
-                (t) => t.type_name === payload.type_name
-              );
-              const loc = locations.find(
-                (l) => l.location_name === payload.location_name
-              );
               return {
-                device_type_id: type ? type.id : null,
+                device_type_id: payload.device_type_id
+                  ? Number(payload.device_type_id)
+                  : null,
                 product_name: (payload.product_name || "").trim(),
                 purchase_date: payload.purchase_date || null,
-                location_id: loc ? loc.id : null,
+                location_id: payload.location_id
+                  ? Number(payload.location_id)
+                  : null,
                 status: payload.status || "available",
                 details: payload.details || null,
                 qr_code: generateQrHash(),
               };
             }}
+            transformEditPayload={(payload) => ({
+              product_name: (payload.product_name || "").trim(),
+              device_type_id: payload.device_type_id
+                ? Number(payload.device_type_id)
+                : null,
+              purchase_date: payload.purchase_date || null,
+              location_id: payload.location_id ? Number(payload.location_id) : null,
+              details: payload.details ?? null,
+            })}
           />
 
           {canManageMeta && (
@@ -147,53 +155,81 @@ export default function ProductsTab({
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() =>
-                  setShowLocationsManager((prev) => !prev)
-                }
+                onClick={() => setShowLocationsManager(true)}
               >
-                {showLocationsManager ? "Hide locations" : "Manage locations"}
+                Manage locations
               </button>
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() =>
-                  setShowDeviceTypesManager((prev) => !prev)
-                }
+                onClick={() => setShowDeviceTypesManager(true)}
               >
-                {showDeviceTypesManager
-                  ? "Hide device types"
-                  : "Manage device types"}
+                Manage device types
               </button>
             </div>
           )}
 
           {canManageMeta && showLocationsManager && (
-            <div className="products-meta-section">
-              <h3 className="meta-title">Locations</h3>
-              <ServerGrid
-                columns={["location_name", "description"]}
-                path="locations"
-                allowEditing={true}
-                allowDelete={true}
-                pageSize={10}
-                showAddButton={true}
-                formComponent={LocationForm}
-              />
+            <div
+              className="product-modal-overlay"
+              onClick={() => setShowLocationsManager(false)}
+            >
+              <div
+                className="product-modal product-modal--servergrid product-modal--fullscreen"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setShowLocationsManager(false)}
+                  className="product-modal-close"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <h2 className="product-modal-title">Manage locations</h2>
+                <div className="products-meta-modal-content">
+                  <ServerGrid
+                    columns={["location_name", "description"]}
+                    path="locations"
+                    allowEditing={true}
+                    allowDelete={true}
+                    pageSize={10}
+                    showAddButton={true}
+                    formComponent={LocationForm}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
           {canManageMeta && showDeviceTypesManager && (
-            <div className="products-meta-section">
-              <h3 className="meta-title">Device types</h3>
-              <ServerGrid
-                columns={["type_name"]}
-                path="device-types"
-                allowEditing={true}
-                allowDelete={true}
-                pageSize={10}
-                showAddButton={true}
-                formComponent={DeviceTypeForm}
-              />
+            <div
+              className="product-modal-overlay"
+              onClick={() => setShowDeviceTypesManager(false)}
+            >
+              <div
+                className="product-modal product-modal--servergrid product-modal--fullscreen"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setShowDeviceTypesManager(false)}
+                  className="product-modal-close"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <h2 className="product-modal-title">Manage device types</h2>
+                <div className="products-meta-modal-content">
+                  <ServerGrid
+                    columns={["type_name"]}
+                    path="device-types"
+                    allowEditing={true}
+                    allowDelete={true}
+                    pageSize={10}
+                    showAddButton={true}
+                    formComponent={DeviceTypeForm}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -281,22 +317,25 @@ export default function ProductsTab({
         locationOptions={locations}
         formComponent={ProductForm}
         transformAddPayload={(payload) => {
-          const type = deviceTypes.find(
-            (t) => t.type_name === payload.type_name
-          );
-          const loc = locations.find(
-            (l) => l.location_name === payload.location_name
-          );
           return {
-            device_type_id: type ? type.id : null,
+            device_type_id: payload.device_type_id
+              ? Number(payload.device_type_id)
+              : null,
             product_name: (payload.product_name || "").trim(),
             purchase_date: payload.purchase_date || null,
-            location_id: loc ? loc.id : null,
+            location_id: payload.location_id ? Number(payload.location_id) : null,
             status: payload.status || "available",
             details: payload.details || null,
             qr_code: generateQrHash(),
           };
         }}
+        transformEditPayload={(payload) => ({
+          product_name: (payload.product_name || "").trim(),
+          device_type_id: payload.device_type_id ? Number(payload.device_type_id) : null,
+          purchase_date: payload.purchase_date || null,
+          location_id: payload.location_id ? Number(payload.location_id) : null,
+          details: payload.details ?? null,
+        })}
       />
 
       {!isMobile && canManageMeta && showLocationsManager && (
@@ -305,7 +344,7 @@ export default function ProductsTab({
           onClick={() => setShowLocationsManager(false)}
         >
           <div
-            className="product-modal"
+            className="product-modal product-modal--servergrid"
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "720px" }}
           >
@@ -338,7 +377,7 @@ export default function ProductsTab({
           onClick={() => setShowDeviceTypesManager(false)}
         >
           <div
-            className="product-modal"
+            className="product-modal product-modal--servergrid"
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "600px" }}
           >
@@ -368,7 +407,7 @@ export default function ProductsTab({
   );
 }
 
-function ProductForm({ data, setData }) {
+function ProductForm({ data, setData, typeOptions = [], locationOptions = [] }) {
   return (
     <div className="add-product-form">
       <div className="add-product-form-grid">
@@ -385,13 +424,19 @@ function ProductForm({ data, setData }) {
         </div>
 
         <div>
-          <label className="form-label">Type Name</label>
-          <input
-            type="text"
-            className="form-input"
-            value={data.type_name || ""}
-            onChange={(e) =>
-              setData({ ...data, type_name: e.target.value })
+          <label className="form-label">Device Type</label>
+          <SearchableSelect
+            options={typeOptions}
+            value={data.device_type_id ?? ""}
+            placeholder="Select or type to search…"
+            getOptionLabel={(t) => t?.type_name || ""}
+            getOptionValue={(t) => t?.id}
+            onChange={(deviceTypeId, opt) =>
+              setData({
+                ...data,
+                device_type_id: deviceTypeId,
+                type_name: opt?.type_name || "",
+              })
             }
           />
         </div>
@@ -411,13 +456,19 @@ function ProductForm({ data, setData }) {
         </div>
 
         <div>
-          <label className="form-label">Location Name</label>
-          <input
-            type="text"
-            className="form-input"
-            value={data.location_name || ""}
-            onChange={(e) =>
-              setData({ ...data, location_name: e.target.value })
+          <label className="form-label">Location</label>
+          <SearchableSelect
+            options={locationOptions}
+            value={data.location_id ?? ""}
+            placeholder="Select or type to search…"
+            getOptionLabel={(l) => l?.location_name || ""}
+            getOptionValue={(l) => l?.id}
+            onChange={(locationId, opt) =>
+              setData({
+                ...data,
+                location_id: locationId,
+                location_name: opt?.location_name || "",
+              })
             }
           />
         </div>

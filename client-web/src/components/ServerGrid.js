@@ -26,6 +26,7 @@ export default function ServerGrid({
   showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
   formComponent : FormComponent,
   transformAddPayload,
+  transformEditPayload,
   ...rest               // anything else you want to pass to Grid
 
 }) {
@@ -93,7 +94,7 @@ export default function ServerGrid({
       }
 
       // Clone formData and drop non-updatable fields; backend will decide what to use
-      const payload = { ...formData };
+      let payload = { ...formData };
 
       // Special-case combined "name" field (e.g. Users grid)
       if (typeof payload.name === 'string' && payload.name.trim()) {
@@ -105,6 +106,10 @@ export default function ServerGrid({
       delete payload.id;
       delete payload.created_at;
       delete payload.updated_at;
+
+      if (typeof transformEditPayload === 'function') {
+        payload = transformEditPayload(payload);
+      }
 
       const res = await fetch(updateUrl, {
         method: 'PATCH',
@@ -238,7 +243,7 @@ export default function ServerGrid({
           onCancel={handleCloseAddModal}
           onSave={() => handleAddRow(formData)}
           formComponent={
-            <FormComponent data={formData} setData={setFormData} />
+            <FormComponent data={formData} setData={setFormData} {...rest} />
           } 
         />
       )}
@@ -249,7 +254,7 @@ export default function ServerGrid({
           onCancel={handleCloseEditModal}
           onSave={handleSaveEdit}
           formComponent={
-            <FormComponent data={formData} setData={setFormData} />
+            <FormComponent data={formData} setData={setFormData} {...rest} />
           } 
         />
       )}
