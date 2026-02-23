@@ -11,13 +11,12 @@ import LocationsTest from "./components/LocationsTest";
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         fontSize: '18px'
       }}>
@@ -32,16 +31,11 @@ export default function App() {
         path="/"
         element={isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />}
       />
-      <Route path="/login" element={<Login />} />
-      <Route path="/locations-test" element={<LocationsTest />} />
-
-      
-      {/* Redirect to admin if already authenticated */}
-      <Route 
-        path="/login" 
-        element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />} 
+      <Route
+        path="/login"
+        element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />}
       />
-
+      <Route path="/locations-test" element={<LocationsTest />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={<HomePage />} />

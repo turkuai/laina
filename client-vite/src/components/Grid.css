@@ -194,6 +194,43 @@
   --ag-font-size: 14px;
 }
 
+/* Lightweight data grid table (replaces AG Grid) */
+.grid-wrapper {
+  font-size: 14px;
+}
+
+.data-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.data-grid-table th,
+.data-grid-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-grid-table th {
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+}
+
+.data-grid-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-grid-table th.sortable:hover {
+  background: #f3f4f6;
+}
+
+.data-grid-table tbody tr:hover {
+  background: #f9fafb;
+}
+
 /* Mobile AG Grid Styles */
 @media (max-width: 767px) {
   .ag-theme-alpine {

@@ -31,4 +31,12 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
+    chunkSizeWarningLimit: 2000,
+  },
 })
