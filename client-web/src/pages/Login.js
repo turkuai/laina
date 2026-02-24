@@ -3,6 +3,7 @@ import { useAuth } from "../components/AuthContext";
 import { useState, useEffect } from "react";
 import '../App.css';
 import './Login.css';
+import { imageUrl } from '../utils/config';
 
 export default function Login() {
     const { login, isAuthenticated } = useAuth();
@@ -48,7 +49,7 @@ export default function Login() {
                 <div className="login-header">
                     <div className="login-logo">
                         <img
-                            src="/tai.png"
+                            src={imageUrl('tai.png')}
                             alt="TAI logo"
                             className="login-logo-image"
                         />
@@ -113,7 +114,7 @@ export default function Login() {
                         </div>
                     )}
 
-                    <button 
+                    <button
                         type="submit"
                         className="login-submit-btn"
                         disabled={loading}

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { QrCode, ChevronDown, Settings, LogOut } from 'lucide-react';
 import './Admin.css';
+import { imageUrl } from '../utils/config';
 
 /**
  * Header component - Displays the header with title, user info, and action buttons
@@ -42,7 +43,7 @@ const Header = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, isMobil
     <div className="admin-header">
       <h1 className="admin-logo">
         <img
-          src="/tai.png"
+          src={imageUrl('tai.png')}
           alt="TAI logo"
           className="admin-logo-image"
         />

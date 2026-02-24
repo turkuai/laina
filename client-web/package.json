@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "https://taikukkula.fi/laina/",
-  "proxy": "http://localhost/lainaaminen-projekti/server-php/public/",
+  "proxy": "http://localhost/lainaaminen-projekti/server-php/",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
