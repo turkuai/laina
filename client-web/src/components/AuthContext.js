@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiUrl } from '../utils/config';
 
 const AuthContext = createContext(null);
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await fetch('/api/users/verify', {
+        const response = await fetch(apiUrl('/api/users/verify'), {
           method: 'GET',
           credentials: 'include', // Include cookies in request
           headers: {
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   // Login function - now with rememberMe parameter for httpOnly cookie
   const login = async (username, password, rememberMe = false) => {
     try {
-      const response = await fetch('/api/users/login', {
+      const response = await fetch(apiUrl('/api/users/login'), {
         method: 'POST',
         credentials: 'include', // Include cookies in request
         headers: {
@@ -60,9 +61,9 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        return { 
-          success: false, 
-          error: data.error || 'Invalid username or password' 
+        return {
+          success: false,
+          error: data.error || 'Invalid username or password'
         };
       }
 
@@ -83,9 +84,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: 'Connection error. Please try again.' 
+      return {
+        success: false,
+        error: 'Connection error. Please try again.'
       };
     }
   };
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function - clear httpOnly cookie on server
   const logout = async () => {
     try {
-      await fetch('/api/users/logout', {
+      await fetch(apiUrl('/api/users/logout'), {
         method: 'POST',
         credentials: 'include',
         headers: {

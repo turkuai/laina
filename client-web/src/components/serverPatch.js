@@ -1,3 +1,5 @@
+import { apiUrl } from '../utils/config';
+
 /**
  * Hook for updating data on server
  * @param {string} path - API endpoint path
@@ -13,11 +15,8 @@ export function useServerPatch(path, fetchData, setError) {
     }
 
     try {
-      let updateUrl = `${path.split('?')[0]}/${row.id}`;
-      if (!updateUrl.startsWith('/api/')) {
-        const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
-        updateUrl = `/api/${cleanPath}`;
-      }
+      const rawPath = `${path.split('?')[0]}/${row.id}`;
+      const updateUrl = apiUrl(rawPath.startsWith('/') ? rawPath : `/${rawPath}`);
 
       // Clone row and drop non-updatable fields; backend will decide what to use
       const payload = { ...row };

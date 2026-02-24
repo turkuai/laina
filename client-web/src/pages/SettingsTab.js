@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Admin.css';
+import { apiUrl } from '../utils/config';
 
 /**
  * SettingsTab component - User settings including user details, password change, and logout
@@ -41,7 +42,7 @@ const SettingsTab = ({
     }
 
     try {
-      const response = await fetch(`/api/users/${currentUser?.id}`, {
+      const response = await fetch(apiUrl(`/api/users/${currentUser?.id}`), {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -162,10 +163,10 @@ const SettingsTab = ({
         <h2>Settings</h2>
         <p>Manage your account settings and set e-mail preferences.</p>
       </div>
-      
+
       <div className="settings-layout">
         <div className="settings-sidebar">
-          <button 
+          <button
             className={`settings-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
@@ -181,9 +182,9 @@ const SettingsTab = ({
 
               <div className="settings-form-group">
                 <label>Name</label>
-                <input 
-                  type="text" 
-                  value={currentUser?.name || 'Mohammad Admin'} 
+                <input
+                  type="text"
+                  value={currentUser?.name || 'Mohammad Admin'}
                   readOnly
                   className="settings-input"
                 />
@@ -191,9 +192,9 @@ const SettingsTab = ({
 
               <div className="settings-form-group">
                 <label>Username</label>
-                <input 
-                  type="text" 
-                  value={currentUser?.username || 'admin'} 
+                <input
+                  type="text"
+                  value={currentUser?.username || 'admin'}
                   readOnly
                   className="settings-input"
                 />
@@ -201,9 +202,9 @@ const SettingsTab = ({
 
               <div className="settings-form-group">
                 <label>Role</label>
-                <input 
-                  type="text" 
-                  value={currentUser?.role || 'Administrator'} 
+                <input
+                  type="text"
+                  value={currentUser?.role || 'Administrator'}
                   readOnly
                   className="settings-input"
                 />
@@ -252,16 +253,16 @@ const SettingsTab = ({
               )}
 
               <div className="settings-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="settings-update-btn"
                   onClick={handlePasswordSubmit}
                 >
                   Update Profile
                 </button>
-                <button 
-                  type="button" 
-                  className="settings-logout-btn-new" 
+                <button
+                  type="button"
+                  className="settings-logout-btn-new"
                   onClick={onLogout}
                 >
                   Logout

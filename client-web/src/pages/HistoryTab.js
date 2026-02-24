@@ -20,15 +20,15 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
   const studentColumns = ['product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   // Mobile students: compact, fixed grid (no status, just product + borrow + planned return)
   const studentColumnsMobile = ['product_name', 'borrow_date', 'estimated_return_date'];
-  
+
   const desktopColumns = currentUser?.role === 'admin' ? adminColumns : studentColumns;
   const mobileColumns = currentUser?.role === 'admin' ? adminColumnsMobile : studentColumnsMobile;
 
   // For students, we need to filter by their borrower_id
   // The API endpoint handles this via query parameter or authentication
-  const path = currentUser?.role === 'admin' 
-    ? 'borrowing-history' 
-    : `borrowing-history?borrower_id=${currentUser?.id}`;
+  const path = currentUser?.role === 'admin'
+    ? '/api/borrowing-history'
+    : `/api/borrowing-history?borrower_id=${currentUser?.id}`;
 
   return (
     <>

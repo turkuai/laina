@@ -6,6 +6,7 @@ import { useServerGet } from './serverGet';
 import { useServerPost } from './serverPost';
 import { useServerDelete } from './serverDelete';
 import { useNotification } from './NotificationContext';
+import { apiUrl } from '../utils/config';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -24,7 +25,7 @@ export default function ServerGrid({
   allowDelete = false,
   pageSize = 20,
   showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
-  formComponent : FormComponent,
+  formComponent: FormComponent,
   transformAddPayload,
   ...rest               // anything else you want to pass to Grid
 
@@ -86,11 +87,8 @@ export default function ServerGrid({
     }
 
     try {
-      let updateUrl = `${path.split('?')[0]}/${editingRow.id}`;
-      if (!updateUrl.startsWith('/api/')) {
-        const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
-        updateUrl = `/api/${cleanPath}`;
-      }
+      const rawPath = `${path.split('?')[0]}/${editingRow.id}`;
+      const updateUrl = apiUrl(rawPath.startsWith('/') ? rawPath : `/${rawPath}`);
 
       // Clone formData and drop non-updatable fields; backend will decide what to use
       const payload = { ...formData };
@@ -239,7 +237,7 @@ export default function ServerGrid({
           onSave={() => handleAddRow(formData)}
           formComponent={
             <FormComponent data={formData} setData={setFormData} />
-          } 
+          }
         />
       )}
 
@@ -250,7 +248,7 @@ export default function ServerGrid({
           onSave={handleSaveEdit}
           formComponent={
             <FormComponent data={formData} setData={setFormData} />
-          } 
+          }
         />
       )}
       {/* Pagination Controls */}

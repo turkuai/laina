@@ -1,5 +1,6 @@
 import { useAuth } from '../components/AuthContext';
 import { useNotification } from '../components/NotificationContext';
+import { apiUrl } from '../utils/config';
 
 /**
  * Custom hook for managing user operations (delete, edit, etc.)
@@ -12,7 +13,7 @@ export const useUserManagement = () => {
   // Check if user has active (not yet returned) borrowing records
   const checkBorrowingHistory = async (userId) => {
     try {
-      const res = await fetch(`/api/borrowing-history?borrower_id=${userId}&page=1`, {
+      const res = await fetch(apiUrl(`/api/borrowing-history?borrower_id=${userId}&page=1`), {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -59,7 +60,7 @@ export const useUserManagement = () => {
         showNotification('You cannot delete your own account!', 'error');
         return false; // Prevent deletion
       }
-      
+
       // Check if user has borrowing history / borrowed items
       const hasBorrowingHistory = await checkBorrowingHistory(row.id);
       if (hasBorrowingHistory) {

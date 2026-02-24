@@ -1,4 +1,5 @@
 import { useNotification } from './NotificationContext';
+import { apiUrl } from '../utils/config';
 
 /**
  * Hook for deleting data from server
@@ -17,13 +18,8 @@ export function useServerDelete(path, fetchData, setError) {
     }
 
     try {
-      let deleteUrl = `${path.split('?')[0]}/${row.id}`;
-      // Ensure /api/ prefix if not present; avoid accidental double slashes
-      if (!deleteUrl.startsWith('/api/')) {
-        // Remove leading slash if present to avoid double slashes
-        const cleanPath = deleteUrl.startsWith('/') ? deleteUrl.slice(1) : deleteUrl;
-        deleteUrl = `/api/${cleanPath}`;
-      }
+      const rawPath = `${path.split('?')[0]}/${row.id}`;
+      const deleteUrl = apiUrl(rawPath.startsWith('/') ? rawPath : `/${rawPath}`);
 
       const res = await fetch(deleteUrl, {
         method: 'DELETE',
@@ -36,7 +32,7 @@ export function useServerDelete(path, fetchData, setError) {
       // Try to parse response as JSON, but handle HTML/plain text errors
       let responseData = {};
       const contentType = res.headers.get('content-type') || '';
-      
+
       if (contentType.includes('application/json')) {
         try {
           responseData = await res.json();
@@ -48,20 +44,20 @@ export function useServerDelete(path, fetchData, setError) {
       if (!res.ok) {
         // Check for database constraint errors
         const errorMessage = responseData.error || responseData.message || `Delete failed with status ${res.status}`;
-        
+
         // Check if it's a foreign key constraint error
         const errorStr = String(errorMessage).toLowerCase();
-        if (errorStr.includes('foreign key constraint') || 
-            errorStr.includes('borrow_history') || 
-            errorStr.includes('cannot delete') ||
-            errorStr.includes('1451')) {
+        if (errorStr.includes('foreign key constraint') ||
+          errorStr.includes('borrow_history') ||
+          errorStr.includes('cannot delete') ||
+          errorStr.includes('1451')) {
           showNotification(
             'Cannot delete user because they have borrowing history. Please return all borrowed items first.',
             'error'
           );
           throw new Error('Cannot delete user because they have borrowing history. Please return all borrowed items first.');
         }
-        
+
         showNotification(errorMessage, 'error');
         throw new Error(errorMessage);
       }

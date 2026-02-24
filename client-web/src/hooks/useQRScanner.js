@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getCurrentDate } from '../utils/dateUtils';
 import { useNotification } from '../components/NotificationContext';
+import { apiUrl } from '../utils/config';
 
 /**
  * Custom hook for managing QR scanner state and handlers
@@ -18,16 +19,16 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
   // Fetch product from database by QR code
   const fetchProductByQR = async (qrCode) => {
     try {
-      const res = await fetch('/api/products?page=1', {
+      const res = await fetch(apiUrl('/api/products?page=1'), {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
-      
+
       if (!res.ok) throw new Error('Failed to fetch products');
-      
+
       const data = await res.json();
       const products = Array.isArray(data) ? data : (data.products || data.data || []);
-      
+
       // Find product by qr_code
       const product = products.find(p => p.qr_code === qrCode);
       return product;
@@ -58,7 +59,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
 
     // Fetch product from database using QR code
     const product = await fetchProductByQR(parsed.qr_code);
-    
+
     if (!product) {
       showNotification('Product not found in database. Please check the QR code.', 'error');
       return;
@@ -71,19 +72,19 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
     // Fetch borrowing history to get borrower info if borrowed
     if (dbStatus === 'borrowed') {
       try {
-        const historyRes = await fetch('/api/borrowing-history?page=1', {
+        const historyRes = await fetch(apiUrl('/api/borrowing-history?page=1'), {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         });
-        
+
         if (historyRes.ok) {
           const historyData = await historyRes.json();
           const history = Array.isArray(historyData) ? historyData : (historyData.history || historyData.data || []);
-          const activeBorrow = history.find(h => 
-            h.product_id === product.id && 
+          const activeBorrow = history.find(h =>
+            h.product_id === product.id &&
             (!h.actual_return_date || h.actual_return_date === null)
           );
-          
+
           setScannedProduct({
             id: product.id,
             name: product.product_name,
@@ -132,7 +133,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
 
     try {
       // Update borrowing record to mark as returned
-      const res = await fetch(`/api/borrowing-history/${scannedProduct.borrowId}`, {
+      const res = await fetch(apiUrl(`/api/borrowing-history/${scannedProduct.borrowId}`), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -148,12 +149,12 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
       }
 
       showNotification(`Product "${scannedProduct.name}" returned successfully!`, 'success');
-      
+
       // Refresh products list to show updated status
       if (typeof onProductsRefresh === 'function') {
         onProductsRefresh();
       }
-      
+
       setScannedProduct(null);
       setProductStatus(null);
     } catch (err) {
@@ -189,7 +190,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
       }
 
       // Create borrowing record
-      const res = await fetch('/api/borrowing-history', {
+      const res = await fetch(apiUrl('/api/borrowing-history'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -208,12 +209,12 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
       }
 
       showNotification(`Product "${scannedProduct.name}" borrowed successfully!`, 'success');
-      
+
       // Refresh products list to show updated status
       if (typeof onProductsRefresh === 'function') {
         onProductsRefresh();
       }
-      
+
       setScannedProduct(null);
       setProductStatus(null);
     } catch (err) {

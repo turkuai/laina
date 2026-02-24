@@ -4,6 +4,7 @@ import StatusRenderer from "../components/StatusRenderer";
 import QRCodeRenderer from "../components/QRCodeRenderer";
 import { useNotification } from "../components/NotificationContext";
 import "./Products.css";
+import { apiUrl } from "../utils/config";
 
 export default function ProductsTab({
   currentUser,
@@ -53,8 +54,8 @@ export default function ProductsTab({
     setIsLoadingMeta(true);
     try {
       const [typesRes, locationsRes] = await Promise.all([
-        fetch("/api/device-types", { credentials: "include" }),
-        fetch("/api/locations", { credentials: "include" }),
+        fetch(apiUrl("/api/device-types"), { credentials: "include" }),
+        fetch(apiUrl("/api/locations"), { credentials: "include" }),
       ]);
 
       if (typesRes.ok) {
@@ -114,7 +115,7 @@ export default function ProductsTab({
               status: StatusRenderer,
               qr_code: QRCodeRenderer,
             }}
-            path="/products"
+            path="/api/products"
             allowEditing={currentUser?.role === "admin"}
             allowDelete={currentUser?.role === "admin"}
             pageSize={10}
@@ -172,7 +173,7 @@ export default function ProductsTab({
               <h3 className="meta-title">Locations</h3>
               <ServerGrid
                 columns={["location_name", "description"]}
-                path="locations"
+                path="/api/locations"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
@@ -187,7 +188,7 @@ export default function ProductsTab({
               <h3 className="meta-title">Device types</h3>
               <ServerGrid
                 columns={["type_name"]}
-                path="device-types"
+                path="/api/device-types"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
@@ -271,7 +272,7 @@ export default function ProductsTab({
           "qr_code",
         ]}
         columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
-        path="/products"
+        path="/api/products"
         allowEditing={isAdmin}
         allowDelete={isAdmin}
         pageSize={10}
@@ -320,7 +321,7 @@ export default function ProductsTab({
             <div className="products-meta-modal-content">
               <ServerGrid
                 columns={["location_name", "description"]}
-                path="locations"
+                path="/api/locations"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}
@@ -353,7 +354,7 @@ export default function ProductsTab({
             <div className="products-meta-modal-content">
               <ServerGrid
                 columns={["type_name"]}
-                path="device-types"
+                path="/api/device-types"
                 allowEditing={true}
                 allowDelete={true}
                 pageSize={10}

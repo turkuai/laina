@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { apiUrl } from '../utils/config';
 
 /**
  * Hook for fetching data from server with pagination and search
@@ -19,14 +20,8 @@ export function useServerGet(path, currentPage, query, setData, setTotalPages, s
 
     try {
       // Build the full URL with page parameter
-      let fullUrl = path;
-      // Ensure /api/ prefix if not present; avoid accidental double slashes
-      if (!fullUrl.startsWith('/api/')) {
-        // Remove leading slash if present to avoid double slashes
-        const cleanPath = fullUrl.startsWith('/') ? fullUrl.slice(1) : fullUrl;
-        fullUrl = `/api/${cleanPath}`;
-      }
-      
+      let fullUrl = apiUrl(path.startsWith('/') ? path : `/${path}`);
+
       const separator = fullUrl.includes('?') ? '&' : '?';
       fullUrl = `${fullUrl}${separator}page=${currentPage}`;
 
@@ -73,7 +68,7 @@ export function useServerGet(path, currentPage, query, setData, setTotalPages, s
           `Request failed with status ${res.status}`
         );
       }
-      
+
       // Handle different response structures
       let rows = [];
       let pages = 1;

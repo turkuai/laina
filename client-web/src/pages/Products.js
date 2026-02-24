@@ -5,6 +5,7 @@ import QRCodeRenderer from "../components/QRCodeRenderer";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
 import { useNotification } from "../components/NotificationContext";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { apiUrl } from "../utils/config";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -198,15 +199,15 @@ export default function Products({ currentUser }) {
     try {
       // Fetch products, device types, and locations in parallel
       const [productsRes, typesRes, locationsRes] = await Promise.all([
-        fetch("/api/products?page=1", {
+        fetch(apiUrl("/api/products?page=1"), {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         }),
-        fetch("/api/device-types", {
+        fetch(apiUrl("/api/device-types"), {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         }),
-        fetch("/api/locations?page=1", {
+        fetch(apiUrl("/api/locations?page=1"), {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         }),
@@ -270,7 +271,7 @@ export default function Products({ currentUser }) {
         qr_code: generateHash(), // Generate hash once and send to database
       };
 
-      const response = await fetch("/api/products", {
+      const response = await fetch(apiUrl("/api/products"), {
         method: "POST",
         credentials: "include",
         headers: {
@@ -316,7 +317,7 @@ export default function Products({ currentUser }) {
   const performDelete = async (product) => {
     if (!product?.id) return;
     try {
-      const response = await fetch(`/api/products/${product.id}`, {
+      const response = await fetch(apiUrl(`/api/products/${product.id}`), {
         method: "DELETE",
         credentials: "include",
         headers: {
@@ -345,7 +346,7 @@ export default function Products({ currentUser }) {
       console.error("Error deleting product:", err);
       showNotification(
         err.message ||
-          "Failed to delete product. Please make sure the server is running.",
+        "Failed to delete product. Please make sure the server is running.",
         "error",
       );
     }
@@ -376,7 +377,7 @@ export default function Products({ currentUser }) {
         details: editFormData.details || null,
       };
 
-      const response = await fetch(`/api/products/${editingProduct.id}`, {
+      const response = await fetch(apiUrl(`/api/products/${editingProduct.id}`), {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

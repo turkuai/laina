@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
 import { useNotification } from '../components/NotificationContext';
+import { apiUrl } from '../utils/config';
 
 /**
  * ProductModals component - Desktop modals for product borrow/return actions
@@ -25,7 +26,7 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
     // Fetch users when modal opens
     const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/users', {
+        const res = await fetch(apiUrl('/api/users'), {
           method: 'GET',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
@@ -63,8 +64,8 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
   useEffect(() => {
     // Close dropdown when clicking outside
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
-          inputRef.current && !inputRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        inputRef.current && !inputRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
@@ -131,17 +132,17 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
             <div className="modal-content">
               <div className="info-input-wrapper" style={{ position: 'relative' }}>
                 <label className="info-label">Borrowing to:</label>
-                <input 
-                  type="text" 
-                  placeholder="Type to search user..." 
-                  className="info-input" 
+                <input
+                  type="text"
+                  placeholder="Type to search user..."
+                  className="info-input"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onFocus={() => setShowDropdown(filteredUsers.length > 0)}
                   ref={inputRef}
                 />
                 {showDropdown && filteredUsers.length > 0 && (
-                  <div 
+                  <div
                     ref={dropdownRef}
                     style={{
                       position: 'absolute',
@@ -184,9 +185,9 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
               </div>
               <div className="info-input-wrapper">
                 <label className="info-label">Email:</label>
-                <input 
-                  type="email" 
-                  className="info-input" 
+                <input
+                  type="email"
+                  className="info-input"
                   value={selectedUser?.email || ''}
                   disabled
                   style={{ opacity: 0.6, cursor: 'not-allowed' }}

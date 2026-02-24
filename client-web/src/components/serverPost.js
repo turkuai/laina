@@ -1,4 +1,5 @@
 import { useNotification } from './NotificationContext';
+import { apiUrl } from '../utils/config';
 
 /**
  * Hook for adding new data to server
@@ -15,12 +16,8 @@ export function useServerPost(path, fetchData, setIsAdding, transformAddPayload)
     if (!path) return;
 
     try {
-      let addUrl = path.split('?')[0];
-      // Ensure /api/ prefix if not present
-      if (!addUrl.startsWith('/api/')) {
-        const cleanPath = addUrl.startsWith('/') ? addUrl.slice(1) : addUrl;
-        addUrl = `/api/${cleanPath}`;
-      }
+      const rawPath = path.split('?')[0];
+      const addUrl = apiUrl(rawPath.startsWith('/') ? rawPath : `/${rawPath}`);
 
       // Prepare payload - exclude technical fields
       let payload = { ...newRowData };

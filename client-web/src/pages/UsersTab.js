@@ -48,7 +48,7 @@ export default function UsersTab({
                 'email',
                 'role',
               ]}
-              path="users"
+              path="/api/users"
               allowEditing={true}
               allowDelete={true}
               pageSize={10}
@@ -134,7 +134,7 @@ export default function UsersTab({
             'email',
             'role',
           ]}
-          path="users"
+          path="/api/users"
           allowEditing={true}
           allowDelete={true}
           pageSize={10}
@@ -179,48 +179,48 @@ function UsersForm({ data, setData }) {
     setData((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-  <div className="add-product-form">
-        <div className="add-product-form-grid">
-          <div>
-            <label className="form-label">First name *</label>
-            <input
-              type="text"
-              className="form-input"
-              value={getValue('first_name')}
-              onChange={handleChange('first_name')}
-            />
-          </div>
-          <div>
-            <label className="form-label">Last name *</label>
-            <input
-              type="text"
-              className="form-input"
-              value={getValue('last_name')}
-              onChange={handleChange('last_name')}
-            />
-          </div>
-          <div>
-            <label className="form-label">Email *</label>
-            <input
-              type="email"
-              className="form-input"
-              value={getValue('email')}
-              onChange={handleChange('email')}
-            />
-          </div>
-          <div>
-            <label className="form-label">Role</label>
-            <select
-              className="form-select"
-              value={getValue('role') || 'student'}
-              onChange={handleChange('role')}
-            >
-              <option value="admin">Admin</option>
-              <option value="teacher">Teacher</option>
-              <option value="student">Student</option>
-            </select>
-          </div>
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">First name *</label>
+          <input
+            type="text"
+            className="form-input"
+            value={getValue('first_name')}
+            onChange={handleChange('first_name')}
+          />
+        </div>
+        <div>
+          <label className="form-label">Last name *</label>
+          <input
+            type="text"
+            className="form-input"
+            value={getValue('last_name')}
+            onChange={handleChange('last_name')}
+          />
+        </div>
+        <div>
+          <label className="form-label">Email *</label>
+          <input
+            type="email"
+            className="form-input"
+            value={getValue('email')}
+            onChange={handleChange('email')}
+          />
+        </div>
+        <div>
+          <label className="form-label">Role</label>
+          <select
+            className="form-select"
+            value={getValue('role') || 'student'}
+            onChange={handleChange('role')}
+          >
+            <option value="admin">Admin</option>
+            <option value="teacher">Teacher</option>
+            <option value="student">Student</option>
+          </select>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}

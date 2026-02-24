@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
 import { useNotification } from '../components/NotificationContext';
+import { apiUrl } from '../utils/config';
 
 /**
  * MobileProductModal component - Mobile-only modal popup for scanned QR code products
@@ -26,7 +27,7 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
     // Fetch users when modal opens
     const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/users', {
+        const res = await fetch(apiUrl('/api/users'), {
           method: 'GET',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
@@ -64,8 +65,8 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
   useEffect(() => {
     // Close dropdown when clicking outside
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
-          inputRef.current && !inputRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        inputRef.current && !inputRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
@@ -106,9 +107,9 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
         <button onClick={onClose} className="mobile-product-modal-close" aria-label="Close">
           ×
         </button>
-        
+
         <h2 className="mobile-product-modal-title">{scannedProduct.name}</h2>
-        
+
         <div className="mobile-product-modal-status">
           {productStatus === 'borrowed' ? 'Lainassa' : 'Vapaa'}
         </div>
@@ -146,7 +147,7 @@ const MobileProductModal = ({ scannedProduct, productStatus, onClose, onReturn, 
                   ref={inputRef}
                 />
                 {showDropdown && filteredUsers.length > 0 && (
-                  <div 
+                  <div
                     ref={dropdownRef}
                     className="mobile-product-modal-dropdown"
                   >
