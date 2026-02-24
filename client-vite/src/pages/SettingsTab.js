@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Admin.css';
+import { getApiBase } from '../config';
 
 /**
  * SettingsTab component - User settings including user details, password change, and logout
@@ -41,7 +42,7 @@ const SettingsTab = ({
     }
 
     try {
-      const response = await fetch(`/api/users/${currentUser?.id}`, {
+      const response = await fetch(`${getApiBase()}/api/users/${currentUser?.id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {

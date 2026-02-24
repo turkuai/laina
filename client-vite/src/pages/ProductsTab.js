@@ -3,6 +3,7 @@ import ServerGrid from "../components/ServerGrid";
 import StatusRenderer from "../components/StatusRenderer";
 import QRCodeRenderer from "../components/QRCodeRenderer";
 import { useNotification } from "../components/NotificationContext";
+import { getApiBase } from "../config";
 import "./Products.css";
 
 export default function ProductsTab({
@@ -52,9 +53,10 @@ export default function ProductsTab({
   const fetchMetadata = async () => {
     setIsLoadingMeta(true);
     try {
+      const base = getApiBase();
       const [typesRes, locationsRes] = await Promise.all([
-        fetch("/api/device-types", { credentials: "include" }),
-        fetch("/api/locations", { credentials: "include" }),
+        fetch(`${base}/api/device-types`, { credentials: "include" }),
+        fetch(`${base}/api/locations`, { credentials: "include" }),
       ]);
 
       if (typesRes.ok) {

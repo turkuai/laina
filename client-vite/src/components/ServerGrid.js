@@ -6,6 +6,7 @@ import { useServerGet } from './serverGet';
 import { useServerPost } from './serverPost';
 import { useServerDelete } from './serverDelete';
 import { useNotification } from './NotificationContext';
+import { getApiBase } from '../config';
 
 // Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
@@ -106,7 +107,7 @@ export default function ServerGrid({
       delete payload.created_at;
       delete payload.updated_at;
 
-      const res = await fetch(updateUrl, {
+      const res = await fetch(getApiBase() + updateUrl, {
         method: 'PATCH',
         credentials: 'include',
         headers: {

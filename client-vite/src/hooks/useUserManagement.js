@@ -1,5 +1,6 @@
 import { useAuth } from '../components/AuthContext';
 import { useNotification } from '../components/NotificationContext';
+import { getApiBase } from '../config';
 
 /**
  * Custom hook for managing user operations (delete, edit, etc.)
@@ -12,7 +13,7 @@ export const useUserManagement = () => {
   // Check if user has active (not yet returned) borrowing records
   const checkBorrowingHistory = async (userId) => {
     try {
-      const res = await fetch(`/api/borrowing-history?borrower_id=${userId}&page=1`, {
+      const res = await fetch(`${getApiBase()}/api/borrowing-history?borrower_id=${userId}&page=1`, {
         method: 'GET',
         credentials: 'include',
         headers: {

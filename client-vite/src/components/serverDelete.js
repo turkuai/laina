@@ -1,4 +1,5 @@
 import { useNotification } from './NotificationContext';
+import { getApiBase } from '../config';
 
 /**
  * Hook for deleting data from server
@@ -25,7 +26,7 @@ export function useServerDelete(path, fetchData, setError) {
         deleteUrl = `/api/${cleanPath}`;
       }
 
-      const res = await fetch(deleteUrl, {
+      const res = await fetch(getApiBase() + deleteUrl, {
         method: 'DELETE',
         credentials: 'include', // Include httpOnly cookies
         headers: {
