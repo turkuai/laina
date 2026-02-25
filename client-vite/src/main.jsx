@@ -47,7 +47,11 @@ function loadEnv() {
       }).catch(() => renderApp());
     });
 }
-loadEnv();
+if (import.meta.env.DEV) {
+  renderApp();
+} else {
+  loadEnv();
+}
 
 function renderApp() {
   root.render(
