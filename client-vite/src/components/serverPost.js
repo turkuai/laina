@@ -1,4 +1,5 @@
 import { useNotification } from './NotificationContext';
+import { getApiBase } from '../config';
 
 /**
  * Hook for adding new data to server
@@ -32,7 +33,7 @@ export function useServerPost(path, fetchData, setIsAdding, transformAddPayload)
         payload = transformAddPayload(payload, { path });
       }
 
-      const res = await fetch(addUrl, {
+      const res = await fetch(getApiBase() + addUrl, {
         method: 'POST',
         credentials: 'include',
         headers: {

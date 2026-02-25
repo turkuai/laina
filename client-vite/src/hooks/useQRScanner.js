@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { getCurrentDate } from '../utils/dateUtils';
 import { useNotification } from '../components/NotificationContext';
+import { getApiBase } from '../config';
 
 /**
  * Custom hook for managing QR scanner state and handlers
@@ -18,7 +18,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
   // Fetch product from database by QR code
   const fetchProductByQR = async (qrCode) => {
     try {
-      const res = await fetch('/api/products?page=1', {
+      const res = await fetch(`${getApiBase()}/api/products?page=1`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -71,7 +71,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
     // Fetch borrowing history to get borrower info if borrowed
     if (dbStatus === 'borrowed') {
       try {
-        const historyRes = await fetch('/api/borrowing-history?page=1', {
+        const historyRes = await fetch(`${getApiBase()}/api/borrowing-history?page=1`, {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -132,7 +132,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
 
     try {
       // Update borrowing record to mark as returned
-      const res = await fetch(`/api/borrowing-history/${scannedProduct.borrowId}`, {
+      const res = await fetch(`${getApiBase()}/api/borrowing-history/${scannedProduct.borrowId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -189,7 +189,7 @@ export const useQRScanner = (onProductsRefresh, currentUser) => {
       }
 
       // Create borrowing record
-      const res = await fetch('/api/borrowing-history', {
+      const res = await fetch(`${getApiBase()}/api/borrowing-history`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

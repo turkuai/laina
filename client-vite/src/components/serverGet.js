@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { getApiBase } from '../config';
 
 /**
  * Hook for fetching data from server with pagination and search
@@ -36,7 +37,7 @@ export function useServerGet(path, currentPage, query, setData, setTotalPages, s
         fullUrl = `${fullUrl}&search=${encodeURIComponent(trimmedQuery)}`;
       }
 
-      const res = await fetch(fullUrl, {
+      const res = await fetch(getApiBase() + fullUrl, {
         method: 'GET',
         credentials: 'include', // Include httpOnly cookies
         headers: {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Admin.css';
 import { useNotification } from '../components/NotificationContext';
+import { getApiBase } from '../config';
 
 /**
  * ProductModals component - Desktop modals for product borrow/return actions
@@ -25,7 +26,7 @@ const ProductModals = ({ scannedProduct, productStatus, onClose, onReturn, onBor
     // Fetch users when modal opens
     const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/users', {
+        const res = await fetch(`${getApiBase()}/api/users`, {
           method: 'GET',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
