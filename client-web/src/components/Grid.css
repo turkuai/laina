@@ -187,6 +187,86 @@
   background-color: #b91c1c;
 }
 
+/* ================================
+   INLINE EDIT
+================================ */
+.icon-btn.inline-save {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+.icon-btn.inline-save:hover {
+  background: #dcfce7;
+}
+
+.icon-btn.inline-cancel {
+  border-color: #e5e7eb;
+  background: #f9fafb;
+}
+.icon-btn.inline-cancel:hover {
+  background: #f3f4f6;
+}
+
+.icon-btn.danger.confirm-delete {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  min-width: 70px;
+}
+.icon-btn.danger.confirm-delete:hover {
+  background: #fecaca;
+}
+
+.confirm-delete-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #dc2626;
+  white-space: nowrap;
+}
+
+.server-grid-inline-add {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.server-grid-inline-add-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+}
+
+.server-grid-inline-save-btn {
+  padding: 0.4rem 1rem;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.server-grid-inline-save-btn:hover {
+  background-color: #15803d;
+}
+
+.server-grid-inline-cancel-btn {
+  padding: 0.4rem 1rem;
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.server-grid-inline-cancel-btn:hover {
+  background-color: #4b5563;
+}
+
 .ag-theme-alpine {
   --ag-header-background-color: #f9fafb;
   --ag-header-foreground-color: #374151;

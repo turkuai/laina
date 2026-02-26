@@ -27,6 +27,7 @@ export default function ServerGrid({
   formComponent : FormComponent,
   transformAddPayload,
   transformEditPayload,
+  inlineEdit = false,   // When true, add/edit/delete happen inline (no popups)
   ...rest               // anything else you want to pass to Grid
 
 }) {
@@ -68,10 +69,16 @@ export default function ServerGrid({
       console.error('Row has no ID');
       return;
     }
-    // Set form data to row's data and open edit dialog
-    setFormData({ ...row });
-    setEditingRow(row);
-    setIsEditing(true);
+    if (inlineEdit) {
+      // For inline editing, just mark which row is being edited (AG Grid handles the rest)
+      setEditingRow(row);
+      setIsEditing(true);
+    } else {
+      // Set form data to row's data and open edit dialog
+      setFormData({ ...row });
+      setEditingRow(row);
+      setIsEditing(true);
+    }
   };
 
   const handleCloseEditModal = () => {
@@ -163,6 +170,78 @@ export default function ServerGrid({
     setFormData({});
   };
 
+  // Inline edit: save edited row data directly from AG Grid
+  const handleInlineSaveEdit = async (updatedRowData) => {
+    if (!updatedRowData || !updatedRowData.id) {
+      console.error('No row data to save');
+      return;
+    }
+    try {
+      let updateUrl = `${path.split('?')[0]}/${updatedRowData.id}`;
+      if (!updateUrl.startsWith('/api/')) {
+        const cleanPath = updateUrl.startsWith('/') ? updateUrl.slice(1) : updateUrl;
+        updateUrl = `/api/${cleanPath}`;
+      }
+
+      let payload = { ...updatedRowData };
+      if (typeof payload.name === 'string' && payload.name.trim()) {
+        const parts = payload.name.trim().split(/\s+/);
+        payload.first_name = parts[0];
+        payload.last_name = parts.slice(1).join(' ') || '';
+      }
+      delete payload.name;
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+
+      if (typeof transformEditPayload === 'function') {
+        payload = transformEditPayload(payload);
+      }
+
+      const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        let msg = 'Failed to update item';
+        try {
+          const errorData = await res.json();
+          msg = errorData.error || errorData.message || msg;
+        } catch (_) { /* ignore */ }
+        throw new Error(msg);
+      }
+
+      await fetchData();
+      setEditingRow(null);
+      setIsEditing(false);
+      showNotification('Item updated successfully!', 'success');
+    } catch (err) {
+      console.error('Inline edit error:', err);
+      showNotification(err.message || 'Failed to update item', 'error');
+    }
+  };
+
+  // Inline edit: cancel and restore original data
+  const handleCancelInlineEdit = () => {
+    setEditingRow(null);
+    setIsEditing(false);
+    fetchData(); // Re-fetch to discard unsaved cell edits
+  };
+
+  // Inline delete: called directly from Grid's double-click confirmation
+  const handleInlineDeleteRow = async (row) => {
+    if (!row || !row.id) return;
+    setIsDeleting(true);
+    try {
+      await performDelete(row);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Create column configuration with display names
   const columnConfig = columns.map(col => ({
     field: col,
@@ -182,21 +261,45 @@ export default function ServerGrid({
         </div>
       )}
 
-      {/* Add Button */}
+      {/* Add Button + Inline Add Form */}
       {showAddButton && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginBottom: '1rem'
-        }}>
-          <button
-            onClick={handleAdd}
-            className="server-grid-add-button"
-            type="button"
-          >
-            <span className="server-grid-add-button__icon">+</span>
-            <span className="server-grid-add-button__label">Add</span>
-          </button>
+        <div style={{ marginBottom: '1rem' }}>
+          {/* Inline Add Form (visible when inlineEdit && isAdding) */}
+          {inlineEdit && isAdding && FormComponent && (
+            <div className="server-grid-inline-add">
+              <FormComponent data={formData} setData={setFormData} {...rest} />
+              <div className="server-grid-inline-add-actions">
+                <button
+                  onClick={() => handleAddRow(formData)}
+                  className="server-grid-inline-save-btn"
+                  type="button"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={handleCloseAddModal}
+                  className="server-grid-inline-cancel-btn"
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Add Button (hidden when inline add form is open) */}
+          {!(inlineEdit && isAdding) && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleAdd}
+                className="server-grid-add-button"
+                type="button"
+              >
+                <span className="server-grid-add-button__icon">+</span>
+                <span className="server-grid-add-button__label">Add</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -208,11 +311,16 @@ export default function ServerGrid({
         allowDelete={allowDelete}
         pageSize={pageSize}
         onEditRow={handleEditRequest}
-        onDeleteRow={handleDeleteRequest}
+        onDeleteRow={inlineEdit ? handleInlineDeleteRow : handleDeleteRequest}
+        inlineEdit={inlineEdit}
+        editingRowId={isEditing && editingRow ? editingRow.id : null}
+        onSaveRow={handleInlineSaveEdit}
+        onCancelEdit={handleCancelInlineEdit}
         {...rest}
       />
 
-      {deleteTarget && (
+      {/* Popup Delete - only when NOT inlineEdit */}
+      {!inlineEdit && deleteTarget && (
         <ConfirmDialog
           isOpen={!!deleteTarget}
           title="Confirm deletion"
@@ -237,7 +345,8 @@ export default function ServerGrid({
         />
       )}
 
-      {isAdding && FormComponent && (
+      {/* Popup Add - only when NOT inlineEdit */}
+      {!inlineEdit && isAdding && FormComponent && (
         <ServerGridEditDialog
           isEditing={false}
           onCancel={handleCloseAddModal}
@@ -248,7 +357,8 @@ export default function ServerGrid({
         />
       )}
 
-      {isEditing && FormComponent && editingRow && (
+      {/* Popup Edit - only when NOT inlineEdit */}
+      {!inlineEdit && isEditing && FormComponent && editingRow && (
         <ServerGridEditDialog
           isEditing={true}
           onCancel={handleCloseEditModal}
