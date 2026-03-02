@@ -1,6 +1,8 @@
 <?php
 // server-php/app/routes/users.php
 
+require_once __DIR__ . '/../helpers/Mailer.php';
+
 /**
  * Handle /api/users, /api/users/{id}, and auth subroutes like
  * /api/users/login, /api/users/logout, /api/users/verify
@@ -135,18 +137,19 @@ function create_user(PDO $pdo): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    $username     = $input['username']     ?? null;
-    $firstName    = $input['first_name']   ?? null;
-    $lastName     = $input['last_name']    ?? null;
-    $email        = $input['email']        ?? null;
-    $password     = $input['password']     ?? null;
-    $role         = $input['role']         ?? 'student';
-    $phoneNumber  = $input['phone_number'] ?? null;
+    $username    = $input['username']     ?? null;
+    $firstName   = $input['first_name']   ?? null;
+    $lastName    = $input['last_name']    ?? null;
+    $email       = $input['email']        ?? null;
+    $role        = $input['role']         ?? 'student';
+    $phoneNumber = $input['phone_number'] ?? null;
 
-    if (!$username || !$email || !$password || !$firstName || !$lastName) {
+    if (!$username || !$email || !$firstName || !$lastName) {
         json_response(['error' => 'Missing required fields'], 400);
     }
 
+    // Generate password server-side
+    $password       = generate_password();
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
     $stmt = $pdo->prepare(
@@ -165,6 +168,15 @@ function create_user(PDO $pdo): void
 
     $id = $pdo->lastInsertId();
 
+    // Send welcome email with the plain-text password
+    $config = require __DIR__ . '/../config/config.php';
+    $mailer = new Mailer($config['mail'] ?? []);
+    $sent   = $mailer->sendWelcomeEmail($email, $firstName, $lastName, $username, $password);
+
+    if (!$sent) {
+        error_log("Welcome email could not be sent to {$email}");
+    }
+
     json_response([
         'id'           => (int)$id,
         'username'     => $username,
@@ -174,6 +186,17 @@ function create_user(PDO $pdo): void
         'role'         => $role,
         'phone_number' => $phoneNumber,
     ], 201);
+}
+
+function generate_password(int $length = 12): string
+{
+    // Exclude visually confusable characters (0, O, 1, I, l)
+    $chars    = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    $password = '';
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $password;
 }
 
 function update_user(PDO $pdo, string $id): void
