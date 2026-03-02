@@ -58,23 +58,17 @@ export default function UsersTab({
               transformAddPayload={(payload) => {
                 const email = (payload.email || '').trim();
                 const first = (payload.first_name || '').trim();
-                const last = (payload.last_name || '').trim();
+                const last  = (payload.last_name  || '').trim();
                 const baseUser =
                   email && email.includes('@')
                     ? email.split('@')[0]
                     : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let pwd = '';
-                for (let i = 0; i < 10; i++) {
-                  pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
                 return {
-                  username: baseUser,
-                  first_name: first,
-                  last_name: last,
+                  username:     baseUser,
+                  first_name:   first,
+                  last_name:    last,
                   email,
-                  role: payload.role || 'student',
-                  password: pwd,
+                  role:         payload.role || 'student',
                   phone_number: null,
                 };
               }}
@@ -144,23 +138,17 @@ export default function UsersTab({
           transformAddPayload={(payload) => {
             const email = (payload.email || '').trim();
             const first = (payload.first_name || '').trim();
-            const last = (payload.last_name || '').trim();
+            const last  = (payload.last_name  || '').trim();
             const baseUser =
               email && email.includes('@')
                 ? email.split('@')[0]
                 : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let pwd = '';
-            for (let i = 0; i < 10; i++) {
-              pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
             return {
-              username: baseUser,
-              first_name: first,
-              last_name: last,
+              username:     baseUser,
+              first_name:   first,
+              last_name:    last,
               email,
-              role: payload.role || 'student',
-              password: pwd,
+              role:         payload.role || 'student',
               phone_number: null,
             };
           }}
