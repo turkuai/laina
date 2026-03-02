@@ -154,3 +154,12 @@ Tämä käynnistää sovelluksen nodemon-työkalulla, joka uudelleenkäynnistä�
 
 **Portti 3000 on jo käytössä**
 - Muuta porttia `.env` -tiedostossa tai käytä komentoa: `PORT=3001 npm start`
+
+
+
+
+
+Mobile styles: 
+set add button in server grid desktop to hidden ( mobile )
+make it on mobile only a + not an add at the top refer to picture. so " hid the add but make it plus at the top "
+making it hidden because its used on desktop
