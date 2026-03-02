@@ -59,22 +59,28 @@ export default function UsersTab({
                 const email = (payload.email || '').trim();
                 const first = (payload.first_name || '').trim();
                 const last = (payload.last_name || '').trim();
+                const password = (payload.password || '').trim();
+                const confirmPassword = (payload.confirmPassword || '').trim();
                 const baseUser =
                   email && email.includes('@')
                     ? email.split('@')[0]
                     : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let pwd = '';
-                for (let i = 0; i < 10; i++) {
-                  pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+
+                if (!password || !confirmPassword) {
+                  throw new Error('Password and confirm password are required');
                 }
+
+                if (password !== confirmPassword) {
+                  throw new Error('Passwords do not match');
+                }
+
                 return {
                   username: baseUser,
                   first_name: first,
                   last_name: last,
                   email,
                   role: payload.role || 'student',
-                  password: pwd,
+                  password,
                   phone_number: null,
                 };
               }}
@@ -145,22 +151,28 @@ export default function UsersTab({
             const email = (payload.email || '').trim();
             const first = (payload.first_name || '').trim();
             const last = (payload.last_name || '').trim();
+            const password = (payload.password || '').trim();
+            const confirmPassword = (payload.confirmPassword || '').trim();
             const baseUser =
               email && email.includes('@')
                 ? email.split('@')[0]
                 : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let pwd = '';
-            for (let i = 0; i < 10; i++) {
-              pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+
+            if (!password || !confirmPassword) {
+              throw new Error('Password and confirm password are required');
             }
+
+            if (password !== confirmPassword) {
+              throw new Error('Passwords do not match');
+            }
+
             return {
               username: baseUser,
               first_name: first,
               last_name: last,
               email,
               role: payload.role || 'student',
-              password: pwd,
+              password,
               phone_number: null,
             };
           }}
@@ -174,53 +186,76 @@ export default function UsersTab({
 
 
 function UsersForm({ data, setData }) {
+  const isEditing = !!(data && data.id);
   const getValue = (field) => (data && data[field]) || '';
   const handleChange = (field) => (e) =>
     setData((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-  <div className="add-product-form">
-        <div className="add-product-form-grid">
-          <div>
-            <label className="form-label">First name *</label>
-            <input
-              type="text"
-              className="form-input"
-              value={getValue('first_name')}
-              onChange={handleChange('first_name')}
-            />
-          </div>
-          <div>
-            <label className="form-label">Last name *</label>
-            <input
-              type="text"
-              className="form-input"
-              value={getValue('last_name')}
-              onChange={handleChange('last_name')}
-            />
-          </div>
-          <div>
-            <label className="form-label">Email *</label>
-            <input
-              type="email"
-              className="form-input"
-              value={getValue('email')}
-              onChange={handleChange('email')}
-            />
-          </div>
-          <div>
-            <label className="form-label">Role</label>
-            <select
-              className="form-select"
-              value={getValue('role') || 'student'}
-              onChange={handleChange('role')}
-            >
-              <option value="admin">Admin</option>
-              <option value="teacher">Teacher</option>
-              <option value="student">Student</option>
-            </select>
-          </div>
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">First name *</label>
+          <input
+            type="text"
+            className="form-input"
+            value={getValue('first_name')}
+            onChange={handleChange('first_name')}
+          />
         </div>
+        <div>
+          <label className="form-label">Last name *</label>
+          <input
+            type="text"
+            className="form-input"
+            value={getValue('last_name')}
+            onChange={handleChange('last_name')}
+          />
+        </div>
+        <div>
+          <label className="form-label">Email *</label>
+          <input
+            type="email"
+            className="form-input"
+            value={getValue('email')}
+            onChange={handleChange('email')}
+          />
+        </div>
+        <div>
+          <label className="form-label">Role</label>
+          <select
+            className="form-select"
+            value={getValue('role') || 'student'}
+            onChange={handleChange('role')}
+          >
+            <option value="admin">Admin</option>
+            <option value="teacher">Teacher</option>
+            <option value="student">Student</option>
+          </select>
+        </div>
+        {!isEditing && (
+          <>
+            <div>
+              <label className="form-label">Password *</label>
+              <input
+                type="password"
+                className="form-input"
+                value={getValue('password')}
+                onChange={handleChange('password')}
+              />
+            </div>
+            <div>
+              <label className="form-label">Confirm password *</label>
+              <input
+                type="password"
+                className="form-input"
+                value={getValue('confirmPassword')}
+                onChange={handleChange('confirmPassword')}
+              />
+            </div>
+          </>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
+}
