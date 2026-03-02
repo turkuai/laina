@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ServerGrid from '../components/ServerGrid';
 import SearchBox from '../components/SearchBox';
 import { useNotification } from '../components/NotificationContext';
 import './Admin.css';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * UsersTab component
  * 
  * Extracted from Admin.js - handles both mobile and desktop user management views
  * Uses CSS classes for responsive visibility instead of conditional rendering
+ * Search is debounced: waits 300ms after last keystroke before triggering the API.
  * 
  * Props:
  * - currentUser: Current logged in user object
- * - query: Search query string
+ * - query: Search query string (debounced value used for API)
  * - onQueryChange: Callback function for search query changes
  * - onDeleteUser: Callback function for deleting a user
  */
@@ -23,7 +26,31 @@ export default function UsersTab({
   onDeleteUser,
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [inputValue, setInputValue] = useState(query || '');
+  const debounceRef = useRef(null);
   const { showNotification } = useNotification();
+
+  // Sync input from parent query (e.g. when debounced update lands or initial load)
+  useEffect(() => {
+    setInputValue(query || '');
+  }, [query]);
+
+  // Debounce: only call onQueryChange 300ms after last keystroke
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      onQueryChange(value);
+    }, SEARCH_DEBOUNCE_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   return (
     <>
@@ -32,8 +59,8 @@ export default function UsersTab({
         <div className="mobile-content-section">
           <h2>Users Management</h2>
           <SearchBox
-            value={query || ''}
-            onChange={(e) => onQueryChange(e.target.value)}
+            value={inputValue}
+            onChange={handleSearchChange}
           />
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
@@ -124,8 +151,8 @@ export default function UsersTab({
           <input
             type="text"
             placeholder="Search ..."
-            value={query || ''}
-            onChange={(e) => onQueryChange(e.target.value)}
+            value={inputValue}
+            onChange={handleSearchChange}
           />
         </div>
         <ServerGrid
