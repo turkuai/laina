@@ -114,54 +114,50 @@ export default function HomePage({ productsData }) {
         />
       )}
 
-      {/* Mobile Content - Render based on active tab */}
+      {/* Mobile Content - only mount the active tab to avoid heavy background grids */}
       {isMobile && (
         <>
           {/* Mobile Users tab */}
-          {currentUser?.role === 'admin' && (
-            <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
-              <UsersTab
-                currentUser={currentUser}
-                query={userQuery}
-                onQueryChange={setUserQuery}
-                onDeleteUser={handleDeleteUser}
-              />
-            </div>
+          {currentUser?.role === 'admin' && activeTab === 'users' && (
+            <UsersTab
+              currentUser={currentUser}
+              query={userQuery}
+              onQueryChange={setUserQuery}
+              onDeleteUser={handleDeleteUser}
+            />
           )}
 
           {/* Mobile Products tab */}
-          <div
-            style={{ display: activeTab === 'products' ? 'block' : 'none' }}
-            className="mobile-tab-content"
-          >
-            <div className="mobile-content-section">
-              <Products
-                key={productsRefreshKey}
-                currentUser={currentUser}
-                productsData={productsData}
-                query={userQuery}
-              />
+          {activeTab === 'products' && (
+            <div className="mobile-tab-content">
+              <div className="mobile-content-section">
+                <Products
+                  key={productsRefreshKey}
+                  currentUser={currentUser}
+                  productsData={productsData}
+                  query={userQuery}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Mobile History tab */}
-          <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
+          {activeTab === 'history' && (
             <HistoryTab
               currentUser={currentUser}
               query={userQuery}
               onQueryChange={setUserQuery}
             />
-          </div>
+          )}
 
           {/* Mobile Settings tab */}
-          <div
-            style={{ display: activeTab === 'settings' ? 'block' : 'none' }}
-            className="mobile-tab-content"
-          >
-            <div className="mobile-content-section">
-              <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
+          {activeTab === 'settings' && (
+            <div className="mobile-tab-content">
+              <div className="mobile-content-section">
+                <SettingsTab currentUser={currentUser} onLogout={handleLogout} />
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
 
