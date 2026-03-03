@@ -5,7 +5,24 @@ export default function InfiniteTest() {
   return (
     <>
       <div>InfiniteTest</div>
-      <DataSetView data={getData(1, 27)} render={null} loadNextPage={null} />
+
+      <div style={{ height: "35rem" }}>
+        <DataSetView
+          data={getData(1, 127)}
+          render={Renderer}
+          loadPage={async (page) => getData(page, 127)}
+        />
+      </div>
+    </>
+  );
+}
+
+function Renderer({ data }) {
+  return (
+    <>
+      <div>
+        ID: {data.id} NAME: {data.name}
+      </div>
     </>
   );
 }
@@ -17,17 +34,16 @@ function getData(page, count) {
       id: count * (page - 1) + i,
       name: randomNameGenerator(10),
     };
-    results.push(item)
+    results.push(item);
   }
   return results;
 }
 
-
-const randomNameGenerator = num => {
-   let res = '';
-   for(let i = 0; i < num; i++){
-      const random = Math.floor(Math.random() * 27);
-      res += String.fromCharCode(97 + random);
-   };
-   return res;
+const randomNameGenerator = (num) => {
+  let res = "";
+  for (let i = 0; i < num; i++) {
+    const random = Math.floor(Math.random() * 27);
+    res += String.fromCharCode(97 + random);
+  }
+  return res;
 };
