@@ -36,6 +36,7 @@ function loadEnv() {
       const env = parseEnv(text);
       const url = env.API_BASE_URL || env.VITE_API_BASE_URL;
       if (url && url !== 'undefined') window.__API_BASE__ = url;
+      window.__API_BASE__ = window.__API_BASE__ || getBasename();
       renderApp();
     })
   .catch(() => {
@@ -43,11 +44,16 @@ function loadEnv() {
         const env = parseEnv(text);
         const url = env.API_BASE_URL || env.VITE_API_BASE_URL;
         if (url && url !== 'undefined') window.__API_BASE__ = url;
+        window.__API_BASE__ = window.__API_BASE__ || getBasename();
         renderApp();
-      }).catch(() => renderApp());
+      }).catch(() => {
+        window.__API_BASE__ = window.__API_BASE__ || getBasename();
+        renderApp();
+      });
     });
 }
 if (import.meta.env.DEV) {
+  window.__API_BASE__ = window.__API_BASE__ || getBasename();
   renderApp();
 } else {
   loadEnv();

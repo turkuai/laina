@@ -1,23 +1,16 @@
 <?php
-$env = require __DIR__ . '/env.php';
+// server-php/app/config/config.php
 
 return [
     'db' => [
-        'host'     => $env['DB_HOST'] ?? '127.0.0.1',
-        'port'     => (int)($env['DB_PORT'] ?? 3306),
-        'database' => $env['DB_NAME'] ?? 'lainaaminen',
-        'user'     => $env['DB_USER'] ?? 'root',
-        'password' => $env['DB_PASSWORD'] ?? '',
-        'charset'  => $env['DB_CHARSET'] ?? 'utf8mb4',
+        'host'     => '127.0.0.1',
+        'port'     => 3306,
+        'database' => 'lainaaminen',   // change to your DB name
+        'user'     => 'root',          // XAMPP default, change if needed
+        'password' => '',              // XAMPP default, change if needed
+        'charset'  => 'utf8mb4',
     ],
-    'auth_secret' => $env['AUTH_SECRET'] ?? 'supersecretjwtkey',
-    'mail' => [
-        'host'         => $env['MAIL_HOST']         ?? '',
-        'port'         => (int)($env['MAIL_PORT']   ?? 587),
-        'username'     => $env['MAIL_USERNAME']      ?? '',
-        'password'     => $env['MAIL_PASSWORD']      ?? '',
-        'encryption'   => $env['MAIL_ENCRYPTION']    ?? 'tls',
-        'from_address' => $env['MAIL_FROM_ADDRESS']  ?? '',
-        'from_name'    => $env['MAIL_FROM_NAME']     ?? 'Borrowing System',
-    ],
+    // Secret used to sign authentication tokens (similar to JWT secret)
+    'auth_secret' => 'supersecretjwtkey', // change to a strong random string
 ];
+
