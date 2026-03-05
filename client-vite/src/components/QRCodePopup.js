@@ -16,9 +16,9 @@ function QRCodePopup({ ref, product, onClose }) {
     qr_code: product.qr_code,
   });
 
-  const handleDownload = async () => {
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(productData)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(productData)}`;
 
+  const handleDownload = async () => {
     try {
       const blob = await generateQRCodeWithInfo(qrUrl, product);
       const url = window.URL.createObjectURL(blob);
@@ -33,6 +33,16 @@ function QRCodePopup({ ref, product, onClose }) {
       console.error("Error generating QR code with info:", error);
       showNotification("Failed to download QR code. Please try again.", "error");
     }
+  };
+
+   const handlePrint = () => {
+    if (dialog.current) dialog.current.classList.add("print-qr-card");
+    window.print();
+    const removePrintClass = () => {
+      if (dialog.current) dialog.current.classList.remove("print-qr-card");
+      window.removeEventListener("afterprint", removePrintClass);
+    };
+    window.addEventListener("afterprint", removePrintClass);
   };
 
   const dialog = React.useRef(null);
@@ -107,9 +117,7 @@ function QRCodePopup({ ref, product, onClose }) {
           )}
           <img
             className="qr-code-image"
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(
-              productData,
-            )}`}
+            src={qrUrl}
             alt="QR code for this product"
             onLoad={() => setQrLoading(false)}
             onError={() => setQrLoading(false)}

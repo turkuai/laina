@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import HomePage from "./pages/HomePage";
 import BorrowPage from "./pages/BorrowPage";
 import LocationsTest from "./components/LocationsTest";
+import InfiniteTest from './pages/InfiniteTest';
 
 
 export default function App() {
@@ -35,7 +36,7 @@ export default function App() {
         path="/login"
         element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />}
       />
-      <Route path="/locations-test" element={<LocationsTest />} />
+      <Route path="/infinite-test" element={<InfiniteTest />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={<HomePage />} />

@@ -7,4 +7,3 @@ RewriteRule ^ - [L]
 
 # Otherwise, route everything to index.php
 RewriteRule ^ index.php [L]
-

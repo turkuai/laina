@@ -10,6 +10,7 @@ import { getApiBase } from "../config";
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
   const [qrLoading, setQrLoading] = useState(true);
+  const overlayRef = useRef(null);
 
   if (!product) return null;
 
@@ -50,8 +51,18 @@ const ProductModal = ({ product, onClose }) => {
     }
   };
 
+  const handlePrint = () => {
+    if (overlayRef.current) overlayRef.current.classList.add("print-qr-card");
+    window.print();
+    const removePrintClass = () => {
+      if (overlayRef.current) overlayRef.current.classList.remove("print-qr-card");
+      window.removeEventListener("afterprint", removePrintClass);
+    };
+    window.addEventListener("afterprint", removePrintClass);
+  };
+
   return (
-    <div className="product-modal-overlay" onClick={onClose}>
+    <div ref={overlayRef} className="product-modal-overlay" onClick={onClose}>
       <div className="product-modal" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
@@ -105,6 +116,9 @@ const ProductModal = ({ product, onClose }) => {
         <div className="product-modal-actions">
           <button onClick={handleDownload} className="product-modal-print-btn">
             Download QR Code
+          </button>
+          <button onClick={handlePrint} className="product-modal-print-btn">
+            Print QR Code
           </button>
           <button onClick={onClose} className="product-modal-close-btn">
             Close
