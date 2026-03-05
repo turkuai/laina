@@ -16,9 +16,24 @@
   margin-bottom: 12px;
 }
 
+.products-card__header .btn-primary {
+  position: fixed;
+  top: 17px;
+  right: 16px;
+  z-index: 101;
+}
+
 .products-card .title {
   font-weight: 600;
   font-size: 18px;
+}
+
+.products-card__header .title {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
 }
 
 /* ===== SEARCH BAR ===== */

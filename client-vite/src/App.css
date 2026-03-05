@@ -104,19 +104,16 @@ button:hover {
 
 /* ServerGrid "Add" button */
 .server-grid-add-button {
-  padding: 0.5rem 1rem;
-  background-color: #10b981;
-  color: #ffffff;
+  padding: 0.5rem;
+  background: none;
+  color: #374151;
   border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border-radius: 50%;
   cursor: pointer;
-  font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.1s ease;
 }
 
 .server-grid-add-button__icon {
