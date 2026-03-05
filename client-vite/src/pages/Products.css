@@ -775,3 +775,42 @@
     font-size: 12px;
   }
 }
+
+/* Print: show only the QR card (no new window, same as on screen) */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .product-modal-overlay.print-qr-card,
+  .product-modal-overlay.print-qr-card *,
+  .qr-code-container.print-qr-card,
+  .qr-code-container.print-qr-card * {
+    visibility: visible;
+  }
+  .product-modal-overlay.print-qr-card,
+  .qr-code-container.print-qr-card {
+    position: fixed !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 24px !important;
+    max-width: none !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    background: white !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .product-modal-overlay.print-qr-card .product-modal,
+  .qr-code-container.print-qr-card .qr-code-content {
+    box-shadow: none !important;
+    position: static !important;
+  }
+  .product-modal-close,
+  .qr-code-close,
+  .product-modal-actions,
+  .qr-code-actions {
+    display: none !important;
+  }
+}
