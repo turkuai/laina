@@ -615,7 +615,20 @@
   background: #1f2937;
 }
 
-/* ===== MOBILE CARD LAYOUT ===== */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  .qr-code-close,
+  .qr-code-actions {
+    display: none !important;
+  }
+  .qr-code-container {
+    box-shadow: none;
+    max-height: none;
+  }
+}
 .products-mobile-list {
   display: none;
 }
