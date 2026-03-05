@@ -776,7 +776,6 @@
   }
 }
 
-/* Print: show only the QR card (no new window, same as on screen) */
 @media print {
   body * {
     visibility: hidden;
