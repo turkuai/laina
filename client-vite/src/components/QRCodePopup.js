@@ -51,6 +51,10 @@ function QRCodePopup({ ref, product, onClose }) {
     dialog.current.close();
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   React.useImperativeHandle(ref, () => {
     return {
       open() {
@@ -126,10 +130,7 @@ function QRCodePopup({ ref, product, onClose }) {
             Download QR Code
           </button>
           <button className="qr-code-download-btn" onClick={handlePrint}>
-            Print QR Code
-          </button>
-          <button className="qr-code-close-btn" onClick={handleClose}>
-            Close
+            Print
           </button>
         </div>
       </div>

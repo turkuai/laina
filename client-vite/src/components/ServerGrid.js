@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import Grid from './Grid';
 import ServerGridEditDialog from './ServerGridEditDialog';
 import ConfirmDialog from './ConfirmDialog';
@@ -190,8 +191,7 @@ export default function ServerGrid({
             className="server-grid-add-button"
             type="button"
           >
-            <span className="server-grid-add-button__icon">+</span>
-            <span className="server-grid-add-button__label">Add</span>
+            <Plus size={20} />
           </button>
         </div>
       )}
