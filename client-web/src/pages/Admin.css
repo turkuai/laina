@@ -448,6 +448,69 @@
   color: #1f2937;
 }
 
+.mobile-content-section > h2 {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  margin: 0;
+}
+
+.mobile-history-section > h2 {
+  right: 16px;
+  left: auto;
+  transform: none;
+}
+
+.mobile-search-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+  padding: 8px;
+}
+
+.mobile-search-bar {
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 102;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.mobile-search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  background: transparent;
+}
+
+.mobile-search-bar button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 2px;
+  display: flex;
+}
+
+.mobile-content-section .server-grid-add-button {
+  position: fixed;
+  top: 17px;
+  right: 16px;
+  z-index: 101;
+}
+
 /* Mobile Product Box */
 .mobile-product-box {
   background-color: white;

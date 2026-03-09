@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ServerGrid from '../components/ServerGrid';
-import SearchBox from '../components/SearchBox';
+import MobileSearchToggle from '../components/MobileSearchToggle';
 import { useNotification } from '../components/NotificationContext';
 import './Admin.css';
 
@@ -31,7 +31,7 @@ export default function UsersTab({
       <div className="mobile-tab-content hide-on-desktop">
         <div className="mobile-content-section">
           <h2>Users Management</h2>
-          <SearchBox
+          <MobileSearchToggle
             value={query || ''}
             onChange={(e) => onQueryChange(e.target.value)}
           />

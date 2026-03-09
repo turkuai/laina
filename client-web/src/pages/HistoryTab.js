@@ -1,6 +1,6 @@
 import React from 'react';
 import ServerGrid from '../components/ServerGrid';
-import SearchBox from '../components/SearchBox';
+import MobileSearchToggle from '../components/MobileSearchToggle';
 import './Admin.css';
 
 /**
@@ -34,12 +34,13 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
     <>
       {/* Mobile view */}
       <div className="mobile-tab-content hide-on-desktop">
-        <div className="mobile-content-section">
+        <div className="mobile-content-section mobile-history-section">
           <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-          <SearchBox
+          <MobileSearchToggle
             value={query || ''}
             onChange={(e) => onQueryChange(e.target.value)}
           />
+
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
               columns={mobileColumns}

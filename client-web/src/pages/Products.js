@@ -5,6 +5,7 @@ import QRCodeRenderer from "../components/QRCodeRenderer";
 import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
 import { useNotification } from "../components/NotificationContext";
 import ConfirmDialog from "../components/ConfirmDialog";
+import MobileSearchToggle from "../components/MobileSearchToggle";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -785,30 +786,38 @@ export default function Products({ currentUser }) {
         </div>
       )}
 
-      <div className="products-card__search">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="search-icon"
-        >
-          <path
-            d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-            stroke="#6B7280"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <input
-          type="text"
-          placeholder="Search products."
+      {isMobile ? (
+        <MobileSearchToggle
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search products."
         />
-      </div>
+      ) : (
+        <div className="products-card__search">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="search-icon"
+          >
+            <path
+              d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+              stroke="#6B7280"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search products."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      )}
 
       {/* Desktop Table */}
       {!isMobile && (

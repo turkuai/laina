@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ServerGrid from '../components/ServerGrid';
-import SearchBox from '../components/SearchBox';
+import MobileSearchToggle from '../components/MobileSearchToggle';
 import { useNotification } from '../components/NotificationContext';
 import './Admin.css';
 
@@ -57,8 +57,8 @@ export default function UsersTab({
       {/* Mobile view - same ServerGrid and add popup as desktop (all fields: first_name, last_name, email, role) */}
       <div className="mobile-tab-content hide-on-desktop">
         <div className="mobile-content-section">
-          <h2>Users Management</h2>
-          <SearchBox
+          <h2>Users</h2>
+          <MobileSearchToggle
             value={inputValue}
             onChange={handleSearchChange}
           />

@@ -1,6 +1,6 @@
 import React from 'react';
 import ServerGrid from '../components/ServerGrid';
-import SearchBox from '../components/SearchBox';
+import MobileSearchToggle from '../components/MobileSearchToggle';
 import './Admin.css';
 
 /**
@@ -34,12 +34,13 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
     <>
       {/* Mobile view */}
       <div className="mobile-tab-content hide-on-desktop">
-        <div className="mobile-content-section">
-          <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
-          <SearchBox
+        <div className="mobile-content-section mobile-history-section">
+          <h2>Borrowing History</h2>
+          <MobileSearchToggle
             value={query || ''}
             onChange={(e) => onQueryChange(e.target.value)}
           />
+
           <div style={{ height: '500px', width: '100%' }}>
             <ServerGrid
               columns={mobileColumns}
@@ -56,7 +57,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 
       {/* Desktop view */}
       <div className="hide-on-mobile">
-        <h2>{currentUser?.role === 'admin' ? 'All Borrowing History' : 'My Borrowing History'}</h2>
+        <h2>Borrowing History</h2>
 
         {/* Match Products search bar layout (title, then search) */}
         <div className="products-card__search">
