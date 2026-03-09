@@ -51,9 +51,7 @@ function QRCodePopup({ ref, product, onClose }) {
     dialog.current.close();
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+
 
   React.useImperativeHandle(ref, () => {
     return {
