@@ -55,10 +55,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // Dev: front-end at :5173, PHP API lives under /lainaaminen-projekti/server-php/api
+      // Map /api/* from Vite to that path on Apache.
       '/api': {
         target: 'http://localhost',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/lainaaminen-projekti/server-php/api'),
+        rewrite: (path) =>
+          path.replace(/^\/api/, '/lainaaminen-projekti/server-php/api'),
       },
     },
   },
