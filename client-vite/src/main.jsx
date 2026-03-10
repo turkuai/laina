@@ -36,7 +36,7 @@ function loadEnv() {
       const env = parseEnv(text);
       const url = env.API_BASE_URL || env.VITE_API_BASE_URL;
       if (url && url !== 'undefined') window.__API_BASE__ = url;
-      window.__API_BASE__ = window.__API_BASE__ || getBasename();
+      window.__API_BASE__ = window.__API_BASE__ || 'http://localhost/lainaaminen-projekti/server-php';
       renderApp();
     })
   .catch(() => {
@@ -44,16 +44,16 @@ function loadEnv() {
         const env = parseEnv(text);
         const url = env.API_BASE_URL || env.VITE_API_BASE_URL;
         if (url && url !== 'undefined') window.__API_BASE__ = url;
-        window.__API_BASE__ = window.__API_BASE__ || getBasename();
+        window.__API_BASE__ = window.__API_BASE__ || 'http://localhost/lainaaminen-projekti/server-php';
         renderApp();
       }).catch(() => {
-        window.__API_BASE__ = window.__API_BASE__ || getBasename();
+        window.__API_BASE__ = window.__API_BASE__ || 'http://localhost/lainaaminen-projekti/server-php';
         renderApp();
       });
     });
 }
 if (import.meta.env.DEV) {
-  window.__API_BASE__ = window.__API_BASE__ || getBasename();
+  window.__API_BASE__ = '';
   renderApp();
 } else {
   loadEnv();
