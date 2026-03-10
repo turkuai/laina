@@ -55,10 +55,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
+
       '/api': {
         target: 'http://localhost',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/lainaaminen-projekti/server-php/api'),
+        rewrite: (path) =>
+          path.replace(/^\/api/, '/lainaaminen-projekti/server-php/api'),
       },
     },
   },
