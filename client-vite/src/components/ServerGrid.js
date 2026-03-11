@@ -28,6 +28,7 @@ export default function ServerGrid({
   showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
   formComponent : FormComponent,
   transformAddPayload,
+  transformEditPayload,
   ...rest               // anything else you want to pass to Grid
 
 }) {
@@ -108,13 +109,18 @@ export default function ServerGrid({
       delete payload.created_at;
       delete payload.updated_at;
 
+      const finalPayload =
+        typeof transformEditPayload === 'function'
+          ? transformEditPayload(payload)
+          : payload;
+
       const res = await fetch(getApiBase() + updateUrl, {
         method: 'PATCH',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(finalPayload),
       });
 
       if (!res.ok) {

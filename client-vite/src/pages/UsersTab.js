@@ -82,6 +82,37 @@ export default function UsersTab({
               showAddButton={true}
               query={query}
               formComponent={UsersForm}
+              transformEditPayload={(payload) => {
+                const password = (payload.password || '').trim();
+                const confirmPassword = (payload.confirmPassword || '').trim();
+                const isAdmin = currentUser?.role === 'admin';
+
+                // If both empty, don't change password; allow other fields to update.
+                if (!password && !confirmPassword) {
+                  const {
+                    password: _p,
+                    confirmPassword: _cp,
+                    ...restPayload
+                  } = payload;
+                  return restPayload;
+                }
+
+                if (!password || !confirmPassword) {
+                  throw new Error('To change the password, fill both password fields.');
+                }
+
+                if (password !== confirmPassword) {
+                  throw new Error('Passwords do not match');
+                }
+
+                // Admins can change passwords without knowing current password.
+                if (isAdmin) {
+                  const { confirmPassword: _cp, ...restPayload } = payload;
+                  return { ...restPayload, password };
+                }
+                // Non-admins don't edit users here, but keep fallback strict.
+                throw new Error('You are not allowed to change this password.');
+              }}
               transformAddPayload={(payload) => {
                 const email = (payload.email || '').trim();
                 const first = (payload.first_name || '').trim();
@@ -174,6 +205,34 @@ export default function UsersTab({
           showAddButton={true}
           query={query}
           formComponent={UsersForm}
+          transformEditPayload={(payload) => {
+            const password = (payload.password || '').trim();
+            const confirmPassword = (payload.confirmPassword || '').trim();
+            const isAdmin = currentUser?.role === 'admin';
+
+            if (!password && !confirmPassword) {
+              const {
+                password: _p,
+                confirmPassword: _cp,
+                ...restPayload
+              } = payload;
+              return restPayload;
+            }
+
+            if (!password || !confirmPassword) {
+              throw new Error('To change the password, fill both password fields.');
+            }
+
+            if (password !== confirmPassword) {
+              throw new Error('Passwords do not match');
+            }
+
+            if (isAdmin) {
+              const { confirmPassword: _cp, ...restPayload } = payload;
+              return { ...restPayload, password };
+            }
+            throw new Error('You are not allowed to change this password.');
+          }}
           transformAddPayload={(payload) => {
             const email = (payload.email || '').trim();
             const first = (payload.first_name || '').trim();
@@ -281,7 +340,35 @@ function UsersForm({ data, setData }) {
               />
             </div>
           </>
-        )}
+    )}
+
+    {isEditing && (
+      <>
+        <div style={{ gridColumn: '1 / -1', fontSize: '0.875rem', color: '#6b7280' }}>
+          Leave <strong>Password</strong> and <strong>Confirm password</strong> empty to keep the current password.
+        </div>
+        <div>
+          <label className="form-label">Password</label>
+          <input
+            type="password"
+            className="form-input"
+            value={getValue('password')}
+            onChange={handleChange('password')}
+            placeholder="New password (optional)"
+          />
+        </div>
+        <div>
+          <label className="form-label">Confirm password</label>
+          <input
+            type="password"
+            className="form-input"
+            value={getValue('confirmPassword')}
+            onChange={handleChange('confirmPassword')}
+            placeholder="Confirm new password"
+          />
+        </div>
+      </>
+    )}
       </div>
     </div>
   );
