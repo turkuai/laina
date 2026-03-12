@@ -215,16 +215,23 @@ function update_user(PDO $pdo, string $id): void
 
     // If password is being changed, verify current password first
     if ($password) {
-        $currentPassword = $input['current_password'] ?? null;
-        if (!$currentPassword) {
-            json_response(['error' => 'Current password is required to change password'], 400);
-            return;
+        // Admins can change other users' passwords without knowing the current one.
+        $isAdminEditingOtherUser = $currentUser['role'] === 'admin' && (int)$currentUser['id'] !== (int)$id;
+
+        if ($isAdminEditingOtherUser) {
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+        } else {
+            $currentPassword = $input['current_password'] ?? null;
+            if (!$currentPassword) {
+                json_response(['error' => 'Current password is required to change password'], 400);
+                return;
+            }
+            if (!password_verify($currentPassword, $user['password'])) {
+                json_response(['error' => 'Current password is incorrect'], 400);
+                return;
+            }
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
         }
-        if (!password_verify($currentPassword, $user['password'])) {
-            json_response(['error' => 'Current password is incorrect'], 400);
-            return;
-        }
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
     } else {
         $hashedPassword = $user['password'];
     }
