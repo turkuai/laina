@@ -28,3 +28,5 @@ server-php/.env
 server-php/vendor/
 server-php/.env
 client-vite/dist/
+
+composer
