@@ -12,5 +12,14 @@ return [
     ],
     // Secret used to sign authentication tokens (similar to JWT secret)
     'auth_secret' => 'supersecretjwtkey', // change to a strong random string
+
+    'mail' => [
+        'host'     => getenv('SMTP_HOST') ?: 'smtp.gmail.com',
+        'port'     => (int) (getenv('SMTP_PORT') ?: '587'),
+        'user'     => getenv('SMTP_USER') ?: '',
+        'pass'     => getenv('SMTP_PASS') ?: '',
+        'from'     => getenv('SMTP_FROM') ?: getenv('SMTP_USER'),
+        'from_name' => getenv('SMTP_FROM_NAME') ?: 'Lainaaminen',
+    ],
 ];
 

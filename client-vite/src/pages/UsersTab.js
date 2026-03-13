@@ -93,23 +93,31 @@ export default function UsersTab({
                     ? email.split('@')[0]
                     : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
 
-                if (!password || !confirmPassword) {
-                  throw new Error('Password and confirm password are required');
+                // If admin typed a password, validate it
+                if (password || confirmPassword) {
+                  if (!password || !confirmPassword) {
+                    throw new Error('Please fill both password fields or leave both empty');
+                  }
+                  if (password !== confirmPassword) {
+                    throw new Error('Passwords do not match');
+                  }
                 }
 
-                if (password !== confirmPassword) {
-                  throw new Error('Passwords do not match');
-                }
-
-                return {
+                const payloadOut = {
                   username: baseUser,
                   first_name: first,
                   last_name: last,
                   email,
                   role: payload.role || 'student',
-                  password,
                   phone_number: null,
                 };
+
+                // Only send password when admin actually set one; otherwise backend will generate it
+                if (password) {
+                  payloadOut.password = password;
+                }
+
+                return payloadOut;
               }}
             />
           </div>
@@ -185,23 +193,30 @@ export default function UsersTab({
                 ? email.split('@')[0]
                 : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
 
-            if (!password || !confirmPassword) {
-              throw new Error('Password and confirm password are required');
+            // If admin typed a password, validate it
+            if (password || confirmPassword) {
+              if (!password || !confirmPassword) {
+                throw new Error('Please fill both password fields or leave both empty');
+              }
+              if (password !== confirmPassword) {
+                throw new Error('Passwords do not match');
+              }
             }
 
-            if (password !== confirmPassword) {
-              throw new Error('Passwords do not match');
-            }
-
-            return {
+            const payloadOut = {
               username: baseUser,
               first_name: first,
               last_name: last,
               email,
               role: payload.role || 'student',
-              password,
               phone_number: null,
             };
+
+            if (password) {
+              payloadOut.password = password;
+            }
+
+            return payloadOut;
           }}
         />
       </div>
@@ -263,7 +278,7 @@ function UsersForm({ data, setData }) {
         {!isEditing && (
           <>
             <div>
-              <label className="form-label">Password *</label>
+              <label className="form-label">Password (optional)</label>
               <input
                 type="password"
                 className="form-input"
@@ -272,7 +287,7 @@ function UsersForm({ data, setData }) {
               />
             </div>
             <div>
-              <label className="form-label">Confirm password *</label>
+              <label className="form-label">Confirm password (optional)</label>
               <input
                 type="password"
                 className="form-input"

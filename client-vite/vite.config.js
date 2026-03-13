@@ -13,7 +13,7 @@ function copyApiPlugin() {
       const apiDest = path.join(root, 'dist', 'api')
       if (!fs.existsSync(apiSrc)) return
       fs.mkdirSync(apiDest, { recursive: true })
-      for (const name of ['index.php', 'app', '.htaccess']) {
+      for (const name of ['index.php', 'app', '.htaccess', 'vendor']) {
         const src = path.join(apiSrc, name)
         const dest = path.join(apiDest, name)
         if (!fs.existsSync(src)) continue
