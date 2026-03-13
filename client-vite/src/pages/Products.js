@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import "./Products.css";
 import ServerGrid from "../components/ServerGrid";
 import QRCodeRenderer from "../components/QRCodeRenderer";
@@ -6,6 +6,8 @@ import { generateQRCodeWithInfo } from "../utils/qrCodeUtils";
 import { useNotification } from "../components/NotificationContext";
 import ConfirmDialog from "../components/ConfirmDialog";
 import MobileSearchToggle from "../components/MobileSearchToggle";
+import DataSetView from "../components/DataSetView";
+import ProductMobileCard from "./_ProductMobileCard";
 import { Plus, X as XIcon } from "lucide-react";
 import { getApiBase } from "../config";
 
@@ -170,11 +172,7 @@ export default function Products({ currentUser }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const { showNotification } = useNotification();
 
-  // ✅ Mobile incremental rendering (prevents dumping 500+ cards at once)
-  const MOBILE_BATCH = 20;
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const [visibleCount, setVisibleCount] = useState(MOBILE_BATCH);
-  const mobileSentinelRef = useRef(null);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -424,35 +422,6 @@ export default function Products({ currentUser }) {
       (p.type_name &&
         p.type_name.toLowerCase().includes(searchTerm.toLowerCase())),
   );
-
-  // Reset mobile visible count when the list changes (search or refresh)
-  useEffect(() => {
-    setVisibleCount(MOBILE_BATCH);
-  }, [searchTerm, products.length]);
-
-  // Increase visible items when scrolling near the bottom (mobile only)
-  useEffect(() => {
-    if (!isMobile) return;
-    if (visibleCount >= filteredProducts.length) return;
-
-    const el = mobileSentinelRef.current;
-    if (!el) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          io.disconnect();
-          setVisibleCount((v) =>
-            Math.min(v + MOBILE_BATCH, filteredProducts.length),
-          );
-        }
-      },
-      { rootMargin: "200px" },
-    );
-
-    io.observe(el);
-    return () => io.disconnect();
-  }, [isMobile, visibleCount, filteredProducts.length]);
 
   // Custom status renderer for colored badges
   const renderStatus = (status) => {
@@ -911,94 +880,39 @@ export default function Products({ currentUser }) {
         </div>
       )}
 
-      {/* Mobile Card Layout */}
+      {/* Mobile Card Layout with DataSetView infinite scroll */}
       {isMobile && (
         <div className="products-mobile-list">
           {filteredProducts.length > 0 ? (
-            filteredProducts.slice(0, visibleCount).map((p) => (
-              <div key={p.id} className="products-mobile-card">
-                <div className="products-mobile-card-header">
-                  <div className="products-mobile-card-title">
-                    {p.product_name}
-                  </div>
-                  <div className="products-mobile-card-status">
-                    {renderStatus(p.status)}
-                  </div>
-                </div>
-                <div className="products-mobile-card-row">
-                  <span className="products-mobile-card-label">
-                    Device Type:
-                  </span>
-                  <span className="products-mobile-card-value">
-                    {p.type_name || "N/A"}
-                  </span>
-                </div>
-                <div className="products-mobile-card-row">
-                  <span className="products-mobile-card-label">
-                    Purchase Year:
-                  </span>
-                  <span className="products-mobile-card-value">
-                    {p.purchase_date}
-                  </span>
-                </div>
-                <div className="products-mobile-card-row">
-                  <span className="products-mobile-card-label">Location:</span>
-                  <span className="products-mobile-card-value">
-                    {p.location_name || "N/A"}
-                  </span>
-                </div>
-                <div className="products-mobile-card-actions">
-                  <button
-                    onClick={() => setSelectedProduct(p)}
-                    className="view-qr-btn"
-                  >
-                    View QR
-                  </button>
-                  {currentUser?.role === "admin" && (
-                    <>
-                      <button
-                        onClick={() => setEditingProduct(p)}
-                        className="edit-btn"
-                        aria-label="Edit"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="delete-btn"
-                        aria-label="Delete"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))
+            <DataSetView
+              key={`${searchTerm}-${filteredProducts.length}`}
+              render={function ProductCardRenderer({ data }) {
+                return (
+                  <ProductMobileCard
+                    product={data}
+                    currentUser={currentUser}
+                    onViewQR={() => setSelectedProduct(data)}
+                    onEdit={
+                      currentUser?.role === "admin"
+                        ? () => setEditingProduct(data)
+                        : undefined
+                    }
+                    onDelete={
+                      currentUser?.role === "admin"
+                        ? () => handleDelete(data.id)
+                        : undefined
+                    }
+                    renderStatus={renderStatus}
+                  />
+                );
+              }}
+              loadPage={async (page) => {
+                const PAGE_SIZE = 20;
+                const start = (page - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+                return filteredProducts.slice(start, end);
+              }}
+            />
           ) : (
             <div
               className="empty-state"
@@ -1008,10 +922,6 @@ export default function Products({ currentUser }) {
                 ? "No products found matching your search."
                 : "No products in database. Add your first product!"}
             </div>
-          )}
-
-          {visibleCount < filteredProducts.length && (
-            <div ref={mobileSentinelRef} style={{ height: 1 }} />
           )}
         </div>
       )}
