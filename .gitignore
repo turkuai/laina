@@ -29,4 +29,4 @@ server-php/vendor/
 server-php/.env
 client-vite/dist/
 
-composer
+vendor/
