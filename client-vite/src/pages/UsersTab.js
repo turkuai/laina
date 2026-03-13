@@ -93,7 +93,6 @@ export default function UsersTab({
                     ? email.split('@')[0]
                     : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
 
-                // If admin typed a password, validate it
                 if (password || confirmPassword) {
                   if (!password || !confirmPassword) {
                     throw new Error('Please fill both password fields or leave both empty');
@@ -193,7 +192,6 @@ export default function UsersTab({
                 ? email.split('@')[0]
                 : `${first}.${last}`.toLowerCase().replace(/\s+/g, '');
 
-            // If admin typed a password, validate it
             if (password || confirmPassword) {
               if (!password || !confirmPassword) {
                 throw new Error('Please fill both password fields or leave both empty');
