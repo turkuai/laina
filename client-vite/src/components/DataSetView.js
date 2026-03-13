@@ -1,32 +1,47 @@
-import React, { useEffect } from "react";
-import {useState} from "react";
+import React, { useEffect, useState } from "react";
 
 export default function DataSetView({ render: Render, loadPage }) {
-
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
-  useEffect(() => {
 
-    console.log("Loading page", page);
+  // Load data for the current page.
+  useEffect(() => {
+    let cancelled = false;
 
     loadPage(page).then((pageItems) => {
+      if (cancelled) return;
+      if (!Array.isArray(pageItems) || pageItems.length === 0) {
+        return;
+      }
       setItems((prev) => [...prev, ...pageItems]);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [page]);
-  const handleScroll = (e) => {
-    const el = e.currentTarget;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
-      console.log("Reached bottom of div");
-      setPage((prev) => prev + 1);
-    }
-  };
+
+  // Use window scroll to advance pages (avoids nested scrollbars).
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 1
+      ) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div style={{ height: "100%", overflowY: "auto" }} onScroll={handleScroll}>
-      <div>
-        {items.map((item) => (
-          <Render data={item} />
-        ))}
-      </div>
+    <div>
+      {items.map((item, index) => (
+        <Render key={item.id ?? index} data={item} />
+      ))}
     </div>
   );
 }
+
