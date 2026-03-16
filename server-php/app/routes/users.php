@@ -173,7 +173,7 @@ function create_user(PDO $pdo): void
 
     require_once __DIR__ . '/../mail.php';
     $subject = 'Your account';
-    $body = "Hello {$firstName},\n\nYour account was created.\n\nUsername: {$username}\nPassword: {$password}\n\nYou can change your password after logging in.";
+    $body = "Hello {$firstName},\n\nYour account was created.\n\nUsername: {$username}\nPassword: {$password}\n\nYou can change your password after logging in.\n\n url: https://taikukkula.fi/laina/login";
     send_mail($email, $subject, $body);
 
     json_response([
