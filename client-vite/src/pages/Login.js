@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../components/AuthContext";
+import { getAssetUrl } from "../config";
 import { useState, useEffect } from "react";
 import '../App.css';
 import './Login.css';
@@ -48,7 +49,7 @@ export default function Login() {
                 <div className="login-header">
                     <div className="login-logo">
                         <img
-                            src={`${import.meta.env.BASE_URL}tai.png`}
+                            src={getAssetUrl('tai.png')}
                             alt="TAI logo"
                             className="login-logo-image"
                         />

@@ -26,6 +26,11 @@ function copyApiPlugin() {
       if (fs.existsSync(path.join(apiSrc, '.env'))) {
         fs.copyFileSync(path.join(apiSrc, '.env'), path.join(apiDest, '.env'))
       }
+      // Copy client .env to dist root so fetch('./.env') gets BASE_URL when deployed under /laina/
+      const clientEnv = path.join(root, '.env')
+      if (fs.existsSync(clientEnv)) {
+        fs.copyFileSync(clientEnv, path.join(root, 'dist', '.env'))
+      }
       console.log('Copied server-php to dist/api')
     },
   }

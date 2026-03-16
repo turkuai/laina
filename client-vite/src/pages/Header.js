@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { QrCode, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { getAssetUrl } from '../config';
 import './Admin.css';
 
 /**
@@ -42,7 +43,7 @@ const Header = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, isMobil
     <div className="admin-header">
       <h1 className="admin-logo">
         <img
-          src={`${import.meta.env.BASE_URL}tai.png`}
+          src={getAssetUrl('tai.png')}
           alt="TAI logo"
           className="admin-logo-image"
         />

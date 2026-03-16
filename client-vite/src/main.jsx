@@ -3,13 +3,9 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import { NotificationProvider } from './components/NotificationContext';
+import { getBasename, setBaseUrls } from './config';
 import App from './App';
 import './index.css';
-
-function getBasename() {
-  const p = window.location.pathname.split('/').filter(Boolean);
-  return p.length ? '/' + p[0] : '/';
-}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -28,32 +24,45 @@ function parseEnv(text) {
   return env;
 }
 
-// teacher put .env in dist after build
+/** When .env is missing, derive base from current path (e.g. /laina/ from /laina/ or /laina/login) */
+function getBaseFromLocation() {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length === 0) return '/';
+  return '/' + segments[0] + '/';
+}
+
 function loadEnv() {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const inSubpath = pathname && pathname !== '/' && pathname !== '';
+  const fallback = inSubpath ? getBaseFromLocation() : (import.meta.env.VITE_BASE_URL );
   fetch('./.env')
     .then((r) => (r.ok ? r.text() : ''))
-  .then((text) => {
+    .then((text) => {
       const env = parseEnv(text);
-      const url = env.API_BASE_URL || env.VITE_API_BASE_URL;
-      if (url && url !== 'undefined') window.__API_BASE__ = url;
-      window.__API_BASE__ = window.__API_BASE__ || 'http://localhost/lainaaminen-projekti/server-php';
+      const base = (env.BASE_URL || env.VITE_BASE_URL).trim() || fallback;
+      setBaseUrls(base, base);
       renderApp();
     })
-  .catch(() => {
-      fetch('./env').then((r) => (r.ok ? r.text() : '')).then((text) => {
-        const env = parseEnv(text);
-        const url = env.API_BASE_URL || env.VITE_API_BASE_URL;
-        if (url && url !== 'undefined') window.__API_BASE__ = url;
-        window.__API_BASE__ = window.__API_BASE__ || 'http://localhost/lainaaminen-projekti/server-php';
-        renderApp();
-      }).catch(() => {
-        window.__API_BASE__ = window.__API_BASE__ || 'http://localhost/lainaaminen-projekti/server-php';
-        renderApp();
-      });
+    .catch(() => {
+      fetch('./env')
+        .then((r) => (r.ok ? r.text() : ''))
+        .then((text) => {
+          const env = parseEnv(text);
+          const base = (env.BASE_URL || env.VITE_BASE_URL).trim() || fallback;
+          setBaseUrls(base, base);
+          renderApp();
+        })
+        .catch(() => {
+          const base = getBaseFromLocation();
+          setBaseUrls(base, base);
+          renderApp();
+        });
     });
 }
+
 if (import.meta.env.DEV) {
-  window.__API_BASE__ = '';
+  setBaseUrls(import.meta.env.VITE_BASE_URL , '');
   renderApp();
 } else {
   loadEnv();
