@@ -1,6 +1,5 @@
 <?php
-// server-php/app/views/users-list.php
-// Expects $users = array of ['id' => ..., 'name' => ..., 'email' => ...]
+
 ?>
 <section>
     <h2>Users</h2>

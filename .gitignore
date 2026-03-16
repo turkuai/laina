@@ -18,3 +18,15 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# PHP / Composer
+composer
+
+# PHP API – install with composer install, don't commit
+server-php/vendor/
+server-php/.env
+server-php/vendor/
+server-php/.env
+client-vite/dist/
+
+vendor/

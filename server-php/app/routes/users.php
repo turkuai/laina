@@ -143,8 +143,14 @@ function create_user(PDO $pdo): void
     $role         = $input['role']         ?? 'student';
     $phoneNumber  = $input['phone_number'] ?? null;
 
-    if (!$username || !$email || !$password || !$firstName || !$lastName) {
+    if (!$username || !$email || !$firstName || !$lastName) {
         json_response(['error' => 'Missing required fields'], 400);
+    }
+
+    $passwordGenerated = false;
+    if ($password === null || $password === '') {
+        $password = bin2hex(random_bytes(8));
+        $passwordGenerated = true;
     }
 
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
@@ -164,6 +170,11 @@ function create_user(PDO $pdo): void
     ]);
 
     $id = $pdo->lastInsertId();
+
+    require_once __DIR__ . '/../mail.php';
+    $subject = 'Your account';
+    $body = "Hello {$firstName},\n\nYour account was created.\n\nUsername: {$username}\nPassword: {$password}\n\nYou can change your password after logging in.\n\n url: https://taikukkula.fi/laina/login";
+    send_mail($email, $subject, $body);
 
     json_response([
         'id'           => (int)$id,
