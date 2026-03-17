@@ -39,12 +39,21 @@ $apiIndex = array_search('api', $segments, true);
 
 // Routing for REST API under /api/*
 if ($apiIndex !== false) {
-    $resource = $segments[$apiIndex + 1] ?? null;    // users, products, etc.
-    $id       = $segments[$apiIndex + 2] ?? null;    // /api/users/{id} or /api/users/login
+    require __DIR__ . '/app/routes/users.php';
+
+    $resource = $segments[$apiIndex + 1] ?? null;
+    $id       = $segments[$apiIndex + 2] ?? null;
+
+    $allowUnverified = ($resource === 'users' && in_array($id, ['login', 'logout', 'verify-email'], true))
+        || ($resource === 'users' && $id === 'verify' && $method === 'GET')
+        || ($resource === 'users' && $id === 'resend-verification' && $method === 'POST');
+
+    if (!$allowUnverified) {
+        require_verified_user($pdo);
+    }
 
     switch ($resource) {
         case 'users':
-            require __DIR__ . '/app/routes/users.php';
             handle_users_route($method, $id, $pdo);
             break;
 

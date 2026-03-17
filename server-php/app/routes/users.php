@@ -29,6 +29,16 @@ function handle_users_route(string $method, ?string $id, PDO $pdo): void
         return;
     }
 
+    if ($id === 'verify-email' && $method === 'GET') {
+        verify_email_by_token($pdo);
+        return;
+    }
+
+    if ($id === 'resend-verification' && $method === 'POST') {
+        resend_verification($pdo);
+        return;
+    }
+
     switch ($method) {
         case 'GET':
             if ($id === null) {
@@ -64,7 +74,7 @@ function handle_users_route(string $method, ?string $id, PDO $pdo): void
 
 function list_users(PDO $pdo): void
 {
-    $user = require_authenticated_user($pdo);
+    $user = require_verified_user($pdo);
 
     $search = $_GET['search'] ?? null;
     
@@ -109,7 +119,7 @@ function list_users(PDO $pdo): void
 
 function get_user(PDO $pdo, string $id): void
 {
-    $user = require_authenticated_user($pdo);
+    $user = require_verified_user($pdo);
 
     $stmt = $pdo->prepare(
         'SELECT id, username, first_name, last_name, email, role, phone_number, flag, created_at
@@ -127,7 +137,7 @@ function get_user(PDO $pdo, string $id): void
 
 function create_user(PDO $pdo): void
 {
-    $currentUser = require_authenticated_user($pdo);
+    $currentUser = require_verified_user($pdo);
 
     $input = json_decode(file_get_contents('php://input'), true);
 
@@ -148,10 +158,12 @@ function create_user(PDO $pdo): void
     }
 
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    $hash = bin2hex(random_bytes(32));
+    $expires = gmdate('Y-m-d H:i:s', time() + 30 * 60);
 
     $stmt = $pdo->prepare(
-        'INSERT INTO users (username, first_name, last_name, email, password, role, phone_number, created_at)
-         VALUES (:username, :first_name, :last_name, :email, :password, :role, :phone_number, NOW())'
+        'INSERT INTO users (username, first_name, last_name, email, password, role, phone_number, email_verified, verification_hash, verification_expires, created_at)
+         VALUES (:username, :first_name, :last_name, :email, :password, :role, :phone_number, 0, :vh, :ve, NOW())'
     );
     $stmt->execute([
         ':username'     => $username,
@@ -161,9 +173,15 @@ function create_user(PDO $pdo): void
         ':password'     => $hashedPassword,
         ':role'         => $role,
         ':phone_number' => $phoneNumber,
+        ':vh'           => $hash,
+        ':ve'           => $expires,
     ]);
 
     $id = $pdo->lastInsertId();
+
+    require __DIR__ . '/../helpers/mail.php';
+    $link = get_app_url() . '/verify-email?token=' . $hash;
+    send_welcome_email($email, $firstName, $username, $password, $link);
 
     json_response([
         'id'           => (int)$id,
@@ -178,7 +196,7 @@ function create_user(PDO $pdo): void
 
 function update_user(PDO $pdo, string $id): void
 {
-    $currentUser = require_authenticated_user($pdo);
+    $currentUser = require_verified_user($pdo);
 
     $input = json_decode(file_get_contents('php://input'), true);
 
@@ -271,7 +289,7 @@ function update_user(PDO $pdo, string $id): void
 
 function delete_user(PDO $pdo, string $id): void
 {
-    $currentUser = require_authenticated_user($pdo);
+    $currentUser = require_verified_user($pdo);
 
     // Soft delete: mark user as hidden instead of removing the row
     $stmt = $pdo->prepare('UPDATE users SET flag = "hidden" WHERE id = :id');
@@ -363,7 +381,7 @@ function get_authenticated_user(PDO $pdo): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, first_name, last_name, email, role, flag
+        'SELECT id, username, first_name, last_name, email, role, flag, email_verified
          FROM users WHERE id = :id'
     );
     $stmt->execute([':id' => $payload['id']]);
@@ -376,14 +394,21 @@ function get_authenticated_user(PDO $pdo): ?array
     return $user;
 }
 
-/**
- * Require that the request is authenticated; otherwise respond 401 and exit.
- */
 function require_authenticated_user(PDO $pdo): array
 {
     $user = get_authenticated_user($pdo);
     if ($user === null) {
         json_response(['success' => false, 'error' => 'Unauthorized'], 401);
+    }
+    return $user;
+}
+
+
+function require_verified_user(PDO $pdo): array
+{
+    $user = require_authenticated_user($pdo);
+    if (empty($user['email_verified'])) {
+        json_response(['success' => false, 'error' => 'Email not verified', 'code' => 'EMAIL_NOT_VERIFIED'], 403);
     }
     return $user;
 }
@@ -411,7 +436,7 @@ function login_user(PDO $pdo): void
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, password, first_name, last_name, role, flag
+        'SELECT id, username, password, first_name, last_name, role, flag, email_verified
          FROM users
          WHERE username = :username'
     );
@@ -448,16 +473,18 @@ function login_user(PDO $pdo): void
     );
 
     $user = [
-        'id'          => (int)$row['id'],
-        'username'    => $row['username'],
-        'displayName' => $row['first_name'] . ' ' . $row['last_name'],
-        'role'        => $row['role'],
+        'id'            => (int)$row['id'],
+        'username'      => $row['username'],
+        'displayName'   => $row['first_name'] . ' ' . $row['last_name'],
+        'role'          => $row['role'],
+        'email_verified' => !empty($row['email_verified']),
     ];
 
     json_response([
-        'success' => true,
-        'message' => 'Login successful',
-        'user'    => $user,
+        'success'        => true,
+        'message'        => 'Login successful',
+        'user'           => $user,
+        'email_verified' => !empty($row['email_verified']),
     ]);
 }
 
@@ -499,14 +526,66 @@ function verify_user(PDO $pdo): void
     }
 
     $safeUser = [
-        'id'          => (int)$user['id'],
-        'username'    => $user['username'],
-        'displayName' => $user['first_name'] . ' ' . $user['last_name'],
-        'role'        => $user['role'],
+        'id'             => (int)$user['id'],
+        'username'       => $user['username'],
+        'displayName'    => $user['first_name'] . ' ' . $user['last_name'],
+        'role'           => $user['role'],
+        'email_verified'  => !empty($user['email_verified']),
     ];
 
     json_response([
-        'success' => true,
-        'user'    => $safeUser,
+        'success'        => true,
+        'user'           => $safeUser,
+        'email_verified' => !empty($user['email_verified']),
     ]);
+}
+
+function verify_email_by_token(PDO $pdo): void
+{
+    $token = trim((string)($_GET['token'] ?? ''));
+    if ($token === '') {
+        json_response(['success' => false, 'error' => 'Missing token'], 400);
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id FROM users WHERE verification_hash = :h AND verification_expires > UTC_TIMESTAMP()'
+    );
+    $stmt->execute([':h' => $token]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        json_response(['success' => false, 'error' => 'Invalid or expired link'], 400);
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE users SET email_verified = 1, verification_hash = NULL, verification_expires = NULL WHERE id = :id'
+    );
+    $stmt->execute([':id' => $row['id']]);
+
+    json_response(['success' => true]);
+}
+
+function resend_verification(PDO $pdo): void
+{
+    $user = require_authenticated_user($pdo);
+
+    $stmt = $pdo->prepare('SELECT email_verified, email FROM users WHERE id = :id');
+    $stmt->execute([':id' => $user['id']]);
+    $row = $stmt->fetch();
+    if (!$row || !empty($row['email_verified'])) {
+        json_response(['success' => true]);
+        return;
+    }
+
+    $hash = bin2hex(random_bytes(32));
+    $expires = gmdate('Y-m-d H:i:s', time() + 30 * 60);
+    $stmt = $pdo->prepare('UPDATE users SET verification_hash = :h, verification_expires = :e WHERE id = :id');
+    $stmt->execute([':h' => $hash, ':e' => $expires, ':id' => $user['id']]);
+
+    require __DIR__ . '/../helpers/mail.php';
+    $link = get_app_url() . '/verify-email?token=' . $hash;
+    send_verification_email($row['email'], $link);
+
+    json_response(['success' => true]);
 }
