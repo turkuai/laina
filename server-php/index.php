@@ -26,7 +26,7 @@ function not_found(): void
     exit;
 }
 
-// Parse URI and HTTP method
+// Parse URI and HTTP method dw
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
