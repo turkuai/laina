@@ -153,8 +153,14 @@ function create_user(PDO $pdo): void
     $role         = $input['role']         ?? 'student';
     $phoneNumber  = $input['phone_number'] ?? null;
 
-    if (!$username || !$email || !$password || !$firstName || !$lastName) {
+    if (!$username || !$email || !$firstName || !$lastName) {
         json_response(['error' => 'Missing required fields'], 400);
+    }
+
+    $passwordGenerated = false;
+    if ($password === null || $password === '') {
+        $password = bin2hex(random_bytes(8));
+        $passwordGenerated = true;
     }
 
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
