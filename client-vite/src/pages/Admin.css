@@ -453,7 +453,7 @@
   top: 16px;
   left: 45%;
   transform: translateX(-50%);
-  z-index: 101;
+  z-index: 200;
   margin: 0;
   font-size: 1.125rem;
   line-height: 36px;
@@ -469,7 +469,7 @@
   top: 16px;
   left: 72%;
   transform: translateX(-50%);
-  z-index: 101;
+  z-index: 200;
   background: none;
   border: none;
   cursor: pointer;
@@ -518,7 +518,7 @@
   position: fixed;
   top: 16px;
   right: 16px;
-  z-index: 101;
+  z-index: 200;
   height: 36px;
   display: flex;
   align-items: center;
@@ -1428,9 +1428,16 @@
   }
 
   .admin-header {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 150;
+  }
+
+  /* Header is fixed on mobile; push tab content below it. */
+  .mobile-tab-content {
+    padding-top: 72px;
   }
 
   .admin-header h1 {

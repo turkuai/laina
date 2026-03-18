@@ -20,7 +20,7 @@
   position: fixed;
   top: 16px;
   right: 16px;
-  z-index: 101;
+  z-index: 200;
   height: 36px;
   display: flex;
   align-items: center;
@@ -36,7 +36,7 @@
   top: 16px;
   left: 45%;
   transform: translateX(-50%);
-  z-index: 101;
+  z-index: 200;
   line-height: 36px;
 }
 
