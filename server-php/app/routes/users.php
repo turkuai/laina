@@ -153,9 +153,11 @@ function create_user(PDO $pdo): void
     $role         = $input['role']         ?? 'student';
     $phoneNumber  = $input['phone_number'] ?? null;
 
-    if (!$username || !$email || !$firstName || !$lastName) {
+    if (!$email || !$firstName || !$lastName) {
         json_response(['error' => 'Missing required fields'], 400);
     }
+
+    $username = $email;
 
     $passwordGenerated = false;
     if ($password === null || $password === '') {
@@ -230,10 +232,11 @@ function update_user(PDO $pdo, string $id): void
         json_response(['error' => 'User not found'], 404);
     }
 
-    $username    = $username    ?? $user['username'];
+    // Username is always the full email.
     $firstName   = $firstName   ?? $user['first_name'];
     $lastName    = $lastName    ?? $user['last_name'];
     $email       = $email       ?? $user['email'];
+    $username    = $email;
     $role        = $role        ?? $user['role'];
     $phoneNumber = $phoneNumber ?? $user['phone_number'];
 
@@ -430,23 +433,24 @@ function login_user(PDO $pdo): void
         json_response(['success' => false, 'error' => 'Invalid JSON body'], 400);
     }
 
-    $username   = $input['username']   ?? null;
+    // Frontend might send it as `username`, so accept both keys.
+    $email      = $input['email']      ?? $input['username'] ?? null;
     $password   = $input['password']   ?? null;
     $rememberMe = !empty($input['rememberMe']);
 
-    if (!$username || !$password) {
+    if (!$email || !$password) {
         json_response([
             'success' => false,
-            'error'   => 'Username and password are required',
+            'error'   => 'Email and password are required',
         ], 400);
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, password, first_name, last_name, role, flag, email_verified
+        'SELECT id, username, email, password, first_name, last_name, role, flag, email_verified
          FROM users
-         WHERE username = :username'
+         WHERE email = :email'
     );
-    $stmt->execute([':username' => $username]);
+    $stmt->execute([':email' => $email]);
     $row = $stmt->fetch();
 
     if (
@@ -480,7 +484,7 @@ function login_user(PDO $pdo): void
 
     $user = [
         'id'            => (int)$row['id'],
-        'username'      => $row['username'],
+        'username'      => $row['email'],
         'displayName'   => $row['first_name'] . ' ' . $row['last_name'],
         'role'          => $row['role'],
         'email_verified' => !empty($row['email_verified']),

@@ -8,7 +8,7 @@ import './Login.css';
 export default function Login() {
     const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
@@ -26,7 +26,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const result = await login(username, password, rememberMe);
+            const result = await login(email, password, rememberMe);
 
             if (result.success) {
                 // Server automatically sets httpOnly cookie with JWT token if rememberMe is true
@@ -60,17 +60,17 @@ export default function Login() {
                 <form onSubmit={handleSubmit} autoComplete="on">
                     <div className="login-form-group">
                         <label className="login-label">
-                            Username
+                            Email
                         </label>
                         <input
                             type="text"
                             required
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter your username"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
                             className="login-input"
-                            name="username"
-                            autoComplete="username"
+                            name="email"
+                            autoComplete="email"
                             disabled={loading}
                         />
                     </div>
@@ -128,8 +128,8 @@ export default function Login() {
                         Use credentials from your database
                     </p>
                     <p className="login-demo-text">
-                        Login with any username/password from the users table
-                    </p>
+                        Login with any username/password from the users table                    
+                        </p>
                 </div>
             </div>
         </div>
