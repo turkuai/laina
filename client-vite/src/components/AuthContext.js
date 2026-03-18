@@ -6,44 +6,47 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [emailVerified, setEmailVerified] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // On first load, verify JWT token from httpOnly cookie
-  useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const response = await fetch(`${getApiBase()}/api/users/verify`, {
-          method: 'GET',
-          credentials: 'include', // Include cookies in request
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+  const fetchVerify = async () => {
+    const res = await fetch(`${getApiBase()}/api/users/verify`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    setEmailVerified(!!data.email_verified);
+    return data;
+  };
 
-        if (response.ok) {
-          const data = await response.json();
-          const safeUser = {
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const data = await fetchVerify();
+        if (data?.user) {
+          setCurrentUser({
             id: data.user.id,
             username: data.user.username,
             name: data.user.displayName,
-            role: data.user.role
-          };
+            role: data.user.role,
+          });
           setIsAuthenticated(true);
-          setCurrentUser(safeUser);
+          setEmailVerified(!!data.email_verified);
         } else {
           setIsAuthenticated(false);
           setCurrentUser(null);
+          setEmailVerified(true);
         }
-      } catch (error) {
-        console.error('Token verification error:', error);
+      } catch (e) {
         setIsAuthenticated(false);
         setCurrentUser(null);
       } finally {
         setLoading(false);
       }
     };
-
-    verifyToken();
+    run();
   }, []);
 
   // Login function - now with rememberMe parameter for httpOnly cookie
@@ -67,7 +70,6 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      // Backend returns { success, message, user }
       const safeUser = {
         id: data.user.id,
         username: data.user.username,
@@ -77,6 +79,7 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(true);
       setCurrentUser(safeUser);
+      setEmailVerified(!!data.email_verified);
 
       // httpOnly cookie is automatically set by the server
       // No client-side storage needed
@@ -109,8 +112,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resendVerification = async () => {
+    await fetch(`${getApiBase()}/api/users/resend-verification`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, emailVerified, login, logout, loading, fetchVerify, resendVerification }}>
       {children}
     </AuthContext.Provider>
   );
