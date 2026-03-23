@@ -2,6 +2,7 @@ import React from 'react';
 import ServerGrid from '../components/ServerGrid';
 import MobileSearchToggle from '../components/MobileSearchToggle';
 import DataSetView from '../components/DataSetView';
+import GenericMobileCard from '../components/GenericMobileCard';
 import { getApiBase } from '../config';
 import './Admin.css';
 
@@ -93,7 +94,11 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
           <div style={{ width: '100%', padding: '1.5rem 12px 1.5rem' }}>
             <DataSetView
               key={`${path}-${query || ''}`}
-              render={HistoryRow}
+              render={({ data }) => (
+                <GenericMobileCard>
+                  <HistoryRow data={data} />
+                </GenericMobileCard>
+              )}
               loadPage={loadHistoryPage}
             />
           </div>
@@ -155,7 +160,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 
 function HistoryRow({ data }) {
   return (
-    <div className="products-mobile-card" style={{ marginBottom: '0.75rem' }}>
+    <>
       <div className="products-mobile-card-header">
         <div className="products-mobile-card-title">
           {data.product_name || 'Unknown product'}
@@ -194,7 +199,7 @@ function HistoryRow({ data }) {
           </span>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

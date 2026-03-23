@@ -7,6 +7,7 @@ import { useNotification } from "../components/NotificationContext";
 import ConfirmDialog from "../components/ConfirmDialog";
 import MobileSearchToggle from "../components/MobileSearchToggle";
 import DataSetView from "../components/DataSetView";
+import GenericMobileCard from "../components/GenericMobileCard";
 import ProductMobileCard from "./_ProductMobileCard";
 import { Plus, X as XIcon } from "lucide-react";
 import { getApiBase } from "../config";
@@ -888,10 +889,7 @@ export default function Products({ currentUser }) {
               key={`${searchTerm}-${filteredProducts.length}`}
               render={function ProductCardRenderer({ data }) {
                 return (
-                  <ProductMobileCard
-                    product={data}
-                    currentUser={currentUser}
-                    onViewQR={() => setSelectedProduct(data)}
+                  <GenericMobileCard
                     onEdit={
                       currentUser?.role === "admin"
                         ? () => setEditingProduct(data)
@@ -902,8 +900,17 @@ export default function Products({ currentUser }) {
                         ? () => handleDelete(data.id)
                         : undefined
                     }
-                    renderStatus={renderStatus}
-                  />
+                    customActions={
+                      <button onClick={() => setSelectedProduct(data)} className="view-qr-btn">
+                        View QR
+                      </button>
+                    }
+                  >
+                    <ProductMobileCard
+                      product={data}
+                      renderStatus={renderStatus}
+                    />
+                  </GenericMobileCard>
                 );
               }}
               loadPage={async (page) => {

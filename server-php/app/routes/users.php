@@ -448,9 +448,9 @@ function login_user(PDO $pdo): void
     $stmt = $pdo->prepare(
         'SELECT id, username, email, password, first_name, last_name, role, flag, email_verified
          FROM users
-         WHERE email = :email'
+         WHERE email = :email OR username = :username'
     );
-    $stmt->execute([':email' => $email]);
+    $stmt->execute([':email' => $email, ':username' => $email]);
     $row = $stmt->fetch();
 
     if (
