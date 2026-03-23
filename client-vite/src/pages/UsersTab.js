@@ -128,9 +128,9 @@ export default function UsersTab({
     return payloadOut;
   };
 
-  const loadUsersPage = async (page) => {
+  const loadUsersPage = async (page, limit = 10) => {
     const base = getApiBase();
-    let url = `${base}/api/users?page=${page}`;
+    let url = `${base}/api/users?page=${page}&limit=${limit}`;
     const trimmedQuery = (inputValue || '').trim();
     if (trimmedQuery !== '') {
       url += `&search=${encodeURIComponent(trimmedQuery)}`;
@@ -144,6 +144,7 @@ export default function UsersTab({
     if (!res.ok) {
       throw new Error(payload?.error || payload?.message || `Failed to load users`);
     }
+
     if (Array.isArray(payload)) return payload;
     if (Array.isArray(payload.data)) return payload.data;
     if (Array.isArray(payload.users)) return payload.users;

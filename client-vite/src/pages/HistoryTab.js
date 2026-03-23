@@ -33,13 +33,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
     ? 'borrowing-history' 
     : `borrowing-history?borrower_id=${currentUser?.id}`;
 
-  const loadHistoryPage = async (page) => {
-    // Backend currently returns the full history regardless of page.
-    // To avoid duplicate rows, only load page 1 until real pagination is implemented.
-    if (page > 1) {
-      return [];
-    }
-
+  const loadHistoryPage = async (page, limit = 10) => {
     let fullPath = path;
     if (!fullPath.startsWith('/api/')) {
       const cleanPath = fullPath.startsWith('/') ? fullPath.slice(1) : fullPath;
@@ -48,7 +42,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 
     const base = getApiBase();
     const separator = fullPath.includes('?') ? '&' : '?';
-    let url = `${base}${fullPath}${separator}page=${page}`;
+    let url = `${base}${fullPath}${separator}page=${page}&limit=${limit}`;
 
     const trimmedQuery = (query || '').trim();
     if (trimmedQuery !== '') {
@@ -67,16 +61,10 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
         payload?.error || payload?.message || `Failed to load history (status ${res.status})`,
       );
     }
-
-    if (Array.isArray(payload)) {
-      return payload;
-    }
-    if (Array.isArray(payload.history)) {
-      return payload.history;
-    }
-    if (Array.isArray(payload.data)) {
-      return payload.data;
-    }
+    
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.history)) return payload.history;
     return [];
   };
 

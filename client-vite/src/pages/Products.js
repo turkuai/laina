@@ -884,52 +884,50 @@ export default function Products({ currentUser }) {
       {/* Mobile Card Layout with DataSetView infinite scroll */}
       {isMobile && (
         <div className="products-mobile-list">
-          {filteredProducts.length > 0 ? (
-            <DataSetView
-              key={`${searchTerm}-${filteredProducts.length}`}
-              render={function ProductCardRenderer({ data }) {
-                return (
-                  <GenericMobileCard
-                    onEdit={
-                      currentUser?.role === "admin"
-                        ? () => setEditingProduct(data)
-                        : undefined
-                    }
-                    onDelete={
-                      currentUser?.role === "admin"
-                        ? () => handleDelete(data.id)
-                        : undefined
-                    }
-                    customActions={
-                      <button onClick={() => setSelectedProduct(data)} className="view-qr-btn">
-                        View QR
-                      </button>
-                    }
-                  >
-                    <ProductMobileCard
-                      product={data}
-                      renderStatus={renderStatus}
-                    />
-                  </GenericMobileCard>
-                );
-              }}
-              loadPage={async (page) => {
-                const PAGE_SIZE = 20;
-                const start = (page - 1) * PAGE_SIZE;
-                const end = start + PAGE_SIZE;
-                return filteredProducts.slice(start, end);
-              }}
-            />
-          ) : (
-            <div
-              className="empty-state"
-              style={{ padding: "20px", textAlign: "center", color: "#6b7280" }}
-            >
-              {searchTerm
-                ? "No products found matching your search."
-                : "No products in database. Add your first product!"}
-            </div>
-          )}
+          <DataSetView
+            key={`products-mobile-${searchTerm}`}
+            render={function ProductCardRenderer({ data }) {
+              return (
+                <GenericMobileCard
+                  onEdit={
+                    currentUser?.role === "admin"
+                      ? () => setEditingProduct(data)
+                      : undefined
+                  }
+                  onDelete={
+                    currentUser?.role === "admin"
+                      ? () => handleDelete(data.id)
+                      : undefined
+                  }
+                  customActions={
+                    <button onClick={() => setSelectedProduct(data)} className="view-qr-btn">
+                      View QR
+                    </button>
+                  }
+                >
+                  <ProductMobileCard
+                    product={data}
+                    renderStatus={renderStatus}
+                  />
+                </GenericMobileCard>
+              );
+            }}
+            loadPage={async (page, limit) => {
+              const base = getApiBase();
+              let url = `${base}/api/products?page=${page}&limit=${limit}`;
+              if (searchTerm.trim() !== "") {
+                url += `&search=${encodeURIComponent(searchTerm)}`;
+              }
+              const res = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+              });
+              const payload = await res.json();
+              if (!res.ok) throw new Error(payload?.error || "Failed to load products");
+              return Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+            }}
+          />
         </div>
       )}
 

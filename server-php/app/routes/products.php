@@ -78,7 +78,13 @@ function list_products(PDO $pdo): void
         ';
     }
 
-    $sql .= ' ORDER BY p.id DESC';
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+    if ($page < 1) $page = 1;
+    if ($limit < 1) $limit = 20;
+    $offset = ($page - 1) * $limit;
+
+    $sql .= " ORDER BY p.id DESC LIMIT :limit OFFSET :offset";
 
     $stmt = $pdo->prepare($sql);
 
@@ -87,16 +93,25 @@ function list_products(PDO $pdo): void
         $stmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
-         // These reuse the same pattern for other searchable fields
         $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s5', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
     }
+    
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
     $stmt->execute();
     $rows = $stmt->fetchAll();
-    json_response($rows);
+    
+    json_response([
+        'data' => $rows,
+        'pagination' => [
+            'currentPage' => $page,
+            'limit'       => $limit,
+        ],
+    ]);
 }
 
 function get_product(PDO $pdo, string $id): void

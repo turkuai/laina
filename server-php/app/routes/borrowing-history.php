@@ -87,6 +87,14 @@ function list_borrowing_history(PDO $pdo): void
         ORDER BY bh.id DESC
     ";
 
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+    if ($page < 1) $page = 1;
+    if ($limit < 1) $limit = 10;
+    $offset = ($page - 1) * $limit;
+
+    $sql .= " LIMIT :limit OFFSET :offset";
+
     $stmt = $pdo->prepare($sql);
     if ($borrowerId) {
         $stmt->bindValue(':borrower_id', $borrowerId, PDO::PARAM_INT);
@@ -103,9 +111,20 @@ function list_borrowing_history(PDO $pdo): void
         $stmt->bindValue(':s8', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s9', $searchParam, PDO::PARAM_STR);
     }
+    
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
     $stmt->execute();
     $rows = $stmt->fetchAll();
-    json_response($rows);
+    
+    json_response([
+        'data' => $rows,
+        'pagination' => [
+            'currentPage' => $page,
+            'limit'       => $limit,
+        ],
+    ]);
 }
 
 function get_borrowing_record(PDO $pdo, string $id): void
