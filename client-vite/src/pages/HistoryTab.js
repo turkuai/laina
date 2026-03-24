@@ -203,4 +203,3 @@ function HistoryRow({ data }) {
     </div>
   );
 }
-

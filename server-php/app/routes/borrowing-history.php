@@ -1,3 +1,4 @@
+
 <?php
 // server-php/app/routes/borrowing-history.php
 
@@ -268,4 +269,3 @@ function delete_borrowing_record(PDO $pdo, string $id): void
 
     json_response(['success' => true]);
 }
-
