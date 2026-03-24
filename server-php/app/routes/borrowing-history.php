@@ -53,7 +53,7 @@ function list_borrowing_history(PDO $pdo): void
             bh.actual_return_date,
             bh.return_processed_by,
             bh.notes,
-            -- Friendly fields expected by the frontend grid
+            -- Friendly fields expected by the frontend grid (snake_case for backward compat)
             COALESCE(
                 NULLIF(bh.borrower_name_snapshot, ''),
                 NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
@@ -65,9 +65,23 @@ function list_borrowing_history(PDO $pdo): void
             CASE 
                 WHEN bh.actual_return_date IS NULL THEN 'borrowed'
                 ELSE 'returned'
-            END AS status_label
+            END AS status_label,
+            -- CamelCase fields requested for mobile/new client side
+            p.product_name AS deviceName,
+            COALESCE(
+                NULLIF(bh.borrower_name_snapshot, ''),
+                NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+                u.username,
+                CONCAT('User ', bh.borrower_id)
+            ) AS borrowerName,
+            COALESCE(
+                NULLIF(TRIM(CONCAT_WS(' ', l.first_name, l.last_name)), ''),
+                l.username,
+                CONCAT('User ', bh.lender_id)
+            ) AS lenderName
         FROM borrow_history bh
         LEFT JOIN users u ON u.id = bh.borrower_id
+        LEFT JOIN users l ON l.id = bh.lender_id
         LEFT JOIN products p ON p.id = bh.product_id
         WHERE 1 = 1
             " . ($borrowerId ? "AND bh.borrower_id = :borrower_id" : "") . "
@@ -110,7 +124,43 @@ function list_borrowing_history(PDO $pdo): void
 
 function get_borrowing_record(PDO $pdo, string $id): void
 {
-    $stmt = $pdo->prepare('SELECT * FROM borrow_history WHERE id = :id');
+    $sql = "
+        SELECT 
+            bh.*,
+            -- Friendly fields (snake_case)
+            COALESCE(
+                NULLIF(bh.borrower_name_snapshot, ''),
+                NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+                u.username,
+                CONCAT('User ', bh.borrower_id)
+            ) AS borrower_name,
+            p.product_name,
+            p.status,
+            CASE 
+                WHEN bh.actual_return_date IS NULL THEN 'borrowed'
+                ELSE 'returned'
+            END AS status_label,
+            -- CamelCase fields
+            p.product_name AS deviceName,
+            COALESCE(
+                NULLIF(bh.borrower_name_snapshot, ''),
+                NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+                u.username,
+                CONCAT('User ', bh.borrower_id)
+            ) AS borrowerName,
+            COALESCE(
+                NULLIF(TRIM(CONCAT_WS(' ', l.first_name, l.last_name)), ''),
+                l.username,
+                CONCAT('User ', bh.lender_id)
+            ) AS lenderName
+        FROM borrow_history bh
+        LEFT JOIN users u ON u.id = bh.borrower_id
+        LEFT JOIN users l ON l.id = bh.lender_id
+        LEFT JOIN products p ON p.id = bh.product_id
+        WHERE bh.id = :id
+    ";
+
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
     $row = $stmt->fetch();
 

@@ -17,11 +17,11 @@ import './Admin.css';
  * - onQueryChange: Callback function for search query changes
  */
 export default function HistoryTab({ currentUser, query, onQueryChange }) {
-  const adminColumns = ['borrower_name', 'product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
-  const adminColumnsMobile = ['borrower_name', 'product_name', 'borrow_date', 'status'];
-  const studentColumns = ['product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
+  const adminColumns = ['borrowerName', 'deviceName', 'lenderName', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
+  const adminColumnsMobile = ['borrowerName', 'deviceName', 'lenderName', 'borrow_date', 'status'];
+  const studentColumns = ['deviceName', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   // Mobile students: compact, fixed grid (no status, just product + borrow + planned return)
-  const studentColumnsMobile = ['product_name', 'borrow_date', 'estimated_return_date'];
+  const studentColumnsMobile = ['deviceName', 'borrow_date', 'estimated_return_date'];
   
   const desktopColumns = currentUser?.role === 'admin' ? adminColumns : studentColumns;
   const mobileColumns = currentUser?.role === 'admin' ? adminColumnsMobile : studentColumnsMobile;
@@ -158,7 +158,7 @@ function HistoryRow({ data }) {
     <div className="products-mobile-card" style={{ marginBottom: '0.75rem' }}>
       <div className="products-mobile-card-header">
         <div className="products-mobile-card-title">
-          {data.product_name || 'Unknown product'}
+          {data.deviceName || data.product_name || 'Unknown product'}
         </div>
         <div className="products-mobile-card-status">
           <span className={`status-badge status-${data.status || 'unknown'}`}>
@@ -169,7 +169,13 @@ function HistoryRow({ data }) {
       <div className="products-mobile-card-row">
         <span className="products-mobile-card-label">Borrower:</span>
         <span className="products-mobile-card-value">
-          {data.borrower_name || 'N/A'}
+          {data.borrowerName || data.borrower_name || 'N/A'}
+        </span>
+      </div>
+      <div className="products-mobile-card-row">
+        <span className="products-mobile-card-label">Lender:</span>
+        <span className="products-mobile-card-value">
+          {data.lenderName || 'N/A'}
         </span>
       </div>
       <div className="products-mobile-card-row">
