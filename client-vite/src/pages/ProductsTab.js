@@ -505,3 +505,4 @@ function DeviceTypeForm({ data, setData }) {
     </div>
   );
 }
+//470-Borrowing-history-fetch-should-include-deviceName-borrowerName-and-lenderName 
