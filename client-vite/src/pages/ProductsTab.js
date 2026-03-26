@@ -23,8 +23,7 @@ export default function ProductsTab({
   const [locations, setLocations] = useState([]);
   const [productsFromDb, setProductsFromDb] = useState([]);
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
-  const [showLocationsManager, setShowLocationsManager] = useState(false);
-  const [showDeviceTypesManager, setShowDeviceTypesManager] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState("products");
 
   const generateQrHash = () => {
     const chars =
@@ -92,86 +91,98 @@ export default function ProductsTab({
     return (
       <div className="mobile-tab-content">
         <div className="mobile-content-section">
-          <h2 className="title">Products</h2>
-          <div className="user-search">
-            <input
-              placeholder="Search ..."
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-            />
+          <div className="mobile-top-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 className="title" style={{ margin: 0 }}>Products</h2>
+            {canManageMeta && (
+              <div className="secondary-tabs-mobile">
+                <button
+                  className={`tab-btn-mobile ${activeSubTab === "products" ? "active" : ""}`}
+                  onClick={() => setActiveSubTab("products")}
+                  aria-label="Products"
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                </button>
+                <button
+                  className={`tab-btn-mobile ${activeSubTab === "locations" ? "active" : ""}`}
+                  onClick={() => setActiveSubTab("locations")}
+                  aria-label="Manage Locations"
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </button>
+                <button
+                  className={`tab-btn-mobile ${activeSubTab === "device-types" ? "active" : ""}`}
+                  onClick={() => setActiveSubTab("device-types")}
+                  aria-label="Manage Device Types"
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
 
-          <ServerGrid
-            key={refreshKey}
-            columns={[
-              "product_name",
-              "type_name",
-              "purchase_date",
-              "location_name",
-              "status",
-              "details",
-              "qr_code",
-            ]}
-            columnRenderers={{
-              status: StatusRenderer,
-              qr_code: QRCodeRenderer,
-            }}
-            path="/products"
-            allowEditing={currentUser?.role === "admin"}
-            allowDelete={currentUser?.role === "admin"}
-            pageSize={10}
-            showAddButton={currentUser?.role === "admin"}
-            query={query}
-            typeOptions={deviceTypes}
-            locationOptions={locations}
-            formComponent={ProductForm}
-            transformAddPayload={(payload) => {
-              const type = deviceTypes.find(
-                (t) => t.type_name === payload.type_name
-              );
-              const loc = locations.find(
-                (l) => l.location_name === payload.location_name
-              );
-              return {
-                device_type_id: type ? type.id : null,
-                product_name: (payload.product_name || "").trim(),
-                purchase_date: payload.purchase_date || null,
-                location_id: loc ? loc.id : null,
-                status: payload.status || "available",
-                details: payload.details || null,
-                qr_code: generateQrHash(),
-              };
-            }}
-          />
+          {activeSubTab === "products" && (
+            <>
+              <div className="user-search" style={{ marginTop: '16px' }}>
+                <input
+                  placeholder="Search ..."
+                  value={query}
+                  onChange={(e) => onQueryChange(e.target.value)}
+                />
+              </div>
 
-          {canManageMeta && (
-            <div className="products-meta-actions-mobile">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() =>
-                  setShowLocationsManager((prev) => !prev)
-                }
-              >
-                {showLocationsManager ? "Hide locations" : "Manage locations"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() =>
-                  setShowDeviceTypesManager((prev) => !prev)
-                }
-              >
-                {showDeviceTypesManager
-                  ? "Hide device types"
-                  : "Manage device types"}
-              </button>
-            </div>
+              <ServerGrid
+                key={refreshKey}
+                columns={[
+                  "product_name",
+                  "type_name",
+                  "purchase_date",
+                  "location_name",
+                  "status",
+                  "details",
+                  "qr_code",
+                ]}
+                columnRenderers={{
+                  status: StatusRenderer,
+                  qr_code: QRCodeRenderer,
+                }}
+                path="/products"
+                allowEditing={currentUser?.role === "admin"}
+                allowDelete={currentUser?.role === "admin"}
+                pageSize={10}
+                showAddButton={currentUser?.role === "admin"}
+                query={query}
+                typeOptions={deviceTypes}
+                locationOptions={locations}
+                formComponent={ProductForm}
+                transformAddPayload={(payload) => {
+                  const type = deviceTypes.find(
+                    (t) => t.type_name === payload.type_name
+                  );
+                  const loc = locations.find(
+                    (l) => l.location_name === payload.location_name
+                  );
+                  return {
+                    device_type_id: type ? type.id : null,
+                    product_name: (payload.product_name || "").trim(),
+                    purchase_date: payload.purchase_date || null,
+                    location_id: loc ? loc.id : null,
+                    status: payload.status || "available",
+                    details: payload.details || null,
+                    qr_code: generateQrHash(),
+                  };
+                }}
+              />
+            </>
           )}
 
-          {canManageMeta && showLocationsManager && (
+          {canManageMeta && activeSubTab === "locations" && (
             <div className="products-meta-section">
-              <h3 className="meta-title">Locations</h3>
               <ServerGrid
                 columns={["location_name", "description"]}
                 path="locations"
@@ -184,9 +195,8 @@ export default function ProductsTab({
             </div>
           )}
 
-          {canManageMeta && showDeviceTypesManager && (
+          {canManageMeta && activeSubTab === "device-types" && (
             <div className="products-meta-section">
-              <h3 className="meta-title">Device types</h3>
               <ServerGrid
                 columns={["type_name"]}
                 path="device-types"
@@ -211,159 +221,127 @@ export default function ProductsTab({
     <>
       <h2 className="title">Products</h2>
 
-      <div className="products-meta-actions-desktop">
-        {canManageMeta && (
-          <>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setShowLocationsManager(true)}
-            >
-              Manage locations
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setShowDeviceTypesManager(true)}
-            >
-              Manage device types
-            </button>
-          </>
-        )}
-      </div>
-
-      <div className="products-card__search">
-        <span className="search-icon">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+      {canManageMeta && (
+        <div className="secondary-tabs-desktop">
+          <button
+            className={`tab-btn-desktop ${activeSubTab === "products" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("products")}
           >
-            <circle cx="11" cy="11" r="6" stroke="#6b7280" strokeWidth="2" />
-            <line
-              x1="15"
-              y1="15"
-              x2="20"
-              y2="20"
-              stroke="#6b7280"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </span>
-        <input
-          type="text"
-          placeholder="Search ..."
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-        />
-      </div>
-
-      <ServerGrid
-        key={refreshKey}
-        columns={[
-          "product_name",
-          "type_name",
-          "purchase_date",
-          "location_name",
-          "status",
-          "details",
-          "qr_code",
-        ]}
-        columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
-        path="/products"
-        allowEditing={isAdmin}
-        allowDelete={isAdmin}
-        pageSize={10}
-        showAddButton={isAdmin}
-        query={query}
-        typeOptions={deviceTypes}
-        locationOptions={locations}
-        formComponent={ProductForm}
-        transformAddPayload={(payload) => {
-          const type = deviceTypes.find(
-            (t) => t.type_name === payload.type_name
-          );
-          const loc = locations.find(
-            (l) => l.location_name === payload.location_name
-          );
-          return {
-            device_type_id: type ? type.id : null,
-            product_name: (payload.product_name || "").trim(),
-            purchase_date: payload.purchase_date || null,
-            location_id: loc ? loc.id : null,
-            status: payload.status || "available",
-            details: payload.details || null,
-            qr_code: generateQrHash(),
-          };
-        }}
-      />
-
-      {!isMobile && canManageMeta && showLocationsManager && (
-        <div
-          className="product-modal-overlay"
-          onClick={() => setShowLocationsManager(false)}
-        >
-          <div
-            className="product-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "720px" }}
+            Products
+          </button>
+          <button
+            className={`tab-btn-desktop ${activeSubTab === "locations" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("locations")}
           >
-            <button
-              onClick={() => setShowLocationsManager(false)}
-              className="product-modal-close"
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h2 className="product-modal-title">Manage locations</h2>
-            <div className="products-meta-modal-content">
-              <ServerGrid
-                columns={["location_name", "description"]}
-                path="locations"
-                allowEditing={true}
-                allowDelete={true}
-                pageSize={10}
-                showAddButton={true}
-                formComponent={LocationForm}
-              />
-            </div>
-          </div>
+            Manage locations
+          </button>
+          <button
+            className={`tab-btn-desktop ${activeSubTab === "device-types" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("device-types")}
+          >
+            Manage device types
+          </button>
         </div>
       )}
 
-      {!isMobile && canManageMeta && showDeviceTypesManager && (
-        <div
-          className="product-modal-overlay"
-          onClick={() => setShowDeviceTypesManager(false)}
-        >
-          <div
-            className="product-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "600px" }}
-          >
-            <button
-              onClick={() => setShowDeviceTypesManager(false)}
-              className="product-modal-close"
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h2 className="product-modal-title">Manage device types</h2>
-            <div className="products-meta-modal-content">
-              <ServerGrid
-                columns={["type_name"]}
-                path="device-types"
-                allowEditing={true}
-                allowDelete={true}
-                pageSize={10}
-                showAddButton={true}
-                formComponent={DeviceTypeForm}
-              />
-            </div>
+      {activeSubTab === "products" && (
+        <>
+          <div className="products-card__search">
+            <span className="search-icon">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="11" cy="11" r="6" stroke="#6b7280" strokeWidth="2" />
+                <line
+                  x1="15"
+                  y1="15"
+                  x2="20"
+                  y2="20"
+                  stroke="#6b7280"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search ..."
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+            />
           </div>
+
+          <ServerGrid
+            key={refreshKey}
+            columns={[
+              "product_name",
+              "type_name",
+              "purchase_date",
+              "location_name",
+              "status",
+              "details",
+              "qr_code",
+            ]}
+            columnRenderers={{ status: StatusRenderer, qr_code: QRCodeRenderer }}
+            path="/products"
+            allowEditing={isAdmin}
+            allowDelete={isAdmin}
+            pageSize={10}
+            showAddButton={isAdmin}
+            query={query}
+            typeOptions={deviceTypes}
+            locationOptions={locations}
+            formComponent={ProductForm}
+            transformAddPayload={(payload) => {
+              const type = deviceTypes.find(
+                (t) => t.type_name === payload.type_name
+              );
+              const loc = locations.find(
+                (l) => l.location_name === payload.location_name
+              );
+              return {
+                device_type_id: type ? type.id : null,
+                product_name: (payload.product_name || "").trim(),
+                purchase_date: payload.purchase_date || null,
+                location_id: loc ? loc.id : null,
+                status: payload.status || "available",
+                details: payload.details || null,
+                qr_code: generateQrHash(),
+              };
+            }}
+          />
+        </>
+      )}
+
+      {canManageMeta && activeSubTab === "locations" && (
+        <div className="products-meta-section">
+          <ServerGrid
+            columns={["location_name", "description"]}
+            path="locations"
+            allowEditing={true}
+            allowDelete={true}
+            pageSize={10}
+            showAddButton={true}
+            formComponent={LocationForm}
+          />
+        </div>
+      )}
+
+      {canManageMeta && activeSubTab === "device-types" && (
+        <div className="products-meta-section">
+          <ServerGrid
+            columns={["type_name"]}
+            path="device-types"
+            allowEditing={true}
+            allowDelete={true}
+            pageSize={10}
+            showAddButton={true}
+            formComponent={DeviceTypeForm}
+          />
         </div>
       )}
     </>
