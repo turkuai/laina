@@ -122,11 +122,32 @@ function list_users(PDO $pdo): void
     $stmt->execute();
     $result = $stmt->fetchAll();
 
+    $countSql = 'SELECT COUNT(*) FROM users WHERE flag IS NULL OR flag = "visible"';
+    if ($search && trim($search) !== '') {
+        $countSql .= ' AND (first_name LIKE :s1 
+                       OR last_name LIKE :s2 
+                       OR email LIKE :s3 
+                       OR username LIKE :s4)';
+    }
+    $countStmt = $pdo->prepare($countSql);
+    if ($search && trim($search) !== '') {
+        $searchParam = '%' . trim($search) . '%';
+        $countStmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
+    }
+    $countStmt->execute();
+    $totalItems = (int)$countStmt->fetchColumn();
+    $totalPages = ceil($totalItems / $limit);
+
     json_response([
         'data' => $result,
         'pagination' => [
             'currentPage' => $page,
             'limit'       => $limit,
+            'totalItems'  => $totalItems,
+            'totalPages'  => $totalPages,
         ],
     ]);
 }

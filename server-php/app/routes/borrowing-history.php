@@ -118,11 +118,55 @@ function list_borrowing_history(PDO $pdo): void
     $stmt->execute();
     $rows = $stmt->fetchAll();
     
+    $countSql = "
+        SELECT COUNT(*)
+        FROM borrow_history bh
+        LEFT JOIN users u ON u.id = bh.borrower_id
+        LEFT JOIN products p ON p.id = bh.product_id
+        WHERE 1 = 1
+            " . ($borrowerId ? "AND bh.borrower_id = :borrower_id" : "") . "
+            " . (($search && trim($search) !== '') ? "
+              AND (
+                p.product_name LIKE :s1
+                OR u.first_name LIKE :s2
+                OR u.last_name LIKE :s3
+                OR u.username LIKE :s4
+                OR CAST(bh.borrow_date AS CHAR) LIKE :s5
+                OR CAST(bh.estimated_return_date AS CHAR) LIKE :s6
+                OR CAST(bh.actual_return_date AS CHAR) LIKE :s7
+                OR p.status LIKE :s8
+                OR bh.notes LIKE :s9
+              )
+            " : "") . "
+    ";
+    
+    $countStmt = $pdo->prepare($countSql);
+    if ($borrowerId) {
+        $countStmt->bindValue(':borrower_id', $borrowerId, PDO::PARAM_INT);
+    }
+    if ($search && trim($search) !== '') {
+        $searchParam = '%' . trim($search) . '%';
+        $countStmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s5', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s8', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s9', $searchParam, PDO::PARAM_STR);
+    }
+    $countStmt->execute();
+    $totalItems = (int)$countStmt->fetchColumn();
+    $totalPages = ceil($totalItems / $limit);
+
     json_response([
         'data' => $rows,
         'pagination' => [
             'currentPage' => $page,
             'limit'       => $limit,
+            'totalItems'  => $totalItems,
+            'totalPages'  => $totalPages,
         ],
     ]);
 }

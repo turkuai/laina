@@ -11,6 +11,7 @@ import GenericMobileCard from "../components/GenericMobileCard";
 import ProductMobileCard from "./_ProductMobileCard";
 import { Plus, X as XIcon } from "lucide-react";
 import { getApiBase } from "../config";
+import { fetchServerData } from "../components/serverGet";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
@@ -886,18 +887,15 @@ export default function Products({ currentUser }) {
         <div className="products-mobile-list">
           <DataSetView
             key={`products-mobile-${searchTerm}`}
-            render={function ProductCardRenderer({ data }) {
-              return (
+            render={({ data }) => (
                 <GenericMobileCard
                   onEdit={
                     currentUser?.role === "admin"
-                      ? () => setEditingProduct(data)
-                      : undefined
+                      && (() => setEditingProduct(data))
                   }
                   onDelete={
                     currentUser?.role === "admin"
-                      ? () => handleDelete(data.id)
-                      : undefined
+                      && (() => handleDelete(data.id))
                   }
                   customActions={
                     <button onClick={() => setSelectedProduct(data)} className="view-qr-btn">
@@ -910,22 +908,11 @@ export default function Products({ currentUser }) {
                     renderStatus={renderStatus}
                   />
                 </GenericMobileCard>
-              );
-            }}
+              )
+            }
             loadPage={async (page, limit) => {
-              const base = getApiBase();
-              let url = `${base}/api/products?page=${page}&limit=${limit}`;
-              if (searchTerm.trim() !== "") {
-                url += `&search=${encodeURIComponent(searchTerm)}`;
-              }
-              const res = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-              });
-              const payload = await res.json();
-              if (!res.ok) throw new Error(payload?.error || "Failed to load products");
-              return Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+              const { rows } = await fetchServerData('products', page, searchTerm, limit);
+              return rows;
             }}
           />
         </div>
