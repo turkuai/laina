@@ -1,5 +1,5 @@
 .env
-
+.dists
 package-lock.json
 
 # dependencies
