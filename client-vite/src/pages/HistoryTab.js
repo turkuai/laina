@@ -2,6 +2,7 @@ import React from 'react';
 import ServerGrid from '../components/ServerGrid';
 import MobileSearchToggle from '../components/MobileSearchToggle';
 import DataSetView from '../components/DataSetView';
+import GenericMobileCard from '../components/GenericMobileCard';
 import { getApiBase } from '../config';
 import './Admin.css';
 
@@ -17,10 +18,9 @@ import './Admin.css';
  * - onQueryChange: Callback function for search query changes
  */
 export default function HistoryTab({ currentUser, query, onQueryChange }) {
-  const adminColumns = ['borrower_name', 'product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
+  const adminColumns = ['borrower_name', 'lender_name', 'product_name', 'device_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   const adminColumnsMobile = ['borrower_name', 'product_name', 'borrow_date', 'status'];
-  const studentColumns = ['product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
-  // Mobile students: compact, fixed grid (no status, just product + borrow + planned return)
+  const studentColumns = ['product_name', 'device_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   const studentColumnsMobile = ['product_name', 'borrow_date', 'estimated_return_date'];
   
   const desktopColumns = currentUser?.role === 'admin' ? adminColumns : studentColumns;
@@ -32,13 +32,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
     ? 'borrowing-history' 
     : `borrowing-history?borrower_id=${currentUser?.id}`;
 
-  const loadHistoryPage = async (page) => {
-    // Backend currently returns the full history regardless of page.
-    // To avoid duplicate rows, only load page 1 until real pagination is implemented.
-    if (page > 1) {
-      return [];
-    }
-
+  const loadHistoryPage = async (page, limit = 10) => {
     let fullPath = path;
     if (!fullPath.startsWith('/api/')) {
       const cleanPath = fullPath.startsWith('/') ? fullPath.slice(1) : fullPath;
@@ -47,7 +41,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 
     const base = getApiBase();
     const separator = fullPath.includes('?') ? '&' : '?';
-    let url = `${base}${fullPath}${separator}page=${page}`;
+    let url = `${base}${fullPath}${separator}page=${page}&limit=${limit}`;
 
     const trimmedQuery = (query || '').trim();
     if (trimmedQuery !== '') {
@@ -66,16 +60,10 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
         payload?.error || payload?.message || `Failed to load history (status ${res.status})`,
       );
     }
-
-    if (Array.isArray(payload)) {
-      return payload;
-    }
-    if (Array.isArray(payload.history)) {
-      return payload.history;
-    }
-    if (Array.isArray(payload.data)) {
-      return payload.data;
-    }
+    
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.history)) return payload.history;
     return [];
   };
 
@@ -93,7 +81,11 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
           <div style={{ width: '100%', padding: '1.5rem 12px 1.5rem' }}>
             <DataSetView
               key={`${path}-${query || ''}`}
-              render={HistoryRow}
+              render={({ data }) => (
+                <GenericMobileCard>
+                  <HistoryRow data={data} />
+                </GenericMobileCard>
+              )}
               loadPage={loadHistoryPage}
             />
           </div>
@@ -155,7 +147,7 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 
 function HistoryRow({ data }) {
   return (
-    <div className="products-mobile-card" style={{ marginBottom: '0.75rem' }}>
+    <>
       <div className="products-mobile-card-header">
         <div className="products-mobile-card-title">
           {data.product_name || 'Unknown product'}
@@ -166,35 +158,39 @@ function HistoryRow({ data }) {
           </span>
         </div>
       </div>
+      {data.device_name && (
+        <div className="products-mobile-card-row">
+          <span className="products-mobile-card-label">Device type:</span>
+          <span className="products-mobile-card-value">{data.device_name}</span>
+        </div>
+      )}
       <div className="products-mobile-card-row">
         <span className="products-mobile-card-label">Borrower:</span>
-        <span className="products-mobile-card-value">
-          {data.borrower_name || 'N/A'}
-        </span>
+        <span className="products-mobile-card-value">{data.borrower_name || 'N/A'}</span>
       </div>
+      {data.lender_name && (
+        <div className="products-mobile-card-row">
+          <span className="products-mobile-card-label">Lender:</span>
+          <span className="products-mobile-card-value">{data.lender_name}</span>
+        </div>
+      )}
       <div className="products-mobile-card-row">
         <span className="products-mobile-card-label">Borrow date:</span>
-        <span className="products-mobile-card-value">
-          {data.borrow_date || 'N/A'}
-        </span>
+        <span className="products-mobile-card-value">{data.borrow_date || 'N/A'}</span>
       </div>
       {data.estimated_return_date && (
         <div className="products-mobile-card-row">
           <span className="products-mobile-card-label">Estimated return:</span>
-          <span className="products-mobile-card-value">
-            {data.estimated_return_date}
-          </span>
+          <span className="products-mobile-card-value">{data.estimated_return_date}</span>
         </div>
       )}
       {data.actual_return_date && (
         <div className="products-mobile-card-row">
           <span className="products-mobile-card-label">Returned:</span>
-          <span className="products-mobile-card-value">
-            {data.actual_return_date}
-          </span>
+          <span className="products-mobile-card-value">{data.actual_return_date}</span>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

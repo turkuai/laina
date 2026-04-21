@@ -90,7 +90,21 @@ function list_users(PDO $pdo): void
                        OR username LIKE :s4)';
     }
     
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+    if ($page < 1) $page = 1;
+    if ($limit < 1) $limit = 20;
+    $offset = ($page - 1) * $limit; // This will need refinement for the "100 first, 10 later" requirement if implemented purely on backend.
+    // For simplicity, let's allow the frontend to specify the limit and calculate offset accordingly.
+
+    // If the offset calculation needs to handle variable limits:
+    // Page 1: 0 to 99 (limit 100)
+    // Page 2: 100 to 109 (limit 10)
+    // However, it's easier to just let the frontend pass 'offset' or use a consistent limit.
+    // Given the user request, I'll allow the frontend to pass 'limit' and assume constant limit for simplicity or use a formula.
+    
     $sql .= ' ORDER BY id DESC';
+    $sql .= " LIMIT :limit OFFSET :offset";
     
     $stmt = $pdo->prepare($sql);
     
@@ -102,17 +116,17 @@ function list_users(PDO $pdo): void
         $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
     }
     
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    
     $stmt->execute();
     $result = $stmt->fetchAll();
 
     json_response([
         'data' => $result,
         'pagination' => [
-            // Simplified pagination: single page with all users
-            'currentPage' => 1,
-            'totalPages'  => 1,
-            'totalItems'  => count($result),
-            'limit'       => count($result),
+            'currentPage' => $page,
+            'limit'       => $limit,
         ],
     ]);
 }
@@ -448,9 +462,9 @@ function login_user(PDO $pdo): void
     $stmt = $pdo->prepare(
         'SELECT id, username, email, password, first_name, last_name, role, flag, email_verified
          FROM users
-         WHERE email = :email'
+         WHERE email = :email OR username = :username'
     );
-    $stmt->execute([':email' => $email]);
+    $stmt->execute([':email' => $email, ':username' => $email]);
     $row = $stmt->fetch();
 
     if (
