@@ -65,7 +65,7 @@ export default defineConfig({
         target: 'http://localhost',
         changeOrigin: true,
         rewrite: (path) =>
-          path.replace(/^\/api/, '/lainaaminen-projekti/server-php/api'),
+          path.replace(/^\/api/, '/laina/server-php/api'),
       },
     },
   },
