@@ -43,7 +43,7 @@ function list_borrowing_history(PDO $pdo): void
     $search = $_GET['search'] ?? null;
 
     $sql = "
-        SELECT 
+        SELECT
             bh.id,
             bh.product_id,
             bh.borrower_id,
@@ -53,35 +53,44 @@ function list_borrowing_history(PDO $pdo): void
             bh.actual_return_date,
             bh.return_processed_by,
             bh.notes,
-            -- Friendly fields expected by the frontend grid
+            -- Borrower name (snapshot preferred, fallback to live user data)
             COALESCE(
                 NULLIF(bh.borrower_name_snapshot, ''),
-                NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
-                u.username,
+                NULLIF(TRIM(CONCAT_WS(' ', borrower.first_name, borrower.last_name)), ''),
+                borrower.username,
                 CONCAT('User ', bh.borrower_id)
             ) AS borrower_name,
+            -- Lender name (person who processed the borrow)
+            NULLIF(TRIM(CONCAT_WS(' ', lender.first_name, lender.last_name)), '') AS lender_name,
+            -- Product / device info
             p.product_name,
+            dt.type_name AS device_name,
             p.status,
-            CASE 
+            CASE
                 WHEN bh.actual_return_date IS NULL THEN 'borrowed'
                 ELSE 'returned'
             END AS status_label
         FROM borrow_history bh
-        LEFT JOIN users u ON u.id = bh.borrower_id
-        LEFT JOIN products p ON p.id = bh.product_id
+        LEFT JOIN users borrower    ON borrower.id = bh.borrower_id
+        LEFT JOIN users lender      ON lender.id   = bh.lender_id
+        LEFT JOIN products p        ON p.id         = bh.product_id
+        LEFT JOIN device_types dt   ON dt.id        = p.device_type_id
         WHERE 1 = 1
             " . ($borrowerId ? "AND bh.borrower_id = :borrower_id" : "") . "
             " . (($search && trim($search) !== '') ? "
               AND (
                 p.product_name LIKE :s1
-                OR u.first_name LIKE :s2
-                OR u.last_name LIKE :s3
-                OR u.username LIKE :s4
+                OR borrower.first_name LIKE :s2
+                OR borrower.last_name  LIKE :s3
+                OR borrower.username   LIKE :s4
                 OR CAST(bh.borrow_date AS CHAR) LIKE :s5
                 OR CAST(bh.estimated_return_date AS CHAR) LIKE :s6
                 OR CAST(bh.actual_return_date AS CHAR) LIKE :s7
                 OR p.status LIKE :s8
                 OR bh.notes LIKE :s9
+                OR lender.first_name LIKE :s10
+                OR lender.last_name  LIKE :s11
+                OR dt.type_name      LIKE :s12
               )
             " : "") . "
         ORDER BY bh.id DESC
@@ -110,6 +119,9 @@ function list_borrowing_history(PDO $pdo): void
         $stmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s8', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s9', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s10', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s11', $searchParam, PDO::PARAM_STR);
+        $stmt->bindValue(':s12', $searchParam, PDO::PARAM_STR);
     }
     
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);

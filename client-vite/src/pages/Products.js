@@ -147,6 +147,7 @@ const generateHash = () => {
 };
 
 export default function Products({ currentUser }) {
+  const [activeSubTab, setActiveSubTab] = useState("products");
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     product_name: "",
@@ -485,21 +486,59 @@ export default function Products({ currentUser }) {
     );
   }
 
+  const canManageMeta = currentUser?.role === "admin" || currentUser?.role === "teacher";
+
   return (
     <div className="products-card">
-      <div className="products-card__header">
-        <h2 className="title">Products ({products.length})</h2>
-        {currentUser?.role === "admin" && (
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="btn btn-primary"
-          >
-            {showAddForm ? <XIcon size={20} /> : <Plus size={20} />}
-          </button>
-        )}
+      <div className="products-card__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 className="title">Products {activeSubTab === 'products' && `(${products.length})`}</h2>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {canManageMeta && isMobile && (
+            <div className="secondary-tabs-mobile">
+              <button
+                className={`tab-btn-mobile ${activeSubTab === "products" ? "active" : ""}`}
+                onClick={() => setActiveSubTab("products")}
+                aria-label="Products"
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+              </button>
+              <button
+                className={`tab-btn-mobile ${activeSubTab === "locations" ? "active" : ""}`}
+                onClick={() => setActiveSubTab("locations")}
+                aria-label="Manage Locations"
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </button>
+              <button
+                className={`tab-btn-mobile ${activeSubTab === "device-types" ? "active" : ""}`}
+                onClick={() => setActiveSubTab("device-types")}
+                aria-label="Manage Device Types"
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          )}
+          {currentUser?.role === "admin" && activeSubTab === 'products' && (
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="btn btn-primary"
+              style={{ margin: 0, padding: '4px' }}
+            >
+              {showAddForm ? <XIcon size={20} /> : <Plus size={20} />}
+            </button>
+          )}
+        </div>
       </div>
 
-      {showAddForm && (
+      {activeSubTab === "products" && (
+        <>
+          {showAddForm && (
         <div
           className="product-modal-overlay"
           onClick={() => setShowAddForm(false)}
@@ -887,15 +926,18 @@ export default function Products({ currentUser }) {
         <div className="products-mobile-list">
           <DataSetView
             key={`products-mobile-${searchTerm}`}
-            render={({ data }) => (
+            render={function ProductCardRenderer({ data }) {
+              return (
                 <GenericMobileCard
                   onEdit={
                     currentUser?.role === "admin"
-                      && (() => setEditingProduct(data))
+                      ? () => setEditingProduct(data)
+                      : undefined
                   }
                   onDelete={
                     currentUser?.role === "admin"
-                      && (() => handleDelete(data.id))
+                      ? () => handleDelete(data.id)
+                      : undefined
                   }
                   customActions={
                     <button onClick={() => setSelectedProduct(data)} className="view-qr-btn">
@@ -908,11 +950,22 @@ export default function Products({ currentUser }) {
                     renderStatus={renderStatus}
                   />
                 </GenericMobileCard>
-              )
-            }
+              );
+            }}
             loadPage={async (page, limit) => {
-              const { rows } = await fetchServerData('products', page, searchTerm, limit);
-              return rows;
+              const base = getApiBase();
+              let url = `${base}/api/products?page=${page}&limit=${limit}`;
+              if (searchTerm.trim() !== "") {
+                url += `&search=${encodeURIComponent(searchTerm)}`;
+              }
+              const res = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+              });
+              const payload = await res.json();
+              if (!res.ok) throw new Error(payload?.error || "Failed to load products");
+              return Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
             }}
           />
         </div>
@@ -924,6 +977,86 @@ export default function Products({ currentUser }) {
           onClose={() => setSelectedProduct(null)}
         />
       )}
+      </>)}
+
+      {canManageMeta && activeSubTab === "locations" && (
+        <div className="products-meta-section" style={{ marginTop: '16px' }}>
+          <ServerGrid
+            columns={["location_name", "description"]}
+            path="locations"
+            allowEditing={true}
+            allowDelete={true}
+            pageSize={10}
+            showAddButton={true}
+            formComponent={LocationForm}
+          />
+        </div>
+      )}
+
+      {canManageMeta && activeSubTab === "device-types" && (
+        <div className="products-meta-section" style={{ marginTop: '16px' }}>
+          <ServerGrid
+            columns={["type_name"]}
+            path="device-types"
+            allowEditing={true}
+            allowDelete={true}
+            pageSize={10}
+            showAddButton={true}
+            formComponent={DeviceTypeForm}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LocationForm({ data, setData }) {
+  return (
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">Location name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.location_name || data.name || ""}
+            onChange={(e) =>
+              setData({ ...data, location_name: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="form-label">Description</label>
+          <textarea
+            className="form-input"
+            rows={3}
+            value={data.description || ""}
+            onChange={(e) =>
+              setData({ ...data, description: e.target.value })
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeviceTypeForm({ data, setData }) {
+  return (
+    <div className="add-product-form">
+      <div className="add-product-form-grid">
+        <div>
+          <label className="form-label">Device type name</label>
+          <input
+            type="text"
+            className="form-input"
+            value={data.type_name || data.name || ""}
+            onChange={(e) =>
+              setData({ ...data, type_name: e.target.value })
+            }
+          />
+        </div>
+      </div>
     </div>
   );
 }

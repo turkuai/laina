@@ -4,6 +4,7 @@ import MobileSearchToggle from '../components/MobileSearchToggle';
 import DataSetView from '../components/DataSetView';
 import GenericMobileCard from '../components/GenericMobileCard';
 import { fetchServerData } from '../components/serverGet';
+import { getApiBase } from '../config';
 import './Admin.css';
 
 /**
@@ -18,10 +19,9 @@ import './Admin.css';
  * - onQueryChange: Callback function for search query changes
  */
 export default function HistoryTab({ currentUser, query, onQueryChange }) {
-  const adminColumns = ['borrower_name', 'product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
+  const adminColumns = ['borrower_name', 'lender_name', 'product_name', 'device_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   const adminColumnsMobile = ['borrower_name', 'product_name', 'borrow_date', 'status'];
-  const studentColumns = ['product_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
-  // Mobile students: compact, fixed grid (no status, just product + borrow + planned return)
+  const studentColumns = ['product_name', 'device_name', 'borrow_date', 'estimated_return_date', 'actual_return_date', 'status'];
   const studentColumnsMobile = ['product_name', 'borrow_date', 'estimated_return_date'];
   
   const desktopColumns = currentUser?.role === 'admin' ? adminColumns : studentColumns;
@@ -34,8 +34,38 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
     : `borrowing-history?borrower_id=${currentUser?.id}`;
 
   const loadHistoryPage = async (page, limit = 10) => {
-    const { rows } = await fetchServerData(path, page, query, limit);
-    return rows;
+    let fullPath = path;
+    if (!fullPath.startsWith('/api/')) {
+      const cleanPath = fullPath.startsWith('/') ? fullPath.slice(1) : fullPath;
+      fullPath = `/api/${cleanPath}`;
+    }
+
+    const base = getApiBase();
+    const separator = fullPath.includes('?') ? '&' : '?';
+    let url = `${base}${fullPath}${separator}page=${page}&limit=${limit}`;
+
+    const trimmedQuery = (query || '').trim();
+    if (trimmedQuery !== '') {
+      url += `&search=${encodeURIComponent(trimmedQuery)}`;
+    }
+
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const payload = await res.json();
+    if (!res.ok) {
+      throw new Error(
+        payload?.error || payload?.message || `Failed to load history (status ${res.status})`,
+      );
+    }
+    
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.history)) return payload.history;
+    return [];
   };
 
   return (
@@ -119,8 +149,8 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 function HistoryRow({ data }) {
   return (
     <>
-      <div className="generic-mobile-card-header">
-        <div className="generic-mobile-card-title">
+      <div className="products-mobile-card-header">
+        <div className="products-mobile-card-title">
           {data.product_name || 'Unknown product'}
         </div>
         <div className="generic-mobile-card-status">
@@ -129,32 +159,36 @@ function HistoryRow({ data }) {
           </span>
         </div>
       </div>
-      <div className="generic-mobile-card-row">
-        <span className="generic-mobile-card-label">Borrower:</span>
-        <span className="generic-mobile-card-value">
-          {data.borrower_name || 'N/A'}
-        </span>
+      {data.device_name && (
+        <div className="products-mobile-card-row">
+          <span className="products-mobile-card-label">Device type:</span>
+          <span className="products-mobile-card-value">{data.device_name}</span>
+        </div>
+      )}
+      <div className="products-mobile-card-row">
+        <span className="products-mobile-card-label">Borrower:</span>
+        <span className="products-mobile-card-value">{data.borrower_name || 'N/A'}</span>
       </div>
-      <div className="generic-mobile-card-row">
-        <span className="generic-mobile-card-label">Borrow date:</span>
-        <span className="generic-mobile-card-value">
-          {data.borrow_date || 'N/A'}
-        </span>
+      {data.lender_name && (
+        <div className="products-mobile-card-row">
+          <span className="products-mobile-card-label">Lender:</span>
+          <span className="products-mobile-card-value">{data.lender_name}</span>
+        </div>
+      )}
+      <div className="products-mobile-card-row">
+        <span className="products-mobile-card-label">Borrow date:</span>
+        <span className="products-mobile-card-value">{data.borrow_date || 'N/A'}</span>
       </div>
       {data.estimated_return_date && (
-        <div className="generic-mobile-card-row">
-          <span className="generic-mobile-card-label">Estimated return:</span>
-          <span className="generic-mobile-card-value">
-            {data.estimated_return_date}
-          </span>
+        <div className="products-mobile-card-row">
+          <span className="products-mobile-card-label">Estimated return:</span>
+          <span className="products-mobile-card-value">{data.estimated_return_date}</span>
         </div>
       )}
       {data.actual_return_date && (
-        <div className="generic-mobile-card-row">
-          <span className="generic-mobile-card-label">Returned:</span>
-          <span className="generic-mobile-card-value">
-            {data.actual_return_date}
-          </span>
+        <div className="products-mobile-card-row">
+          <span className="products-mobile-card-label">Returned:</span>
+          <span className="products-mobile-card-value">{data.actual_return_date}</span>
         </div>
       )}
     </>

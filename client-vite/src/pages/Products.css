@@ -97,17 +97,62 @@
   background: #020617;
 }
 
-.products-meta-actions-desktop {
+.secondary-tabs-desktop {
   display: flex;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
 }
 
-.products-meta-actions-mobile {
+.tab-btn-desktop {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.tab-btn-desktop:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.tab-btn-desktop.active {
+  background: #111827;
+  color: #fff;
+}
+
+.secondary-tabs-mobile {
   display: flex;
-  flex-direction: column;
   gap: 8px;
-  margin-top: 16px;
+}
+
+.tab-btn-mobile {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tab-btn-mobile:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.tab-btn-mobile.active {
+  background: #111827;
+  color: #fff;
 }
 
 .products-meta-section {

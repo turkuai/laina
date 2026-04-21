@@ -7,6 +7,7 @@ import GenericMobileCard from '../components/GenericMobileCard';
 import ServerGridEditDialog from '../components/ServerGridEditDialog';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { fetchServerData } from '../components/serverGet';
+import { getApiBase } from '../config';
 import './Admin.css';
 
 const SEARCH_DEBOUNCE_MS = 300;
