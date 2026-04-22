@@ -78,31 +78,22 @@ function list_users(PDO $pdo): void
 
     $search = $_GET['search'] ?? null;
     
-    $sql = 'SELECT id, username, first_name, last_name, email, role, phone_number, flag, created_at
+    $sql = 'SELECT id, first_name, last_name, email, role, phone_number, flag, created_at
             FROM users
-            WHERE flag IS NULL OR flag = "visible"';
+            WHERE (flag IS NULL OR flag = "visible")';
     
     if ($search && trim($search) !== '') {
         // Use unique placeholders to avoid PDO named-parameter reuse issues
         $sql .= ' AND (first_name LIKE :s1 
                        OR last_name LIKE :s2 
-                       OR email LIKE :s3 
-                       OR username LIKE :s4)';
+                       OR email LIKE :s3 )';
     }
     
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
     if ($page < 1) $page = 1;
     if ($limit < 1) $limit = 20;
-    $offset = ($page - 1) * $limit; // This will need refinement for the "100 first, 10 later" requirement if implemented purely on backend.
-    // For simplicity, let's allow the frontend to specify the limit and calculate offset accordingly.
-
-    // If the offset calculation needs to handle variable limits:
-    // Page 1: 0 to 99 (limit 100)
-    // Page 2: 100 to 109 (limit 10)
-    // However, it's easier to just let the frontend pass 'offset' or use a consistent limit.
-    // Given the user request, I'll allow the frontend to pass 'limit' and assume constant limit for simplicity or use a formula.
-    
+    $offset = ($page - 1) * $limit;
     $sql .= ' ORDER BY id DESC';
     $sql .= " LIMIT :limit OFFSET :offset";
     
@@ -113,7 +104,6 @@ function list_users(PDO $pdo): void
         $stmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
-        $stmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
     }
     
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -157,7 +147,7 @@ function get_user(PDO $pdo, string $id): void
     $user = require_verified_user($pdo);
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, first_name, last_name, email, role, phone_number, flag, created_at
+        'SELECT id, first_name, last_name, email, role, phone_number, flag, created_at
          FROM users WHERE id = :id'
     );
     $stmt->execute([':id' => $id]);
@@ -191,8 +181,6 @@ function create_user(PDO $pdo): void
     if (!$email || !$firstName || !$lastName) {
         json_response(['error' => 'Missing required fields'], 400);
     }
-
-    $username = $email;
 
     $passwordGenerated = false;
     if ($password === null || $password === '') {
@@ -425,7 +413,7 @@ function get_authenticated_user(PDO $pdo): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, first_name, last_name, email, role, flag, email_verified
+        'SELECT id, first_name, last_name, email, role, flag, email_verified
          FROM users WHERE id = :id'
     );
     $stmt->execute([':id' => $payload['id']]);
@@ -481,11 +469,11 @@ function login_user(PDO $pdo): void
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, username, email, password, first_name, last_name, role, flag, email_verified
+        'SELECT id, email, password, first_name, last_name, role, flag, email_verified
          FROM users
-         WHERE email = :email OR username = :username'
+         WHERE email = :email'
     );
-    $stmt->execute([':email' => $email, ':username' => $email]);
+    $stmt->execute([':email' => $email]);
     $row = $stmt->fetch();
 
     if (
@@ -519,7 +507,7 @@ function login_user(PDO $pdo): void
 
     $user = [
         'id'            => (int)$row['id'],
-        'username'      => $row['email'],
+        'email'       => $row['email'],
         'displayName'   => $row['first_name'] . ' ' . $row['last_name'],
         'role'          => $row['role'],
         'email_verified' => !empty($row['email_verified']),
@@ -572,7 +560,7 @@ function verify_user(PDO $pdo): void
 
     $safeUser = [
         'id'             => (int)$user['id'],
-        'username'       => $user['username'],
+        'email'       => $user['email'],
         'displayName'    => $user['first_name'] . ' ' . $user['last_name'],
         'role'           => $user['role'],
         'email_verified'  => !empty($user['email_verified']),
