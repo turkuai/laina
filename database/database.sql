@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 29, 2026 at 12:11 PM
+-- Generation Time: Apr 22, 2026 at 09:13 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -253,19 +253,21 @@ CREATE TABLE `users` (
   `role` enum('admin','teacher','student') NOT NULL DEFAULT 'student',
   `flag` enum('visible','hidden') NOT NULL DEFAULT 'visible',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `email_verified` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `email`, `first_name`, `last_name`, `phone_number`, `role`, `flag`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2a$12$qNOa3ibmvzzvVHiP6SVhreboubzUve4OMtCncIwg3WNmJTiVsnzPO', 'mohammad@edu.turku.fi', 'Mohammad', 'Admin', NULL, 'admin', 'visible', '2025-10-22 09:44:02', '2026-01-29 09:50:22'),
-(2, 'teacher1', '$2y$10$YourHashedPasswordHere', 'teacher1@edu.turku.fi', 'John', 'Smith', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(3, 'teacher2', '$2y$10$YourHashedPasswordHere', 'teacher2@edu.turku.fi', 'Sarah', 'Johnson', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(4, 'aurora', '$2y$10$YourHashedPasswordHere', 'aurora@student.turku.fi', 'Aurora', 'Williams', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(5, 'kevin', '$2y$10$YourHashedPasswordHere', 'kevin@student.turku.fi', 'Kevin', 'Brown', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02');
+INSERT INTO `users` (`id`, `username`, `password`, `email`, `first_name`, `last_name`, `phone_number`, `role`, `flag`, `created_at`, `updated_at`, `email_verified`) VALUES
+(1, 'admin', '$2a$12$qNOa3ibmvzzvVHiP6SVhreboubzUve4OMtCncIwg3WNmJTiVsnzPO', 'mohammad@edu.turku.fi', 'Mohammad', 'Admin', NULL, 'admin', 'visible', '2025-10-22 09:44:02', '2026-01-29 09:50:22', 0),
+(2, 'teacher1', '$2y$10$YourHashedPasswordHere', 'teacher1@edu.turku.fi', 'John', 'Smith', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(3, 'teacher2', '$2y$10$YourHashedPasswordHere', 'teacher2@edu.turku.fi', 'Sarah', 'Johnson', NULL, 'teacher', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(4, 'aurora', '$2y$10$YourHashedPasswordHere', 'aurora@student.turku.fi', 'Aurora', 'Williams', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(5, 'kevin', '$2y$10$YourHashedPasswordHere', 'kevin@student.turku.fi', 'Kevin', 'Brown', NULL, 'student', 'visible', '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(6, 'admin2', '$2a$12$OIZc.AdOJMQRNlBmH0On4ubHufot7Ha86ihAKVKVjrQ1vQ7zSKPR.', 'admin2@email.com', 'admin2', 'Burrows', NULL, 'admin', 'visible', '2026-04-22 07:08:38', '2026-04-22 07:09:01', 1);
 
 -- --------------------------------------------------------
 
@@ -358,7 +360,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
@@ -383,5 +385,4 @@ COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
