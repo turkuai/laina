@@ -57,7 +57,7 @@ function list_borrowing_history(PDO $pdo): void
             COALESCE(
                 NULLIF(bh.borrower_name_snapshot, ''),
                 NULLIF(TRIM(CONCAT_WS(' ', borrower.first_name, borrower.last_name)), ''),
-                borrower.username,
+                CONCAT_WS(' ', borrower.first_name, borrower.last_name),
                 CONCAT('User ', bh.borrower_id)
             ) AS borrower_name,
             -- Lender name (person who processed the borrow)
