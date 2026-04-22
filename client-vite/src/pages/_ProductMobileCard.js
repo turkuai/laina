@@ -5,25 +5,25 @@ export default function ProductMobileCard({ product, renderStatus }) {
 
   return (
     <>
-      <div className="products-mobile-card-header">
-        <div className="products-mobile-card-title">{p.product_name}</div>
-        <div className="products-mobile-card-status">
+      <div className="mobile-card-header">
+        <div className="mobile-card-title">{p.product_name}</div>
+        <div className="mobile-card-status">
           {renderStatus(p.status)}
         </div>
       </div>
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Device Type:</span>
-        <span className="products-mobile-card-value">
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Device Type:</span>
+        <span className="mobile-card-value">
           {p.type_name || "N/A"}
         </span>
       </div>
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Purchase Year:</span>
-        <span className="products-mobile-card-value">{p.purchase_date}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Purchase Year:</span>
+        <span className="mobile-card-value">{p.purchase_date}</span>
       </div>
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Location:</span>
-        <span className="products-mobile-card-value">
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Location:</span>
+        <span className="mobile-card-value">
           {p.location_name || "N/A"}
         </span>
       </div>

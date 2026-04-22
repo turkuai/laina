@@ -702,7 +702,7 @@
   display: none;
 }
 
-.products-mobile-card {
+.mobile-card {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -711,7 +711,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.products-mobile-card-header {
+.mobile-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -720,7 +720,7 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.products-mobile-card-title {
+.mobile-card-title {
   font-weight: 600;
   font-size: 16px;
   color: #1f2937;
@@ -728,36 +728,36 @@
   margin-right: 8px;
 }
 
-.products-mobile-card-status {
+.mobile-card-status {
   flex-shrink: 0;
 }
 
-.products-mobile-card-row {
+.mobile-card-row {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid #f3f4f6;
 }
 
-.products-mobile-card-row:last-child {
+.mobile-card-row:last-child {
   border-bottom: none;
 }
 
-.products-mobile-card-label {
+.mobile-card-label {
   font-weight: 600;
   font-size: 13px;
   color: #6b7280;
   min-width: 100px;
 }
 
-.products-mobile-card-value {
+.mobile-card-value {
   font-size: 13px;
   color: #1f2937;
   text-align: right;
   flex: 1;
 }
 
-.products-mobile-card-actions {
+.mobile-card-actions {
   display: flex;
   gap: 8px;
   margin-top: 12px;
@@ -765,12 +765,12 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.products-mobile-card-actions .view-qr-btn {
+.mobile-card-actions .view-qr-btn {
   flex: 1;
 }
 
-.products-mobile-card-actions .edit-btn,
-.products-mobile-card-actions .delete-btn {
+.mobile-card-actions .edit-btn,
+.mobile-card-actions .delete-btn {
   flex-shrink: 0;
 }
 
@@ -823,16 +823,16 @@
     padding: 8px;
   }
 
-  .products-mobile-card {
+  .mobile-card {
     padding: 10px;
   }
 
-  .products-mobile-card-title {
+  .mobile-card-title {
     font-size: 15px;
   }
 
-  .products-mobile-card-label,
-  .products-mobile-card-value {
+  .mobile-card-label,
+  .mobile-card-value {
     font-size: 12px;
   }
 

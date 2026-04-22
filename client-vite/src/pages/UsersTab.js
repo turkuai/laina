@@ -6,6 +6,7 @@ import DataSetView from '../components/DataSetView';
 import GenericMobileCard from '../components/GenericMobileCard';
 import ServerGridEditDialog from '../components/ServerGridEditDialog';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { fetchServerData } from '../components/serverGet';
 import { getApiBase } from '../config';
 import './Admin.css';
 
@@ -14,18 +15,18 @@ const SEARCH_DEBOUNCE_MS = 300;
 function UserMobileCard({ data }) {
   return (
     <>
-      <div className="products-mobile-card-header">
-        <div className="products-mobile-card-title">
+      <div className="mobile-card-header">
+        <div className="mobile-card-title">
           {`${data.first_name || ''} ${data.last_name || ''}`.trim()}
         </div>
       </div>
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Email:</span>
-        <span className="products-mobile-card-value" style={{ wordBreak: 'break-all' }}>{data.email}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Email:</span>
+        <span className="mobile-card-value" style={{ wordBreak: 'break-all' }}>{data.email}</span>
       </div>
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Role:</span>
-        <span className="products-mobile-card-value" style={{ textTransform: 'capitalize' }}>{data.role}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Role:</span>
+        <span className="mobile-card-value" style={{ textTransform: 'capitalize' }}>{data.role}</span>
       </div>
     </>
   );
@@ -129,26 +130,8 @@ export default function UsersTab({
   };
 
   const loadUsersPage = async (page, limit = 10) => {
-    const base = getApiBase();
-    let url = `${base}/api/users?page=${page}&limit=${limit}`;
-    const trimmedQuery = (inputValue || '').trim();
-    if (trimmedQuery !== '') {
-      url += `&search=${encodeURIComponent(trimmedQuery)}`;
-    }
-    const res = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const payload = await res.json();
-    if (!res.ok) {
-      throw new Error(payload?.error || payload?.message || `Failed to load users`);
-    }
-
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload.data)) return payload.data;
-    if (Array.isArray(payload.users)) return payload.users;
-    return [];
+    const { rows } = await fetchServerData('users', page, inputValue, limit);
+    return rows;
   };
 
   const handleSaveEditMobile = async () => {

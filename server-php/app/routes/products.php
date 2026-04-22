@@ -104,12 +104,51 @@ function list_products(PDO $pdo): void
 
     $stmt->execute();
     $rows = $stmt->fetchAll();
+
+    // Count query to get total results
+    $countSql = '
+        SELECT COUNT(*) 
+        FROM products p
+        LEFT JOIN device_types dt ON p.device_type_id = dt.id
+        LEFT JOIN locations l ON p.location_id = l.id
+        WHERE p.is_retired = 0
+          AND (p.flag IS NULL OR p.flag != "hidden")
+    ';
+    if ($search && trim($search) !== '') {
+        $countSql .= '
+          AND (
+            p.product_name      LIKE :s1
+            OR dt.type_name     LIKE :s2
+            OR l.location_name  LIKE :s3
+            OR CAST(p.purchase_date AS CHAR) LIKE :s4
+            OR p.status         LIKE :s5
+            OR p.details        LIKE :s6
+            OR p.qr_code        LIKE :s7
+          )
+        ';
+    }
+    $countStmt = $pdo->prepare($countSql);
+    if ($search && trim($search) !== '') {
+        $searchParam = '%' . trim($search) . '%';
+        $countStmt->bindValue(':s1', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s2', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s3', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s4', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s5', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
+        $countStmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
+    }
+    $countStmt->execute();
+    $totalItems = (int)$countStmt->fetchColumn();
+    $totalPages = ceil($totalItems / $limit);
     
     json_response([
         'data' => $rows,
         'pagination' => [
             'currentPage' => $page,
             'limit'       => $limit,
+            'totalItems'  => $totalItems,
+            'totalPages'  => $totalPages,
         ],
     ]);
 }

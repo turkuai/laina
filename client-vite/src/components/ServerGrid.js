@@ -52,7 +52,7 @@ export default function ServerGrid({
   }, [query]);
 
   // Use hooks for HTTP operations
-  const fetchData = useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError);
+  const fetchData = useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError, pageSize);
   const performDelete = useServerDelete(path, fetchData, setError);
   const handleAddRow = useServerPost(path, fetchData, setIsAdding, transformAddPayload);
 

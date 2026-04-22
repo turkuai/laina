@@ -9,13 +9,13 @@ export default function GenericMobileCard({ children, customActions, onEdit, onD
   const hasActions = !!customActions || !!onEdit || !!onDelete;
 
   return (
-    <div className="products-mobile-card">
+    <div className="mobile-card">
       {/* Content injected here (e.g. User details, Product details) */}
       {children}
       
       {/* Common Actions Footer */}
       {hasActions && (
-        <div className="products-mobile-card-actions">
+        <div className="mobile-card-actions">
           {customActions}
           
           {onEdit && (

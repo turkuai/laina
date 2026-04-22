@@ -11,6 +11,7 @@ import GenericMobileCard from "../components/GenericMobileCard";
 import ProductMobileCard from "./_ProductMobileCard";
 import { Plus, X as XIcon } from "lucide-react";
 import { getApiBase } from "../config";
+import { fetchServerData } from "../components/serverGet";
 
 // ProductModal component for displaying QR code
 const ProductModal = ({ product, onClose }) => {
