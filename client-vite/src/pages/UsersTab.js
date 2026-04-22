@@ -15,18 +15,18 @@ const SEARCH_DEBOUNCE_MS = 300;
 function UserMobileCard({ data }) {
   return (
     <>
-      <div className="generic-mobile-card-header">
-        <div className="generic-mobile-card-title">
+      <div className="mobile-card-header">
+        <div className="mobile-card-title">
           {`${data.first_name || ''} ${data.last_name || ''}`.trim()}
         </div>
       </div>
-      <div className="generic-mobile-card-row">
-        <span className="generic-mobile-card-label">Email:</span>
-        <span className="generic-mobile-card-value" style={{ wordBreak: 'break-all' }}>{data.email}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Email:</span>
+        <span className="mobile-card-value" style={{ wordBreak: 'break-all' }}>{data.email}</span>
       </div>
-      <div className="generic-mobile-card-row">
-        <span className="generic-mobile-card-label">Role:</span>
-        <span className="generic-mobile-card-value" style={{ textTransform: 'capitalize' }}>{data.role}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Role:</span>
+        <span className="mobile-card-value" style={{ textTransform: 'capitalize' }}>{data.role}</span>
       </div>
     </>
   );

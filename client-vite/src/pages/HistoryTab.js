@@ -149,46 +149,46 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
 function HistoryRow({ data }) {
   return (
     <>
-      <div className="products-mobile-card-header">
-        <div className="products-mobile-card-title">
+      <div className="mobile-card-header">
+        <div className="mobile-card-title">
           {data.product_name || 'Unknown product'}
         </div>
-        <div className="generic-mobile-card-status">
+        <div className="mobile-card-status">
           <span className={`status-badge status-${data.status || 'unknown'}`}>
             {data.status || 'unknown'}
           </span>
         </div>
       </div>
       {data.device_name && (
-        <div className="products-mobile-card-row">
-          <span className="products-mobile-card-label">Device type:</span>
-          <span className="products-mobile-card-value">{data.device_name}</span>
+        <div className="mobile-card-row">
+          <span className="mobile-card-label">Device type:</span>
+          <span className="mobile-card-value">{data.device_name}</span>
         </div>
       )}
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Borrower:</span>
-        <span className="products-mobile-card-value">{data.borrower_name || 'N/A'}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Borrower:</span>
+        <span className="mobile-card-value">{data.borrower_name || 'N/A'}</span>
       </div>
       {data.lender_name && (
-        <div className="products-mobile-card-row">
-          <span className="products-mobile-card-label">Lender:</span>
-          <span className="products-mobile-card-value">{data.lender_name}</span>
+        <div className="mobile-card-row">
+          <span className="mobile-card-label">Lender:</span>
+          <span className="mobile-card-value">{data.lender_name}</span>
         </div>
       )}
-      <div className="products-mobile-card-row">
-        <span className="products-mobile-card-label">Borrow date:</span>
-        <span className="products-mobile-card-value">{data.borrow_date || 'N/A'}</span>
+      <div className="mobile-card-row">
+        <span className="mobile-card-label">Borrow date:</span>
+        <span className="mobile-card-value">{data.borrow_date || 'N/A'}</span>
       </div>
       {data.estimated_return_date && (
-        <div className="products-mobile-card-row">
-          <span className="products-mobile-card-label">Estimated return:</span>
-          <span className="products-mobile-card-value">{data.estimated_return_date}</span>
+        <div className="mobile-card-row">
+          <span className="mobile-card-label">Estimated return:</span>
+          <span className="mobile-card-value">{data.estimated_return_date}</span>
         </div>
       )}
       {data.actual_return_date && (
-        <div className="products-mobile-card-row">
-          <span className="products-mobile-card-label">Returned:</span>
-          <span className="products-mobile-card-value">{data.actual_return_date}</span>
+        <div className="mobile-card-row">
+          <span className="mobile-card-label">Returned:</span>
+          <span className="mobile-card-value">{data.actual_return_date}</span>
         </div>
       )}
     </>
