@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 22, 2026 at 02:25 PM
+-- Generation Time: Apr 23, 2026 at 09:18 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,18 +39,20 @@ CREATE TABLE `borrow_history` (
   `return_processed_by` int(11) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `notified` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `borrow_history`
 --
 
-INSERT INTO `borrow_history` (`id`, `product_id`, `borrower_id`, `borrower_name_snapshot`, `lender_id`, `borrow_date`, `estimated_return_date`, `actual_return_date`, `return_processed_by`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 2, 4, 'Aurora Williams', 2, '2025-10-10 09:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(2, 2, 5, 'Kevin Brown', 2, '2025-09-25 14:00:00', '2025-09-28', '2025-09-28 17:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(3, 1, 4, 'Aurora Williams', 2, '2025-10-10 10:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02'),
-(4, 1, 5, 'Kevin Brown', 2, '2025-09-25 15:00:00', '2025-09-28', NULL, NULL, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02');
+INSERT INTO `borrow_history` (`id`, `product_id`, `borrower_id`, `borrower_name_snapshot`, `lender_id`, `borrow_date`, `estimated_return_date`, `actual_return_date`, `return_processed_by`, `notes`, `created_at`, `updated_at`, `notified`) VALUES
+(1, 2, 4, 'Aurora Williams', 2, '2025-10-10 09:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(2, 2, 5, 'Kevin Brown', 2, '2025-09-25 14:00:00', '2025-09-28', '2025-09-28 17:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(3, 1, 4, 'Aurora Williams', 2, '2025-10-10 10:00:00', '2025-10-12', '2025-10-12 16:00:00', 2, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(4, 1, 5, 'Kevin Brown', 2, '2025-09-25 15:00:00', '2025-09-28', NULL, NULL, NULL, '2025-10-22 09:44:02', '2025-10-22 09:44:02', 0),
+(5, 1, 6, NULL, 1, '2026-04-23 10:13:40', '2026-04-24', NULL, NULL, NULL, '2026-04-23 07:13:40', '2026-04-23 07:13:40', 0);
 
 --
 -- Triggers `borrow_history`
@@ -279,7 +281,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `borrow_history`
 --
 ALTER TABLE `borrow_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `device_types`
