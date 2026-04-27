@@ -1,5 +1,30 @@
 <?php
-// server-php/app/routes/borrowing-history.php
+
+function notify_upcoming_returns(PDO $pdo): void
+{
+    $sql = "
+        SELECT id, borrower_id, estimated_return_date
+        FROM borrow_history
+        WHERE actual_return_date IS NULL
+          AND notified = 0
+          AND estimated_return_date IS NOT NULL
+          AND DATE(estimated_return_date) <= DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+    ";
+
+    $stmt = $pdo->query($sql);
+    $rows = $stmt->fetchAll();
+
+    foreach ($rows as $row) {
+        error_log("Reminder: User {$row['borrower_id']} must return item by {$row['estimated_return_date']}");
+
+        $update = $pdo->prepare("
+            UPDATE borrow_history
+            SET notified = 1
+            WHERE id = :id
+        ");
+        $update->execute([':id' => $row['id']]);
+    }
+}
 
 function handle_borrowing_history_route(string $method, ?string $id, PDO $pdo): void
 {
@@ -10,7 +35,7 @@ function handle_borrowing_history_route(string $method, ?string $id, PDO $pdo): 
             } else {
                 get_borrowing_record($pdo, $id);
             }
-            break;
+            break;  
 
         case 'POST':
             create_borrowing_record($pdo);
@@ -123,13 +148,13 @@ function list_borrowing_history(PDO $pdo): void
         $stmt->bindValue(':s11', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s12', $searchParam, PDO::PARAM_STR);
     }
-    
+
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
     $stmt->execute();
     $rows = $stmt->fetchAll();
-    
+
     $countSql = "
         SELECT COUNT(*)
         FROM borrow_history bh
