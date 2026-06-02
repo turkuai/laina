@@ -91,10 +91,7 @@ const SettingsTab = ({
             <span className="settings-label">Name</span>
             <span className="settings-value">{currentUser?.name || '-'}</span>
           </div>
-          <div className="settings-field">
-            <span className="settings-label">Username</span>
-            <span className="settings-value">{currentUser?.username || '-'}</span>
-          </div>
+
           <div className="settings-field">
             <span className="settings-label">Role</span>
             <span className="settings-value">{currentUser?.role || '-'}</span>
@@ -182,19 +179,9 @@ const SettingsTab = ({
 
               <div className="settings-form-group">
                 <label>Name</label>
-                <input 
-                  type="text" 
-                  value={currentUser?.name || 'Mohammad Admin'} 
-                  readOnly
-                  className="settings-input"
-                />
-              </div>
-
-              <div className="settings-form-group">
-                <label>Username</label>
-                <input 
-                  type="text" 
-                  value={currentUser?.username || 'admin'} 
+                <input
+                  type="text"
+                  value={currentUser?.name || ''}
                   readOnly
                   className="settings-input"
                 />
@@ -202,9 +189,9 @@ const SettingsTab = ({
 
               <div className="settings-form-group">
                 <label>Role</label>
-                <input 
-                  type="text" 
-                  value={currentUser?.role || 'Administrator'} 
+                <input
+                  type="text"
+                  value={currentUser?.role || ''}
                   readOnly
                   className="settings-input"
                 />
