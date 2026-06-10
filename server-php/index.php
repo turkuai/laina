@@ -84,6 +84,11 @@ if ($apiIndex !== false) {
             handle_product_types_route($method, $id, $pdo);
             break;
 
+        case 'reminders':
+            require __DIR__ . '/app/routes/reminders.php';
+            send_reminders($pdo);
+            break;
+
         default:
             not_found();
     }
