@@ -70,7 +70,7 @@ const Header = ({ currentUser, onLogout, onBorrowClick, onSettingsClick, isMobil
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <span className="user-info-text">
-                Welcome, <strong>{currentUser?.username}</strong>
+                Welcome, <strong>{currentUser?.name}</strong>
               </span>
               <ChevronDown size={16} className={`dropdown-icon ${isDropdownOpen ? 'open' : ''}`} />
             </button>
