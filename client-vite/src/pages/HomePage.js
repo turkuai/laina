@@ -26,6 +26,8 @@ export default function HomePage({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
+  const [productsQuery, setProductsQuery] = useState('');
+  const [historyQuery, setHistoryQuery] = useState('');
 
   // State to force refresh of product
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -135,7 +137,7 @@ export default function HomePage({ productsData }) {
                   key={productsRefreshKey}
                   currentUser={currentUser}
                   productsData={productsData}
-                  query={userQuery}
+                  query={productsQuery}
                 />
               </div>
             </div>
@@ -145,8 +147,8 @@ export default function HomePage({ productsData }) {
           {activeTab === 'history' && (
             <HistoryTab
               currentUser={currentUser}
-              query={userQuery}
-              onQueryChange={setUserQuery}
+              query={historyQuery}
+              onQueryChange={setHistoryQuery}
             />
           )}
 
@@ -224,8 +226,8 @@ export default function HomePage({ productsData }) {
               key={productsRefreshKey}
               currentUser={currentUser}
               productsData={productsData}
-              query={userQuery}
-              onQueryChange={setUserQuery}
+              query={productsQuery}
+              onQueryChange={setProductsQuery}
             />
           </div>
 
@@ -233,8 +235,8 @@ export default function HomePage({ productsData }) {
           <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
             <HistoryTab
               currentUser={currentUser}
-              query={userQuery}
-              onQueryChange={setUserQuery}
+              query={historyQuery}
+              onQueryChange={setHistoryQuery}
             />
           </div>
 
@@ -262,4 +264,3 @@ export default function HomePage({ productsData }) {
     </div >
   );
 }
-
