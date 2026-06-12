@@ -823,7 +823,9 @@ export default function Products({ currentUser }) {
             />
           </svg>
           <input
-            type="text"
+            type="search"
+            autoComplete="off"
+            name="products-search"
             placeholder="Search products."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
