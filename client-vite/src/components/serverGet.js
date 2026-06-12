@@ -3,18 +3,11 @@ import { getApiBase } from '../config';
 
 /**
  * Generic function for fetching data from server with pagination and search
- * @param {string} path - API endpoint path
- * @param {number} currentPage - Current page number
- * @param {string} query - Search query string
- * @param {number} limit - Items per page
- * @returns {Promise<{rows: Array, pages: number}>} Fetched data
  */
-export async function fetchServerData(path, currentPage = 1, query = '', limit = 20) {
+export async function fetchServerData(path, currentPage = 1, query = '', limit = 20, status = '') {
   if (!path) return { rows: [], pages: 1 };
 
-  // Build the full URL with page parameter
   let fullUrl = path;
-  // Ensure /api/ prefix if not present; avoid accidental double slashes
   if (!fullUrl.startsWith('/api/')) {
     const cleanPath = fullUrl.startsWith('/') ? fullUrl.slice(1) : fullUrl;
     fullUrl = `/api/${cleanPath}`;
@@ -23,21 +16,24 @@ export async function fetchServerData(path, currentPage = 1, query = '', limit =
   const separator = fullUrl.includes('?') ? '&' : '?';
   fullUrl = `${fullUrl}${separator}page=${currentPage}&limit=${limit}`;
 
-  // Optional server-side search
   const trimmedQuery = (query || '').trim();
   if (trimmedQuery !== '') {
     fullUrl = `${fullUrl}&search=${encodeURIComponent(trimmedQuery)}`;
   }
 
+  const trimmedStatus = (status || '').trim();
+  if (trimmedStatus !== '') {
+    fullUrl = `${fullUrl}&status=${encodeURIComponent(trimmedStatus)}`;
+  }
+
   const res = await fetch(getApiBase() + fullUrl, {
     method: 'GET',
-    credentials: 'include', // Include httpOnly cookies
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
   });
 
-  // Parse response safely
   const contentType = res.headers.get('content-type') || '';
   let payload;
 
@@ -67,7 +63,6 @@ export async function fetchServerData(path, currentPage = 1, query = '', limit =
     );
   }
   
-  // Handle different response structures
   let rows = [];
   let pages = 1;
 
@@ -93,22 +88,13 @@ export async function fetchServerData(path, currentPage = 1, query = '', limit =
 
 /**
  * Hook for fetching data from server with pagination and search
- * @param {string} path - API endpoint path
- * @param {number} currentPage - Current page number
- * @param {string} query - Search query string
- * @param {Function} setData - State setter for data
- * @param {Function} setTotalPages - State setter for total pages
- * @param {Function} setLoading - State setter for loading state
- * @param {Function} setError - State setter for error state
- * @param {number} limit - Default page size limit
- * @returns {Function} fetchData function
  */
-export function useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError, limit = 20) {
+export function useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError, limit = 20, statusFilter = '') {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { rows, pages } = await fetchServerData(path, currentPage, query, limit);
+      const { rows, pages } = await fetchServerData(path, currentPage, query, limit, statusFilter);
       setData(rows);
       setTotalPages(pages);
     } catch (err) {
@@ -117,7 +103,7 @@ export function useServerGet(path, currentPage, query, setData, setTotalPages, s
     } finally {
       setLoading(false);
     }
-  }, [path, currentPage, query, limit, setData, setTotalPages, setLoading, setError]);
+  }, [path, currentPage, query, limit, statusFilter, setData, setTotalPages, setLoading, setError]);
 
   return fetchData;
 }

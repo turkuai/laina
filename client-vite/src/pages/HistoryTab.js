@@ -126,7 +126,9 @@ export default function HistoryTab({ currentUser, query, onQueryChange }) {
             </svg>
           </span>
           <input
-            type="text"
+            type="search"
+            autoComplete="off"
+            name="history-search"
             placeholder="Search ..."
             value={query || ''}
             onChange={(e) => onQueryChange(e.target.value)}
