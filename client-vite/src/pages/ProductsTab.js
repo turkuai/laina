@@ -24,6 +24,7 @@ export default function ProductsTab({
   const [productsFromDb, setProductsFromDb] = useState([]);
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState("products");
+  const [statusFilter, setStatusFilter] = useState(null);
 
   const generateQrHash = () => {
     const chars =
@@ -84,6 +85,10 @@ export default function ProductsTab({
     }
   };
 
+  const handleStatusFilter = (status) => {
+    setStatusFilter(statusFilter === status ? null : status);
+  };
+
   if (isMobile) {
     const canManageMeta =
       currentUser?.role === "admin" || currentUser?.role === "teacher";
@@ -134,6 +139,34 @@ export default function ProductsTab({
                   value={query}
                   onChange={(e) => onQueryChange(e.target.value)}
                 />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button
+                    onClick={() => handleStatusFilter('available')}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      background: statusFilter === 'available' ? '#059669' : 'white',
+                      color: statusFilter === 'available' ? 'white' : '#374151',
+                    }}
+                  >
+                    Available
+                  </button>
+                  <button
+                    onClick={() => handleStatusFilter('borrowed')}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      background: statusFilter === 'borrowed' ? '#dc2626' : 'white',
+                      color: statusFilter === 'borrowed' ? 'white' : '#374151',
+                    }}
+                  >
+                    Borrowed
+                  </button>
+                </div>
               </div>
 
               <ServerGrid
@@ -157,6 +190,7 @@ export default function ProductsTab({
                 pageSize={10}
                 showAddButton={currentUser?.role === "admin"}
                 query={query}
+                statusFilter={statusFilter || ''}
                 typeOptions={deviceTypes}
                 locationOptions={locations}
                 formComponent={ProductForm}
@@ -246,7 +280,7 @@ export default function ProductsTab({
 
       {activeSubTab === "products" && (
         <>
-          <div className="products-card__search">
+          <div className="products-card__search" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="search-icon">
               <svg
                 width="16"
@@ -273,6 +307,32 @@ export default function ProductsTab({
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
             />
+            <button
+              onClick={() => handleStatusFilter('available')}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                background: statusFilter === 'available' ? '#059669' : 'white',
+                color: statusFilter === 'available' ? 'white' : '#374151',
+              }}
+            >
+              Available
+            </button>
+            <button
+              onClick={() => handleStatusFilter('borrowed')}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                background: statusFilter === 'borrowed' ? '#dc2626' : 'white',
+                color: statusFilter === 'borrowed' ? 'white' : '#374151',
+              }}
+            >
+              Borrowed
+            </button>
           </div>
 
           <ServerGrid
@@ -293,6 +353,7 @@ export default function ProductsTab({
             pageSize={10}
             showAddButton={isAdmin}
             query={query}
+            statusFilter={statusFilter || ''}
             typeOptions={deviceTypes}
             locationOptions={locations}
             formComponent={ProductForm}
@@ -483,4 +544,4 @@ function DeviceTypeForm({ data, setData }) {
     </div>
   );
 }
-//470-Borrowing-history-fetch-should-include-deviceName-borrowerName-and-lenderName 
+//470-Borrowing-history-fetch-should-include-deviceName-borrowerName-and-lenderName
