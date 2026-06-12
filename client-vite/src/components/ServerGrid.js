@@ -9,7 +9,6 @@ import { useServerDelete } from './serverDelete';
 import { useNotification } from './NotificationContext';
 import { getApiBase } from '../config';
 
-// Helper function to convert column names to display names
 const formatColumnName = (columnName) => {
   if (typeof columnName !== 'string') return '';
   return columnName
@@ -21,18 +20,18 @@ const formatColumnName = (columnName) => {
 export default function ServerGrid({
   columns,
   columnRenderers,
-  path,                 // API endpoint
+  path,
   allowEditing = false,
   allowDelete = false,
   pageSize = 20,
-  showAddButton = true,// Show add button by default (except history tab which doesn't use ServerGrid)
+  showAddButton = true,
   formComponent : FormComponent,
   transformAddPayload,
   transformEditPayload,
-  ...rest               // anything else you want to pass to Grid
-
+  ...rest
 }) {
   const query = typeof rest.query === 'string' ? rest.query : '';
+  const statusFilter = typeof rest.statusFilter === 'string' ? rest.statusFilter : '';
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,13 +45,11 @@ export default function ServerGrid({
   const [isDeleting, setIsDeleting] = useState(false);
   const { showNotification } = useNotification();
 
-  // If search query changes, jump back to first page
   useEffect(() => {
     setCurrentPage(1);
-  }, [query]);
+  }, [query, statusFilter]);
 
-  // Use hooks for HTTP operations
-  const fetchData = useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError, pageSize);
+  const fetchData = useServerGet(path, currentPage, query, setData, setTotalPages, setLoading, setError, pageSize, statusFilter);
   const performDelete = useServerDelete(path, fetchData, setError);
   const handleAddRow = useServerPost(path, fetchData, setIsAdding, transformAddPayload);
 
@@ -70,7 +67,6 @@ export default function ServerGrid({
       console.error('Row has no ID');
       return;
     }
-    // Set form data to row's data and open edit dialog
     setFormData({ ...row });
     setEditingRow(row);
     setIsEditing(true);
@@ -95,10 +91,8 @@ export default function ServerGrid({
         updateUrl = `/api/${cleanPath}`;
       }
 
-      // Clone formData and drop non-updatable fields; backend will decide what to use
       const payload = { ...formData };
 
-      // Special-case combined "name" field (e.g. Users grid)
       if (typeof payload.name === 'string' && payload.name.trim()) {
         const parts = payload.name.trim().split(/\s+/);
         payload.first_name = parts[0];
@@ -128,13 +122,10 @@ export default function ServerGrid({
         try {
           const errorData = await res.json();
           msg = errorData.error || errorData.message || msg;
-        } catch (_) {
-          // ignore json parse error
-        }
+        } catch (_) {}
         throw new Error(msg);
       }
 
-      // Refresh from server so grid matches DB
       await fetchData();
       handleCloseEditModal();
       showNotification('Item updated successfully!', 'success');
@@ -166,7 +157,6 @@ export default function ServerGrid({
     setFormData({});
   };
 
-  // Create column configuration with display names
   const columnConfig = columns.map(col => ({
     field: col,
     displayName: formatColumnName(col)
@@ -185,7 +175,6 @@ export default function ServerGrid({
         </div>
       )}
 
-      {/* Add Button */}
       {showAddButton && (
         <div style={{
           display: 'flex',
@@ -260,7 +249,6 @@ export default function ServerGrid({
           } 
         />
       )}
-      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div style={{
           display: 'flex',

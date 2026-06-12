@@ -84,6 +84,16 @@ if ($apiIndex !== false) {
             handle_product_types_route($method, $id, $pdo);
             break;
 
+        case 'reminders':
+            require __DIR__ . '/app/routes/reminders.php';
+            send_reminders($pdo);
+            break;
+
+        case 'overdue-notices':
+            require __DIR__ . '/app/routes/reminders.php';
+            send_overdue_notices($pdo);
+            break;
+
         default:
             not_found();
     }

@@ -106,9 +106,8 @@ button:hover {
 /* ServerGrid "Add" button */
 .server-grid-add-button {
   padding: 0.5rem;
-  background: none;
-  color: #374151;
-  border: none;
+  background: #dc2626   ;
+  color: #ffffff;
   border-radius: 50%;
   cursor: pointer;
   display: inline-flex;
@@ -127,7 +126,7 @@ button:hover {
 }
 
 .server-grid-add-button:hover {
-  background-color: #059669;
+  background-color: #b91c1c;
 }
 
 .server-grid-add-button:active {
