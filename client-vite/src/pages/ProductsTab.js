@@ -47,8 +47,10 @@ export default function ProductsTab({
   }, []);
 
   useEffect(() => {
-    fetchMetadata();
-  }, []);
+    if (activeSubTab === "products") {
+      fetchMetadata();
+    }
+  }, [activeSubTab]);
 
   const fetchMetadata = async () => {
     setIsLoadingMeta(true);
