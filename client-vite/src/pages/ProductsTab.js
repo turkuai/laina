@@ -24,6 +24,7 @@ export default function ProductsTab({
   const [productsFromDb, setProductsFromDb] = useState([]);
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState("products");
+  const [statusFilter, setStatusFilter] = useState(null);
 
   const generateQrHash = () => {
     const chars =
@@ -84,6 +85,10 @@ export default function ProductsTab({
     }
   };
 
+  const handleStatusFilter = (status) => {
+    setStatusFilter(statusFilter === status ? null : status);
+  };
+
   if (isMobile) {
     const canManageMeta =
       currentUser?.role === "admin" || currentUser?.role === "teacher";
@@ -134,6 +139,34 @@ export default function ProductsTab({
                   value={query}
                   onChange={(e) => onQueryChange(e.target.value)}
                 />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button
+                    onClick={() => handleStatusFilter('available')}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      background: statusFilter === 'available' ? '#059669' : 'white',
+                      color: statusFilter === 'available' ? 'white' : '#374151',
+                    }}
+                  >
+                    Available
+                  </button>
+                  <button
+                    onClick={() => handleStatusFilter('borrowed')}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      background: statusFilter === 'borrowed' ? '#dc2626' : 'white',
+                      color: statusFilter === 'borrowed' ? 'white' : '#374151',
+                    }}
+                  >
+                    Borrowed
+                  </button>
+                </div>
               </div>
 
               <ServerGrid
@@ -157,6 +190,7 @@ export default function ProductsTab({
                 pageSize={10}
                 showAddButton={currentUser?.role === "admin"}
                 query={query}
+                statusFilter={statusFilter || ''}
                 typeOptions={deviceTypes}
                 locationOptions={locations}
                 formComponent={ProductForm}
@@ -246,7 +280,7 @@ export default function ProductsTab({
 
       {activeSubTab === "products" && (
         <>
-          <div className="products-card__search">
+          <div className="products-card__search" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="search-icon">
               <svg
                 width="16"
@@ -267,12 +301,44 @@ export default function ProductsTab({
                 />
               </svg>
             </span>
+            <input type="text" style={{display:'none'}} autoComplete="username" />
+            <input type="password" style={{display:'none'}} autoComplete="current-password" />
             <input
-              type="text"
+              type="search"
+              name="products-search"
+              autoComplete="off"
+              readOnly
+              onFocus={(e) => e.target.removeAttribute('readonly')}
               placeholder="Search ..."
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
             />
+            <button
+              onClick={() => handleStatusFilter('available')}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                background: statusFilter === 'available' ? '#059669' : 'white',
+                color: statusFilter === 'available' ? 'white' : '#374151',
+              }}
+            >
+              Available
+            </button>
+            <button
+              onClick={() => handleStatusFilter('borrowed')}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                background: statusFilter === 'borrowed' ? '#dc2626' : 'white',
+                color: statusFilter === 'borrowed' ? 'white' : '#374151',
+              }}
+            >
+              Borrowed
+            </button>
           </div>
 
           <ServerGrid
@@ -293,6 +359,7 @@ export default function ProductsTab({
             pageSize={10}
             showAddButton={isAdmin}
             query={query}
+            statusFilter={statusFilter || ''}
             typeOptions={deviceTypes}
             locationOptions={locations}
             formComponent={ProductForm}
@@ -349,6 +416,21 @@ export default function ProductsTab({
 }
 
 function ProductForm({ data, setData }) {
+  const [deviceTypes, setDeviceTypes] = React.useState([]);
+  const [locations, setLocations] = React.useState([]);
+
+  React.useEffect(() => {
+    const base = getApiBase();
+    fetch(`${base}/api/device-types`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setDeviceTypes(Array.isArray(d) ? d : (d.device_types || d.data || [])))
+      .catch(() => setDeviceTypes([]));
+    fetch(`${base}/api/locations?page=1`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => setLocations(Array.isArray(d) ? d : (d.locations || d.data || [])))
+      .catch(() => setLocations([]));
+  }, []);
+
   return (
     <div className="add-product-form">
       <div className="add-product-form-grid">
@@ -366,14 +448,18 @@ function ProductForm({ data, setData }) {
 
         <div>
           <label className="form-label">Type Name</label>
-          <input
-            type="text"
+          <select
             className="form-input"
             value={data.type_name || ""}
             onChange={(e) =>
               setData({ ...data, type_name: e.target.value })
             }
-          />
+          >
+            <option value="">Select type</option>
+            {deviceTypes.map((t) => (
+              <option key={t.id} value={t.type_name}>{t.type_name}</option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -392,14 +478,18 @@ function ProductForm({ data, setData }) {
 
         <div>
           <label className="form-label">Location Name</label>
-          <input
-            type="text"
+          <select
             className="form-input"
             value={data.location_name || ""}
             onChange={(e) =>
               setData({ ...data, location_name: e.target.value })
             }
-          />
+          >
+            <option value="">Select location</option>
+            {locations.map((l) => (
+              <option key={l.id} value={l.location_name}>{l.location_name}</option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -483,4 +573,4 @@ function DeviceTypeForm({ data, setData }) {
     </div>
   );
 }
-//470-Borrowing-history-fetch-should-include-deviceName-borrowerName-and-lenderName 
+//470-Borrowing-history-fetch-should-include-deviceName-borrowerName-and-lenderName

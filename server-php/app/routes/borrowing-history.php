@@ -38,7 +38,6 @@ function handle_borrowing_history_route(string $method, ?string $id, PDO $pdo): 
 
 function list_borrowing_history(PDO $pdo): void
 {
-    // Optional filter for a specific borrower (used by students)
     $borrowerId = $_GET['borrower_id'] ?? null;
     $search = $_GET['search'] ?? null;
 
@@ -53,16 +52,13 @@ function list_borrowing_history(PDO $pdo): void
             bh.actual_return_date,
             bh.return_processed_by,
             bh.notes,
-            -- Borrower name (snapshot preferred, fallback to live user data)
             COALESCE(
                 NULLIF(bh.borrower_name_snapshot, ''),
                 NULLIF(TRIM(CONCAT_WS(' ', borrower.first_name, borrower.last_name)), ''),
-                borrower.username,
+                CONCAT_WS(' ', borrower.first_name, borrower.last_name),
                 CONCAT('User ', bh.borrower_id)
             ) AS borrower_name,
-            -- Lender name (person who processed the borrow)
             NULLIF(TRIM(CONCAT_WS(' ', lender.first_name, lender.last_name)), '') AS lender_name,
-            -- Product / device info
             p.product_name,
             dt.type_name AS device_name,
             p.status,
@@ -82,7 +78,7 @@ function list_borrowing_history(PDO $pdo): void
                 p.product_name LIKE :s1
                 OR borrower.first_name LIKE :s2
                 OR borrower.last_name  LIKE :s3
-                OR borrower.username   LIKE :s4
+                OR bh.borrower_name_snapshot LIKE :s4
                 OR CAST(bh.borrow_date AS CHAR) LIKE :s5
                 OR CAST(bh.estimated_return_date AS CHAR) LIKE :s6
                 OR CAST(bh.actual_return_date AS CHAR) LIKE :s7
@@ -142,7 +138,7 @@ function list_borrowing_history(PDO $pdo): void
                 p.product_name LIKE :s1
                 OR u.first_name LIKE :s2
                 OR u.last_name LIKE :s3
-                OR u.username LIKE :s4
+                OR bh.borrower_name_snapshot LIKE :s4
                 OR CAST(bh.borrow_date AS CHAR) LIKE :s5
                 OR CAST(bh.estimated_return_date AS CHAR) LIKE :s6
                 OR CAST(bh.actual_return_date AS CHAR) LIKE :s7
@@ -204,7 +200,6 @@ function create_borrowing_record(PDO $pdo): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    // Support both user_id and borrower_id for compatibility
     $borrowerId = $input['borrower_id'] ?? $input['user_id'] ?? null;
     $productId = $input['product_id'] ?? null;
     $lenderId = $input['lender_id'] ?? null;
@@ -215,9 +210,20 @@ function create_borrowing_record(PDO $pdo): void
         json_response(['error' => 'Missing borrower_id (or user_id) or product_id'], 400);
     }
 
-    // Build a snapshot of the borrower name at borrow time
+    // Check if borrower has any overdue loans
+    $overdueStmt = $pdo->prepare(
+        'SELECT COUNT(*) FROM borrow_history
+         WHERE borrower_id = :borrower_id
+           AND actual_return_date IS NULL
+           AND estimated_return_date < CURDATE()'
+    );
+    $overdueStmt->execute([':borrower_id' => $borrowerId]);
+    if ((int)$overdueStmt->fetchColumn() > 0) {
+        json_response(['error' => 'This student has overdue loans and cannot borrow new devices until they are returned.'], 403);
+    }
+
     $nameStmt = $pdo->prepare(
-        'SELECT first_name, last_name, username FROM users WHERE id = :id'
+        'SELECT first_name, last_name FROM users WHERE id = :id'
     );
     $nameStmt->execute([':id' => $borrowerId]);
     $userRow = $nameStmt->fetch();
@@ -225,7 +231,7 @@ function create_borrowing_record(PDO $pdo): void
     $borrowerNameSnapshot = null;
     if ($userRow) {
         $full = trim(($userRow['first_name'] ?? '') . ' ' . ($userRow['last_name'] ?? ''));
-        $borrowerNameSnapshot = $full !== '' ? $full : ($userRow['username'] ?? null);
+        $borrowerNameSnapshot = $full !== '' ? $full : null;
     }
 
     $stmt = $pdo->prepare(
@@ -263,19 +269,24 @@ function update_borrowing_record(PDO $pdo, string $id): void
         json_response(['error' => 'Borrowing record not found'], 404);
     }
 
-    // Support both returned_at and actual_return_date
     $returnedAt = $input['actual_return_date'] ?? $input['returned_at'] ?? null;
     $returnProcessedBy = $input['return_processed_by'] ?? null;
+
+    // Check if return is late
+    $isLate = !empty($record['estimated_return_date']) &&
+              strtotime(date('Y-m-d')) > strtotime($record['estimated_return_date']);
 
     $stmt = $pdo->prepare(
         'UPDATE borrow_history
          SET actual_return_date = COALESCE(:actual_return_date, NOW()),
-             return_processed_by = COALESCE(:return_processed_by, return_processed_by)
+             return_processed_by = COALESCE(:return_processed_by, return_processed_by),
+             late_return = :late_return
          WHERE id = :id'
     );
     $stmt->execute([
         ':actual_return_date' => $returnedAt ? date('Y-m-d H:i:s', strtotime($returnedAt)) : date('Y-m-d H:i:s'),
         ':return_processed_by' => $returnProcessedBy,
+        ':late_return' => $isLate ? 1 : 0,
         ':id' => $id,
     ]);
 
@@ -293,4 +304,3 @@ function delete_borrowing_record(PDO $pdo, string $id): void
 
     json_response(['success' => true]);
 }
-

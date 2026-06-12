@@ -36,14 +36,14 @@ export default function UsersTab({
   currentUser,
   query,
   onQueryChange,
-  onDeleteUser, // Passed but unused; handled internally
+  onDeleteUser,
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
-  const [inputValue, setInputValue] = useState(query || '');
+  const [inputValue, setInputValue] = useState('');
   const debounceRef = useRef(null);
+  const inputRef = useRef(null);
   const { showNotification } = useNotification();
   
-  // Mobile specific state for Custom CRUD Handlers overlay
   const [editingUser, setEditingUser] = useState(null);
   const [deletingUser, setDeletingUser] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -51,6 +51,15 @@ export default function UsersTab({
   useEffect(() => {
     setInputValue(query || '');
   }, [query]);
+
+  // Reset input value when dialog closes to prevent Chrome autocomplete
+  useEffect(() => {
+    if (!editingUser && inputRef.current) {
+      const val = inputRef.current.value;
+      inputRef.current.value = '';
+      inputRef.current.value = val;
+    }
+  }, [editingUser]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -223,11 +232,18 @@ export default function UsersTab({
               <line x1="15" y1="15" x2="20" y2="20" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </span>
+          <input type="text" style={{display:'none'}} autoComplete="username" />
+          <input type="password" style={{display:'none'}} autoComplete="current-password" />
           <input
-            type="text"
+            ref={inputRef}
+            type="search"
+            name="users-search"
             placeholder="Search ..."
             value={inputValue}
             onChange={handleSearchChange}
+            autoComplete="off"
+            readOnly
+            onFocus={(e) => e.target.removeAttribute('readonly')}
           />
         </div>
         <ServerGrid
@@ -293,6 +309,7 @@ function UsersForm({ data, setData }) {
           <input
             type="text"
             className="form-input"
+            autoComplete="new-password"
             value={getValue('first_name')}
             onChange={handleChange('first_name')}
           />
@@ -302,6 +319,7 @@ function UsersForm({ data, setData }) {
           <input
             type="text"
             className="form-input"
+            autoComplete="new-password"
             value={getValue('last_name')}
             onChange={handleChange('last_name')}
           />
@@ -311,6 +329,7 @@ function UsersForm({ data, setData }) {
           <input
             type="email"
             className="form-input"
+            autoComplete="new-password"
             value={getValue('email')}
             onChange={handleChange('email')}
           />
@@ -334,6 +353,7 @@ function UsersForm({ data, setData }) {
               <input
                 type="password"
                 className="form-input"
+                autoComplete="new-password"
                 value={getValue('password')}
                 onChange={handleChange('password')}
               />
@@ -343,6 +363,7 @@ function UsersForm({ data, setData }) {
               <input
                 type="password"
                 className="form-input"
+                autoComplete="new-password"
                 value={getValue('confirmPassword')}
                 onChange={handleChange('confirmPassword')}
               />
@@ -360,6 +381,7 @@ function UsersForm({ data, setData }) {
               <input
                 type="password"
                 className="form-input"
+                autoComplete="new-password"
                 value={getValue('password')}
                 onChange={handleChange('password')}
                 placeholder="New password (optional)"
@@ -370,6 +392,7 @@ function UsersForm({ data, setData }) {
               <input
                 type="password"
                 className="form-input"
+                autoComplete="new-password"
                 value={getValue('confirmPassword')}
                 onChange={handleChange('confirmPassword')}
                 placeholder="Confirm new password"

@@ -14,7 +14,9 @@ const MobileSearchToggle = ({ value, onChange, placeholder = "Search ..." }) => 
       <div className="mobile-search-bar">
         <input
           ref={inputRef}
-          type="text"
+          type="search"
+          autoComplete="off"
+          name="mobile-search"
           placeholder={placeholder}
           value={value}
           onChange={onChange}
