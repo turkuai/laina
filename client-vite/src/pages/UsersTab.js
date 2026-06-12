@@ -232,9 +232,11 @@ export default function UsersTab({
               <line x1="15" y1="15" x2="20" y2="20" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </span>
+          <input type="text" style={{display:'none'}} autoComplete="username" />
+          <input type="password" style={{display:'none'}} autoComplete="current-password" />
           <input
             ref={inputRef}
-            type="text"
+            type="search"
             name="users-search"
             placeholder="Search ..."
             value={inputValue}
@@ -307,7 +309,7 @@ function UsersForm({ data, setData }) {
           <input
             type="text"
             className="form-input"
-            autoComplete="off"
+            autoComplete="new-password"
             value={getValue('first_name')}
             onChange={handleChange('first_name')}
           />
@@ -317,7 +319,7 @@ function UsersForm({ data, setData }) {
           <input
             type="text"
             className="form-input"
-            autoComplete="off"
+            autoComplete="new-password"
             value={getValue('last_name')}
             onChange={handleChange('last_name')}
           />
@@ -327,7 +329,7 @@ function UsersForm({ data, setData }) {
           <input
             type="email"
             className="form-input"
-            autoComplete="off"
+            autoComplete="new-password"
             value={getValue('email')}
             onChange={handleChange('email')}
           />
