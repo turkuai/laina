@@ -210,6 +210,18 @@ function create_borrowing_record(PDO $pdo): void
         json_response(['error' => 'Missing borrower_id (or user_id) or product_id'], 400);
     }
 
+    // Check if borrower has any overdue loans
+    $overdueStmt = $pdo->prepare(
+        'SELECT COUNT(*) FROM borrow_history
+         WHERE borrower_id = :borrower_id
+           AND actual_return_date IS NULL
+           AND estimated_return_date < CURDATE()'
+    );
+    $overdueStmt->execute([':borrower_id' => $borrowerId]);
+    if ((int)$overdueStmt->fetchColumn() > 0) {
+        json_response(['error' => 'This student has overdue loans and cannot borrow new devices until they are returned.'], 403);
+    }
+
     $nameStmt = $pdo->prepare(
         'SELECT first_name, last_name FROM users WHERE id = :id'
     );
@@ -260,15 +272,21 @@ function update_borrowing_record(PDO $pdo, string $id): void
     $returnedAt = $input['actual_return_date'] ?? $input['returned_at'] ?? null;
     $returnProcessedBy = $input['return_processed_by'] ?? null;
 
+    // Check if return is late
+    $isLate = !empty($record['estimated_return_date']) &&
+              strtotime(date('Y-m-d')) > strtotime($record['estimated_return_date']);
+
     $stmt = $pdo->prepare(
         'UPDATE borrow_history
          SET actual_return_date = COALESCE(:actual_return_date, NOW()),
-             return_processed_by = COALESCE(:return_processed_by, return_processed_by)
+             return_processed_by = COALESCE(:return_processed_by, return_processed_by),
+             late_return = :late_return
          WHERE id = :id'
     );
     $stmt->execute([
         ':actual_return_date' => $returnedAt ? date('Y-m-d H:i:s', strtotime($returnedAt)) : date('Y-m-d H:i:s'),
         ':return_processed_by' => $returnProcessedBy,
+        ':late_return' => $isLate ? 1 : 0,
         ':id' => $id,
     ]);
 
