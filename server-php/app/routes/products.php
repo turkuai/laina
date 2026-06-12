@@ -39,6 +39,7 @@ function handle_products_route(string $method, ?string $id, PDO $pdo): void
 function list_products(PDO $pdo): void
 {
     $search = $_GET['search'] ?? null;
+    $status = $_GET['status'] ?? null;
 
     $sql = '
         SELECT 
@@ -64,7 +65,6 @@ function list_products(PDO $pdo): void
     ';
 
     if ($search && trim($search) !== '') {
-        // Match by any visible column in the grid
         $sql .= '
           AND (
             p.product_name      LIKE :s1
@@ -76,6 +76,10 @@ function list_products(PDO $pdo): void
             OR p.qr_code        LIKE :s7
           )
         ';
+    }
+
+    if ($status && in_array($status, ['available', 'borrowed'])) {
+        $sql .= ' AND p.status = :status';
     }
 
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -98,6 +102,10 @@ function list_products(PDO $pdo): void
         $stmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
         $stmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
     }
+
+    if ($status && in_array($status, ['available', 'borrowed'])) {
+        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+    }
     
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -105,7 +113,6 @@ function list_products(PDO $pdo): void
     $stmt->execute();
     $rows = $stmt->fetchAll();
 
-    // Count query to get total results
     $countSql = '
         SELECT COUNT(*) 
         FROM products p
@@ -127,6 +134,10 @@ function list_products(PDO $pdo): void
           )
         ';
     }
+    if ($status && in_array($status, ['available', 'borrowed'])) {
+        $countSql .= ' AND p.status = :status';
+    }
+
     $countStmt = $pdo->prepare($countSql);
     if ($search && trim($search) !== '') {
         $searchParam = '%' . trim($search) . '%';
@@ -137,6 +148,9 @@ function list_products(PDO $pdo): void
         $countStmt->bindValue(':s5', $searchParam, PDO::PARAM_STR);
         $countStmt->bindValue(':s6', $searchParam, PDO::PARAM_STR);
         $countStmt->bindValue(':s7', $searchParam, PDO::PARAM_STR);
+    }
+    if ($status && in_array($status, ['available', 'borrowed'])) {
+        $countStmt->bindValue(':status', $status, PDO::PARAM_STR);
     }
     $countStmt->execute();
     $totalItems = (int)$countStmt->fetchColumn();
@@ -241,7 +255,6 @@ function update_product(PDO $pdo, string $id): void
         json_response(['error' => 'Invalid JSON body'], 400);
     }
 
-    // Fetch existing product
     $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $product = $stmt->fetch();
@@ -250,20 +263,16 @@ function update_product(PDO $pdo, string $id): void
         json_response(['error' => 'Product not found'], 404);
     }
 
-    // Map incoming payload fields to real DB columns
-    // NOTE: status is NOT updatable - it's managed by SQL triggers based on borrow_history
     $productName   = $input['product_name']    ?? $product['product_name'];
     $deviceTypeId  = $input['device_type_id']  ?? $product['device_type_id'];
     $purchaseDate  = $input['purchase_date']   ?? $product['purchase_date'];
     $locationId    = array_key_exists('location_id', $input)
         ? $input['location_id']
         : $product['location_id'];
-    // Status is managed by triggers - always use current DB value, ignore any input
     $details       = array_key_exists('details', $input)
         ? $input['details']
         : $product['details'];
 
-    // Update only editable fields - status is managed by SQL triggers
     $stmt = $pdo->prepare(
         'UPDATE products
          SET product_name   = :product_name,
@@ -283,7 +292,6 @@ function update_product(PDO $pdo, string $id): void
         ':id'             => $id,
     ]);
 
-    // Fetch updated product to get current status (which may have been changed by triggers)
     $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $updatedProduct = $stmt->fetch();
@@ -294,14 +302,13 @@ function update_product(PDO $pdo, string $id): void
         'device_type_id' => $deviceTypeId,
         'purchase_date'  => $purchaseDate,
         'location_id'    => $locationId,
-        'status'         => $updatedProduct['status'], // Get current status from DB (managed by triggers)
+        'status'         => $updatedProduct['status'],
         'details'        => $details,
     ]);
 }
 
 function delete_product(PDO $pdo, string $id): void
 {
-    // Ensure product exists + get current status
     $stmt = $pdo->prepare('SELECT id, status FROM products WHERE id = :id');
     $stmt->execute([':id' => $id]);
     $product = $stmt->fetch();
@@ -310,8 +317,6 @@ function delete_product(PDO $pdo, string $id): void
         json_response(['error' => 'Product not found'], 404);
     }
 
-    // Block deletion if the product is currently borrowed (active borrow record)
-    // We check both the status column and borrow_history to be safe.
     if (($product['status'] ?? null) === 'borrowed') {
         json_response([
             'error' => 'Cannot delete product because it is currently borrowed. Return it first.'
@@ -333,7 +338,6 @@ function delete_product(PDO $pdo, string $id): void
         ], 409);
     }
 
-    // Soft delete: mark product as hidden instead of removing it
     $stmt = $pdo->prepare(
         'UPDATE products
          SET flag = :flag
@@ -346,4 +350,3 @@ function delete_product(PDO $pdo, string $id): void
 
     json_response(['success' => true, 'flag' => 'hidden']);
 }
-
