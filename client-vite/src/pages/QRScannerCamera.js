@@ -6,6 +6,13 @@ import './QRScannerCamera.css';
 const QRScannerCamera = ({ onScan, onClose }) => {
   const [cameraError, setCameraError] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [manualCode, setManualCode] = useState('');
+
+  const handleManualSubmit = () => {
+    const code = manualCode.trim();
+    if (!code) return;
+    onScan(JSON.stringify({ qr_code: code }));
+  };
 
   const handleScanSuccess = (result) => {
     if (result && result[0]) {
@@ -19,11 +26,9 @@ const QRScannerCamera = ({ onScan, onClose }) => {
   };
 
   const handleCloseAttempt = () => {
-    // If camera had error, show warning popup
     if (cameraError) {
       setShowErrorPopup(true);
     } else {
-      // Camera worked fine, close normally
       onClose();
     }
   };
@@ -35,23 +40,17 @@ const QRScannerCamera = ({ onScan, onClose }) => {
 
   return (
     <div className="camera-overlay">
-      {/* Close button */}
       <button onClick={handleCloseAttempt} className="camera-close-btn">
         <X className="w-8 h-8" />
       </button>
 
-      {/* Scanner - Always show */}
       <div className="scanner-container">
         <div className="scanner-frame">
-          {/* Corner decorations */}
           <div className="scanner-corner corner-tl"></div>
           <div className="scanner-corner corner-tr"></div>
           <div className="scanner-corner corner-bl"></div>
           <div className="scanner-corner corner-br"></div>
-          
-          {/* Scanning line animation */}
           <div className="scanning-line"></div>
-          
           <Scanner
             onScan={handleScanSuccess}
             onError={handleError}
@@ -59,18 +58,32 @@ const QRScannerCamera = ({ onScan, onClose }) => {
             components={{ torch: false }}
           />
         </div>
-        
+
         <div className="scanner-instructions">
-          <p className="instruction-title">
-            📷 Point camera at QR code
-          </p>
+          <p className="instruction-title">📷 Point camera at QR code</p>
           <p className="instruction-text">
             Align the QR code within the frame for automatic scanning
           </p>
         </div>
+
+        <div className="manual-input-container">
+          <p className="manual-input-label">Or enter code manually</p>
+          <div className="manual-input-row">
+            <input
+              type="text"
+              className="manual-input"
+              placeholder="e.g. 42"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+            />
+            <button className="manual-input-btn" onClick={handleManualSubmit}>
+              OK
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Error Popup - Only shows when X is pressed and camera failed */}
       {showErrorPopup && (
         <div className="error-popup-overlay">
           <div className="error-popup">

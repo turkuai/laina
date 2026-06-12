@@ -26,6 +26,8 @@ export default function HomePage({ productsData }) {
   const navigate = useNavigate();
 
   const [userQuery, setUserQuery] = useState('');
+  const [productsQuery, setProductsQuery] = useState('');
+  const [historyQuery, setHistoryQuery] = useState('');
 
   // State to force refresh of product
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -66,18 +68,31 @@ export default function HomePage({ productsData }) {
 
   // Set default tab based on role
   const [activeTab, setActiveTab] = useState(() => {
+    const urlTab = new URLSearchParams(window.location.search).get('tab');
+    const validTabs = ['history', 'products', 'users', 'settings'];
+    if (urlTab && validTabs.includes(urlTab)) {
+      return urlTab;
+    }
+
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
 
     if (currentUser?.role === "student") {
-      return "history"; // opiskelijan aloitusnäkymä
+      return "history";
     }
 
     if (isMobile) {
-      return "history"; // Default to history on mobile (camera is now a modal)
+      return "history";
     }
 
     return currentUser?.role === "admin" ? "users" : "history";
   });
+
+  // Sync active tab to URL
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', activeTab);
+    window.history.replaceState({}, '', url);
+  }, [activeTab]);
 
   // Track previous isMobile value (no tab reset on resize)
   const prevIsMobileRef = useRef(isMobile);
@@ -135,7 +150,7 @@ export default function HomePage({ productsData }) {
                   key={productsRefreshKey}
                   currentUser={currentUser}
                   productsData={productsData}
-                  query={userQuery}
+                  query={productsQuery}
                 />
               </div>
             </div>
@@ -145,8 +160,8 @@ export default function HomePage({ productsData }) {
           {activeTab === 'history' && (
             <HistoryTab
               currentUser={currentUser}
-              query={userQuery}
-              onQueryChange={setUserQuery}
+              query={historyQuery}
+              onQueryChange={setHistoryQuery}
             />
           )}
 
@@ -224,8 +239,8 @@ export default function HomePage({ productsData }) {
               key={productsRefreshKey}
               currentUser={currentUser}
               productsData={productsData}
-              query={userQuery}
-              onQueryChange={setUserQuery}
+              query={productsQuery}
+              onQueryChange={setProductsQuery}
             />
           </div>
 
@@ -233,8 +248,8 @@ export default function HomePage({ productsData }) {
           <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
             <HistoryTab
               currentUser={currentUser}
-              query={userQuery}
-              onQueryChange={setUserQuery}
+              query={historyQuery}
+              onQueryChange={setHistoryQuery}
             />
           </div>
 
@@ -262,4 +277,3 @@ export default function HomePage({ productsData }) {
     </div >
   );
 }
-

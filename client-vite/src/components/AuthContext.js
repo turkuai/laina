@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser({
             id: data.user.id,
             username: data.user.username,
+            email: data.user.email,
             name: data.user.displayName,
             role: data.user.role,
           });
@@ -50,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function - now with rememberMe parameter for httpOnly cookie
-  const login = async (username, password, rememberMe = false) => {
+  const login = async (email, password, rememberMe) => {
     try {
       const response = await fetch(`${getApiBase()}/api/users/login`, {
         method: 'POST',
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password, rememberMe }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
 
       const data = await response.json();
@@ -72,7 +73,6 @@ export const AuthProvider = ({ children }) => {
 
       const safeUser = {
         id: data.user.id,
-        username: data.user.username,
         name: data.user.displayName,
         role: data.user.role
       };
