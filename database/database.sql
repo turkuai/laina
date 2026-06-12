@@ -324,6 +324,10 @@ ALTER TABLE `borrow_history`
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`device_type_id`) REFERENCES `device_types` (`id`),
   ADD CONSTRAINT `products_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `locations` (`id`);
+-- Add late_return flag to borrow_history
+--
+ALTER TABLE `borrow_history` ADD COLUMN `late_return` TINYINT(1) NOT NULL DEFAULT 0;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
