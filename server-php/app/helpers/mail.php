@@ -71,3 +71,55 @@ function send_verification_email(string $toEmail, string $verifyLink): bool
     $mail->send();
     return true;
 }
+
+function send_overdue_teacher_email(string $toEmail, string $teacherFirstName, string $studentName, string $productName, string $returnDate): bool
+{
+    if (empty($_ENV['SMTP_HOST']) || empty($_ENV['SMTP_USER']) || empty($_ENV['SMTP_PASS'])) {
+        return false;
+    }
+
+    require dirname(__DIR__, 2) . '/vendor/autoload.php';
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $_ENV['SMTP_HOST'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $_ENV['SMTP_USER'];
+    $mail->Password = $_ENV['SMTP_PASS'];
+    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Port = (int)($_ENV['SMTP_PORT'] ?? 465);
+
+    $mail->setFrom($_ENV['SMTP_FROM'] ?? $_ENV['SMTP_USER'], $_ENV['SMTP_FROM_NAME'] ?? 'App');
+    $mail->addAddress($toEmail);
+    $mail->Subject = 'Myöhästynyt palautus: ' . $productName;
+    $mail->Body = "Hei {$teacherFirstName},\n\nOppilas {$studentName} ei ole palauttanut laitetta {$productName}.\nPalautuspäivä oli {$returnDate}.\n";
+
+    $mail->send();
+    return true;
+}
+
+function send_return_reminder_email(string $toEmail, string $firstName, string $productName, string $returnDate): bool
+{
+    if (empty($_ENV['SMTP_HOST']) || empty($_ENV['SMTP_USER']) || empty($_ENV['SMTP_PASS'])) {
+        return false;
+    }
+
+    require dirname(__DIR__, 2) . '/vendor/autoload.php';
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $_ENV['SMTP_HOST'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $_ENV['SMTP_USER'];
+    $mail->Password = $_ENV['SMTP_PASS'];
+    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Port = (int)($_ENV['SMTP_PORT'] ?? 465);
+
+    $mail->setFrom($_ENV['SMTP_FROM'] ?? $_ENV['SMTP_USER'], $_ENV['SMTP_FROM_NAME'] ?? 'App');
+    $mail->addAddress($toEmail);
+    $mail->Subject = 'Muistutus: Laitteen palautus';
+    $mail->Body = "Hei {$firstName},\n\nMuistutus: {$productName} tulee palauttaa {$returnDate}.\n";
+
+    $mail->send();
+    return true;
+}

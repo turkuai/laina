@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Products.css";
 import ServerGrid from "../components/ServerGrid";
 import QRCodeRenderer from "../components/QRCodeRenderer";
@@ -46,7 +46,6 @@ const ProductModal = ({ product, onClose }) => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error generating QR code with info:", error);
-      // Use window-level notification event to avoid hook usage inside nested component
       const event = new CustomEvent("app-notification", {
         detail: {
           message: "Failed to download QR code. Please try again.",
@@ -135,17 +134,6 @@ const ProductModal = ({ product, onClose }) => {
   );
 };
 
-// Generate a unique 45-character hash
-const generateHash = () => {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let hash = "";
-  for (let i = 0; i < 45; i++) {
-    hash += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return hash;
-};
-
 export default function Products({ currentUser }) {
   const [activeSubTab, setActiveSubTab] = useState("products");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -177,14 +165,12 @@ export default function Products({ currentUser }) {
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
-  // Detect mobile screen size
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Sync edit form when opening edit modal
   useEffect(() => {
     if (editingProduct) {
       setEditFormData({
@@ -197,7 +183,6 @@ export default function Products({ currentUser }) {
     }
   }, [editingProduct]);
 
-  // Fetch all data on component mount and when refresh event is triggered
   useEffect(() => {
     loadAllData();
 
@@ -214,7 +199,6 @@ export default function Products({ currentUser }) {
     setError(null);
 
     try {
-      // Fetch products, device types, and locations in parallel
       const base = getApiBase();
       const [productsRes, typesRes, locationsRes] = await Promise.all([
         fetch(`${base}/api/products?page=1`, {
@@ -239,7 +223,6 @@ export default function Products({ currentUser }) {
       const typesData = await typesRes.json();
       const locationsData = await locationsRes.json();
 
-      // Handle different response formats
       const normalizeList = (data, keys) => {
         if (Array.isArray(data)) return data;
         for (const key of keys) {
@@ -286,15 +269,13 @@ export default function Products({ currentUser }) {
           : null,
         status: formData.status,
         details: formData.details || null,
-        qr_code: generateHash(), // Generate hash once and send to database
+        qr_code: null,
       };
 
       const response = await fetch(`${getApiBase()}/api/products`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newProduct),
       });
 
@@ -303,7 +284,16 @@ export default function Products({ currentUser }) {
         throw new Error(errorData.error || "Failed to add product");
       }
 
-      // Reload products from database
+      const created = await response.json();
+      const newId = created.id;
+
+      await fetch(`${getApiBase()}/api/products/${newId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_code: String(newId) }),
+      });
+
       await loadAllData();
 
       setFormData({
@@ -316,7 +306,7 @@ export default function Products({ currentUser }) {
       });
       setShowAddForm(false);
       showNotification(
-        `Product "${formData.product_name}" added successfully and saved to database with unique hash!`,
+        `Product "${formData.product_name}" added successfully!`,
         "success",
       );
     } catch (err) {
@@ -348,13 +338,10 @@ export default function Products({ currentUser }) {
         try {
           const data = await response.json();
           msg = data.error || data.message || msg;
-        } catch (_) {
-          // ignore json parse error
-        }
+        } catch (_) {}
         throw new Error(msg);
       }
 
-      // Reload products from database
       await loadAllData();
       showNotification(
         `Product "${product.product_name}" deleted from database.`,
@@ -363,8 +350,7 @@ export default function Products({ currentUser }) {
     } catch (err) {
       console.error("Error deleting product:", err);
       showNotification(
-        err.message ||
-          "Failed to delete product. Please make sure the server is running.",
+        err.message || "Failed to delete product. Please make sure the server is running.",
         "error",
       );
     }
@@ -426,7 +412,6 @@ export default function Products({ currentUser }) {
         p.type_name.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
-  // Custom status renderer for colored badges
   const renderStatus = (status) => {
     return (
       <span className={`status-badge status-${status}`}>
@@ -838,7 +823,9 @@ export default function Products({ currentUser }) {
             />
           </svg>
           <input
-            type="text"
+            type="search"
+            autoComplete="off"
+            name="products-search"
             placeholder="Search products."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
